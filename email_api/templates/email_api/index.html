@@ -1,0 +1,487 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Play & Learn — Kodikids</title>
+  <style>
+    :root{
+      --accent:#2b7cff;
+      --dark:#0b1724;
+      --muted:#5a6b7a;
+      --bg:#f6f8fb;
+      --glass: rgba(255,255,255,0.9);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      color:var(--dark);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+    }
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+
+    /* Ensure header/nav are above canvas and interactive */
+    header{
+      background:var(--glass);
+      backdrop-filter: blur(6px);
+      border-bottom:1px solid #e6eef7;
+      position:sticky;
+      top:0;
+      z-index:10020;           /* raised to ensure header is above hero */
+    }
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--accent)}
+    .brand .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7ab3ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:0 0 44px;overflow:hidden}
+    .brand .logo img{width:100%;height:100%;display:block;object-fit:contain;border-radius:8px}
+    nav{position:relative; z-index:10015;} /* above most content */
+
+    /* Desktop nav */
+    nav ul{list-style:none;margin:0;padding:0;display:flex;gap:18px;align-items:center; z-index:10016}
+    nav a{color:var(--dark);text-decoration:none;padding:8px 8px;border-radius:8px;display:inline-block}
+    nav a:focus{outline:2px solid rgba(43,124,255,0.2);outline-offset:2px}
+    nav a:hover{background:#b3ceec}
+    .cta{
+      background:var(--accent);
+      color:#fff;
+      padding:8px 12px;
+      border-radius:8px;
+      text-decoration:none;
+      transition: background .18s ease, box-shadow .18s ease;
+    }
+    .cta:hover,
+    .cta:focus,
+    .cta:focus-visible{
+      background:#1558d6;
+      box-shadow:0 8px 24px rgba(21,88,214,0.12);
+      outline:none;
+    }
+    .submenu{position:relative}
+    .submenu-toggle{background:transparent;border:0;color:inherit;padding:8px 8px;border-radius:8px;font:inherit;cursor:pointer}
+    .submenu-toggle:focus{outline:2px solid rgba(43,124,255,0.15)}
+    .submenu-list{position:absolute;left:0;top:calc(100% + 8px);background:#fff;border:1px solid #e6eef7;border-radius:8px;padding:8px 0;box-shadow:0 8px 30px rgba(12,40,80,0.08);display:none;min-width:200px;z-index:10100}
+    .submenu-list a{display:block;padding:8px 14px;color:var(--dark)}
+    @media (pointer: fine){
+      .submenu:hover .submenu-list,
+      .submenu:focus-within .submenu-list { display:block; }
+    }
+
+    /* Mobile */
+    .hamburger{display:none;background:transparent;border:0;font-size:22px;cursor:pointer;line-height:1;padding:6px;border-radius:6px;z-index:10030;touch-action:manipulation} /* highest to be clickable */
+    @media (max-width:900px){
+      .hamburger{display:inline-flex;align-items:center;justify-content:center}
+      nav ul{
+        position:fixed;right:0;top:64px;flex-direction:column;background:#fff;padding:12px;border-left:1px solid #e6eef7;
+        box-shadow:-8px 0 30px rgba(12,40,80,0.08);display:none;min-width:230px;height:calc(100vh - 64px);overflow:auto;z-index:10025;
+        transition:transform .22s ease,opacity .22s ease;
+      }
+      nav ul.open{display:flex}
+      .submenu-list{position:static;border:none;box-shadow:none;padding-left:8px}
+      .submenu-list a{padding-left:22px}
+    }
+
+    /* Hero + cards */
+    .hero{display:flex;gap:20px;align-items:center;padding:36px 0}
+    .hero h1{margin:0;font-size:28px}
+    #hero-title{ color: #ffffff;}
+    #hero-lead{ color: #bbdaf5; font-weight:600; }
+    .hero p{margin:8px 0 0;color:var(--muted)}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+    .card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(12,40,80,0.04);position:relative;overflow:hidden}
+    @media (max-width:900px){.cards{grid-template-columns:repeat(2,1fr)} .hero{flex-direction:column}}
+    @media (max-width:600px){.cards{grid-template-columns:1fr}}
+    footer{padding:24px 0;color:var(--muted);text-align:center;font-size:14px}
+
+    /* Flip card styles - keep min height so cards stay visible */
+    .card.flip { perspective: 900px; padding:16px; min-height:140px; }
+    .card.flip .card-inner{
+      position:relative;
+      width:100%;
+      height:100%;
+      min-height:108px;
+      transition: transform .6s cubic-bezier(.2,.9,.3,1);
+      transform-style:preserve-3d;
+    }
+    .card.flip:hover .card-inner,
+    .card.flip:focus-within .card-inner{
+      transform: rotateY(180deg);
+    }
+    .card.flip .card-face{
+      position:absolute;
+      inset:0;
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:16px;
+      border-radius:12px;
+      box-sizing:border-box;
+    }
+    .card.flip .card-front{ background:#fff; z-index:2; }
+    .card.flip .card-back{
+      background: linear-gradient(180deg,#f7fbff,#ffffff);
+      transform: rotateY(180deg);
+      color:var(--dark);
+      text-align:center;
+    }
+    .card.flip .card-back h3{ margin:0 0 8px 0; font-size:18px; }
+    .card.flip .card-back p{ margin:0; color:var(--muted); font-weight:600; }
+
+    /* hero background (image + decorative fallback) */
+    .hero-background{
+      flex:1 1 50%;
+      min-height:240px;
+      border-radius:12px;
+      padding:22px;
+      color:var(--dark);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      background-color:#eaf3ff;
+      background-image:
+        url("{% static 'email_api/kodikids_bck_hero.PNG' %}"),
+        radial-gradient(600px 300px at 10% 20%, rgba(43,124,255,0.12), transparent 20%),
+        radial-gradient(500px 240px at 90% 80%, rgba(122,240,179,0.09), transparent 18%),
+        linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.2));
+      background-size: cover, 600px 300px, 500px 240px, cover;
+      background-position: center, 10% 20%, 90% 80%, center;
+      background-repeat: no-repeat;
+      box-shadow: 0 6px 18px rgba(12,40,80,0.04);
+      overflow:hidden;
+      position:relative;
+    }
+    .hero-background::after{
+      content:"";
+      position:absolute;
+      left:0;right:0;bottom:0;height:40%;
+      pointer-events:none;
+      background:linear-gradient(180deg, rgba(255,255,255,0.0), rgba(255,255,255,0.6));
+      border-bottom-left-radius:12px;
+      border-bottom-right-radius:12px;
+    }
+
+    /* hero canvas wrapper specifics */
+    .hero-canvas-wrapper{position:relative;min-height:240px;border-radius:12px;overflow:hidden}
+    /* ensure decorative layers never capture pointer events */
+    .hero-canvas-wrapper canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;}
+    .hero-decor-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+    .hero-overlay{position:relative;z-index:1;padding:18px;display:flex;flex-direction:column;justify-content:center;min-height:240px;pointer-events:auto}
+
+    /* rotating title transition */
+    #rotating-title{ transition:opacity .38s ease; display:block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav-inner">
+      <a class="brand" href="/">
+        <div class="logo">
+           <img src="{% static 'email_api/logo.png' %}" alt="KodiKids logo" />
+        </div>
+        <div>
+          <div style="font-weight:700">KodiKids</div>
+          <small style="color:var(--muted);font-weight:600">Coding, Robot & IA</small>
+        </div>
+      </a>
+
+      <nav>
+        <button type="button" id="hamburger" class="hamburger" aria-controls="main-nav" aria-expanded="false" aria-label="Ouvrir le menu">☰</button>
+
+        <ul id="main-nav" role="menubar" aria-hidden="false">
+          <li role="none"><a role="menuitem" href="/">Accueil</a></li>
+          <li role="none"><a role="menuitem" href="/api/courses/">Courses</a></li>
+          <li role="none"><a role="menuitem" href="/api/training/">Training</a></li>
+
+          <li class="submenu" role="none">
+            <button class="submenu-toggle" aria-haspopup="true" aria-expanded="false" id="playToggle">Play & Learn ▾</button>
+            <div class="submenu-list" id="submenu" role="menu" aria-label="Play and learn submenu">
+              <a role="menuitem" href="/play/learn-by-coding/">Learn by coding</a>
+              <a role="menuitem" href="/play/learn-with-ia/">Learn with IA</a>
+              <a role="menuitem" href="/play/learn-with-games/">Learn with games</a>
+            </div>
+          </li>
+
+          <li role="none"><a role="menuitem" class="cta" href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-background">
+        <h1 id="hero-title">Apprenez à coder et piloter des robots — enfants & adultes</h1>
+        <p id="hero-lead">Parcours ludiques et ateliers pratiques : programmation, IA, jeux éducatifs et robotique.</p>
+        <p  style="margin-top:14px"><a class="cta" href="/play/learn-by-coding/">Commencer</a></p>
+      </div>
+
+      <div class="hero-canvas-wrapper" aria-hidden="false" style="flex:1">
+        <div class="hero-decor-bg" aria-hidden="true"></div>
+        <canvas id="hero-canvas" role="img" aria-label="Animation de points connectés"></canvas>
+
+        <div class="hero-overlay" aria-hidden="false">
+          <h2 id="rotating-title" style="margin:0;font-size:20px;opacity:1">Robot & IA Learning</h2>
+          <p id="rotating-sub" style="margin:8px 0 0;color:var(--muted)">Projets visuels et interactifs pour tous.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards" aria-label="programmes">
+      <!-- card 1 -->
+      <div class="card flip" tabindex="0" aria-labelledby="card1-title">
+        <div class="card-inner">
+          <div class="card-face card-front" aria-hidden="false">
+            <h3 id="card1-title">Apprendre à coder</h3>
+            <p>Ateliers pas à pas adaptés aux débutants et aux enfants.</p>
+          </div>
+          <div class="card-face card-back" aria-hidden="true">
+            <h3>Programmer avec</h3>
+            <p>JavaScript, JS & Scratch</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- card 2 (flip) -->
+      <div class="card flip" tabindex="0" aria-labelledby="card2-title">
+        <div class="card-inner">
+          <div class="card-face card-front" aria-hidden="false">
+            <h3 id="card2-title">IA pour tous</h3>
+            <p>Initiation aux concepts d'IA avec projets simples et visuels.</p>
+          </div>
+          <div class="card-face card-back" aria-hidden="true">
+            <h3>Atelier IA</h3>
+            <p>Mini-projets ML visuels — Python, notebooks & TinyML</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- card 3 (flip) -->
+      <div class="card flip" tabindex="0" aria-labelledby="card3-title">
+        <div class="card-inner">
+          <div class="card-face card-front" aria-hidden="false">
+            <h3 id="card3-title">Robots et jeux</h3>
+            <p>Programmez des robots et apprenez en jouant.</p>
+          </div>
+          <div class="card-face card-back" aria-hidden="true">
+            <h3>Défis robotiques</h3>
+            <p>Construisez des missions: Arduino, Blockly et challenges interactifs</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      © Play & Learn — Enseignement de la programmation, des robots et de l'IA
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      // NAV / submenu logic (robust cross-browser)
+      const hamb = document.getElementById('hamburger');
+      const nav = document.getElementById('main-nav');
+      const playToggle = document.getElementById('playToggle');
+      const submenu = document.getElementById('submenu');
+
+      function setExpanded(el, v){ if(!el) return; el.setAttribute('aria-expanded', v ? 'true' : 'false'); }
+
+      function toggleNav(e){
+        if(e) e.preventDefault();
+        if(!nav) return;
+        const open = nav.classList.toggle('open');
+        setExpanded(hamb, open);
+        if(!open && submenu){ submenu.style.display=''; setExpanded(playToggle,false); }
+      }
+      if(hamb){
+        hamb.addEventListener('click', toggleNav);
+        hamb.addEventListener('touchstart', function(e){ e.preventDefault(); toggleNav(e); }, {passive:false});
+      }
+
+      function toggleSubmenu(e){
+        if(!submenu || !playToggle) return;
+        const isDesktop = window.matchMedia('(pointer: fine) and (min-width:901px)').matches;
+        if(isDesktop){
+          const visible = submenu.style.display === 'block' || submenu.matches(':hover') || submenu.matches(':focus-within');
+          setExpanded(playToggle, visible);
+          return;
+        }
+        if(e) e.preventDefault();
+        const open = submenu.style.display === 'block';
+        submenu.style.display = open ? 'none' : 'block';
+        setExpanded(playToggle, !open);
+      }
+      if(playToggle){
+        playToggle.addEventListener('click', toggleSubmenu);
+        playToggle.addEventListener('keydown', function(e){
+          if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); toggleSubmenu(e); }
+          if(e.key==='Escape'){ submenu.style.display='none'; setExpanded(playToggle,false); playToggle.blur(); }
+        });
+      }
+
+      document.addEventListener('click', function(evt){
+        const t = evt.target;
+        if(window.matchMedia('(max-width:900px)').matches){
+          if(nav && !nav.contains(t) && nav.classList.contains('open')){ nav.classList.remove('open'); setExpanded(hamb,false); }
+          if(submenu && !submenu.contains(t) && playToggle && playToggle !== t){ submenu.style.display='none'; setExpanded(playToggle,false); }
+        }
+      }, true);
+
+      window.addEventListener('resize', function(){
+        if(window.innerWidth > 900){ if(nav){ nav.classList.remove('open'); setExpanded(hamb,false); } if(submenu){ submenu.style.display=''; setExpanded(playToggle,false); } }
+      });
+    })();
+  </script>
+
+  <script>
+  (function(){
+    // Particle + linking animation inside hero canvas
+    const wrapper = document.querySelector('.hero-canvas-wrapper');
+    const canvas = document.getElementById('hero-canvas');
+    if(!wrapper || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    let DPR = Math.max(1, window.devicePixelRatio || 1);
+    const COLORS = ['#2b7cff','#ff7a7a','#7af0b3','#f0d36a'];
+    let particles = [];
+    const MAX_DIST = 140;
+
+    function resize(){
+      DPR = Math.max(1, window.devicePixelRatio || 1);
+      const w = Math.max(200, Math.floor(wrapper.clientWidth));
+      const h = Math.max(120, Math.floor(wrapper.clientHeight));
+      canvas.width = Math.floor(w * DPR);
+      canvas.height = Math.floor(h * DPR);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+
+    function rand(min,max){ return Math.random()*(max-min)+min; }
+
+    function initParticles(){
+      particles = [];
+      const W = wrapper.clientWidth, H = wrapper.clientHeight;
+      const count = Math.min(60, Math.max(18, Math.round(W/35)));
+      for(let i=0;i<count;i++){
+        particles.push({
+          x: rand(0,W),
+          y: rand(0,H),
+          vx: rand(-0.5,0.5),
+          vy: rand(-0.5,0.5),
+          r: rand(2.2,4.6),
+          c: COLORS[i % COLORS.length]
+        });
+      }
+    }
+
+    let mouse = {x:-9999,y:-9999,active:false};
+    wrapper.addEventListener('mousemove', function(e){
+      const r = wrapper.getBoundingClientRect();
+      mouse.x = e.clientX - r.left;
+      mouse.y = e.clientY - r.top;
+      mouse.active = true;
+    });
+    wrapper.addEventListener('touchmove', function(e){
+      const r = wrapper.getBoundingClientRect();
+      const t = e.touches[0];
+      if(t){ mouse.x = t.clientX - r.left; mouse.y = t.clientY - r.top; mouse.active = true; }
+    }, {passive:true});
+    wrapper.addEventListener('mouseleave', function(){ mouse.active=false; mouse.x=-9999; mouse.y=-9999; });
+    window.addEventListener('resize', function(){ resize(); initParticles(); });
+
+    function hexToRgba(hex,a){
+      const h = hex.replace('#','');
+      const bigint = parseInt(h,16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return 'rgba('+r+','+g+','+b+','+(a||1)+')';
+    }
+
+    function step(){
+      const W = wrapper.clientWidth, H = wrapper.clientHeight;
+      ctx.clearRect(0,0,W,H);
+
+      // update
+      for(let p of particles){
+        p.x += p.vx;
+        p.y += p.vy;
+        if(p.x < 0 || p.x > W) p.vx *= -1;
+        if(p.y < 0 || p.y > H) p.vy *= -1;
+        if(mouse.active){
+          const dx = p.x - mouse.x, dy = p.y - mouse.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if(d < 80 && d > 0){
+            p.vx += (dx/d)*0.03;
+            p.vy += (dy/d)*0.03;
+          }
+        }
+      }
+
+      // draw lines
+      for(let i=0;i<particles.length;i++){
+        for(let j=i+1;j<particles.length;j++){
+          const a = particles[i], b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if(d < MAX_DIST){
+            const alpha = 1 - d / MAX_DIST;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            const grad = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+            grad.addColorStop(0, hexToRgba(a.c, 0.9*alpha));
+            grad.addColorStop(1, hexToRgba(b.c, 0.9*alpha));
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 0.8 + alpha*1.2;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // draw points
+      for(let p of particles){
+        ctx.beginPath();
+        ctx.fillStyle = p.c;
+        ctx.globalAlpha = 0.95;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    // init
+    resize();
+    initParticles();
+    requestAnimationFrame(step);
+  })();
+  </script>
+
+  <script>
+  (function(){
+    // rotating title: Robot & IA Learning -> Play and Learning -> Coding games
+    const titles = ['Robot & IA Learning', 'Play and Learning', 'Coding games'];
+    const el = document.getElementById('rotating-title');
+    if(!el) return;
+    let idx = 0;
+    const interval = 2600;
+    function showNext(){
+      el.style.opacity = '0';
+      setTimeout(()=>{
+        idx = (idx + 1) % titles.length;
+        el.textContent = titles[idx];
+        el.style.opacity = '1';
+      }, 420);
+    }
+    // start after a short delay
+    setTimeout(()=>{ setInterval(showNext, interval); }, interval);
+  })();
+  </script>
+</body>
+</html>
