@@ -68,7 +68,7 @@
 
             const emailData = { recipient, subject, message };
             // IMPORTANT: This URL must match your running Django server address and path
-            const apiUrl = 'http://127.0.0.1:8000/api/send-email/';
+            const apiUrl = 'https://hassen86naghmouchi.pythonanywhere.com/api/send-email/';
 
             try {
                 const response = await fetch(apiUrl, {
