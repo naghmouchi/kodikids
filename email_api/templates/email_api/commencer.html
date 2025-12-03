@@ -1,0 +1,355 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Commencer — Kodikids</title>
+  <style>
+    :root{
+      --accent:#2b7cff;
+      --dark:#0b1724;
+      --muted:#5a6b7a;
+      --bg:#f6f8fb;
+      --glass: rgba(255,255,255,0.9);
+    }
+    html { scroll-behavior: smooth; }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      color:var(--dark);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+    }
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+
+    /* Ensure header/nav are above canvas and interactive */
+    header{
+      background:var(--glass);
+      backdrop-filter: blur(6px);
+      border-bottom:1px solid #e6eef7;
+      position:sticky;
+      top:0;
+      z-index:10020;           /* raised to ensure header is above hero */
+    }
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--accent)}
+    .brand .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7ab3ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:0 0 44px;overflow:hidden}
+    .brand .logo img{width:100%;height:100%;display:block;object-fit:contain;border-radius:8px}
+    nav{position:relative; z-index:10015;} /* above most content */
+
+    /* Desktop nav */
+    nav ul{list-style:none;margin:0;padding:0;display:flex;gap:18px;align-items:center; z-index:10016}
+    nav a{color:var(--dark);text-decoration:none;padding:8px 8px;border-radius:8px;display:inline-block}
+    nav a:focus{outline:2px solid rgba(43,124,255,0.2);outline-offset:2px}
+    nav a:hover{background:#b3ceec}
+    .cta{
+      background:var(--accent);
+      color:#fff;
+      padding:8px 12px;
+      border-radius:8px;
+      text-decoration:none;
+      transition: background .18s ease, box-shadow .18s ease;
+    }
+    .cta:hover,
+    .cta:focus,
+    .cta:focus-visible{
+      background:#1558d6;
+      box-shadow:0 8px 24px rgba(21,88,214,0.12);
+      outline:none;
+    }
+    .submenu{position:relative}
+    .submenu-toggle{background:transparent;border:0;color:inherit;padding:8px 8px;border-radius:8px;font:inherit;cursor:pointer}
+    .submenu-toggle:focus{outline:2px solid rgba(43,124,255,0.15)}
+    .submenu-list{position:absolute;left:0;top:calc(100% + 8px);background:#fff;border:1px solid #e6eef7;border-radius:8px;padding:8px 0;box-shadow:0 8px 30px rgba(12,40,80,0.08);display:none;min-width:200px;z-index:10100}
+    .submenu-list a{display:block;padding:8px 14px;color:var(--dark)}
+    @media (pointer: fine){
+      .submenu:hover .submenu-list,
+      .submenu:focus-within .submenu-list { display:block; }
+    }
+
+    /* Mobile */
+    .hamburger{display:none;background:transparent;border:0;font-size:22px;cursor:pointer;line-height:1;padding:6px;border-radius:6px;z-index:10030;touch-action:manipulation} /* highest to be clickable */
+    @media (max-width:900px){
+      .hamburger{display:inline-flex;align-items:center;justify-content:center}
+      nav ul{
+        position:fixed;right:0;top:64px;flex-direction:column;background:#fff;padding:12px;border-left:1px solid #e6eef7;
+        box-shadow:-8px 0 30px rgba(12,40,80,0.08);display:none;min-width:230px;height:calc(100vh - 64px);overflow:auto;z-index:10025;
+        transition:transform .22s ease,opacity .22s ease;
+      }
+      nav ul.open{display:flex}
+      .submenu-list{position:static;border:none;box-shadow:none;padding-left:8px}
+      .submenu-list a{padding-left:22px}
+    }
+
+    /* Page specific */
+    .page-header { padding: 32px 0; text-align: center; }
+    .page-header h1 { margin: 0 0 8px; font-size: 32px; }
+    .page-header p { color: var(--muted); font-size: 18px; max-width: 600px; margin: 0 auto; }
+
+    /* Cards */
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+    .card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(12,40,80,0.04);position:relative;overflow:hidden}
+    @media (max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:600px){.cards{grid-template-columns:1fr}}
+    footer{padding:24px 0;color:var(--muted);text-align:center;font-size:14px;margin-top:32px;}
+
+    /* Flip card styles - keep min height so cards stay visible */
+    .card.flip { perspective: 900px; padding:16px; min-height:180px; }
+    .card.flip .card-inner{
+      position:relative;
+      width:100%;
+      height:100%;
+      min-height:148px;
+      transition: transform .6s cubic-bezier(.2,.9,.3,1);
+      transform-style:preserve-3d;
+    }
+    .card.flip:hover .card-inner,
+    .card.flip:focus-within .card-inner{
+      transform: rotateY(180deg);
+    }
+    .card.flip .card-face{
+      position:absolute;
+      inset:0;
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:16px;
+      border-radius:12px;
+      box-sizing:border-box;
+    }
+    .card.flip .card-front{ background:#fff; z-index:2; text-align:center; }
+    .card.flip .card-front h3 { font-size: 22px; color: var(--accent); margin: 0 0 8px; }
+    .card.flip .card-front p { margin: 0; color: var(--muted); }
+    .card.flip .card-back{
+      background: linear-gradient(180deg,#f7fbff,#ffffff);
+      transform: rotateY(180deg);
+      color:var(--dark);
+      text-align:center;
+    }
+    .card.flip .card-back h3{ margin:0 0 8px 0; font-size:18px; }
+    .card.flip .card-back p{ margin:0; color:var(--muted); font-weight:600; }
+
+    /* Section de détails (apparaît au clic) */
+    .details-section {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(12,40,80,0.06);
+      margin-top: 40px;
+      /* Animation: masqué par défaut */
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      padding: 0 24px;
+      transition: all .6s cubic-bezier(.22, .61, .36, 1);
+      border: 1px solid transparent;
+    }
+    /* Style quand la section est ciblée par l'URL (#...) */
+    .details-section:target {
+      opacity: 1;
+      max-height: 1000px; /* Assez grand pour contenir le contenu */
+      padding: 32px 24px;
+      border-color: #e6eef7;
+    }
+    .details-section h2 {
+      margin-top: 0;
+      color: var(--accent);
+      text-align: center;
+    }
+    .details-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .details-options a {
+      text-align: center;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 8px;
+    }
+    @media (max-width: 700px) { .details-options { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav-inner">
+      <a class="brand" href="/">
+        <div class="logo">
+           <img src="{% static 'email_api/logo.png' %}" alt="KodiKids logo" />
+        </div>
+        <div>
+          <div style="font-weight:700">KodiKids</div>
+          <small style="color:var(--muted);font-weight:600">Coding, Robot & IA</small>
+        </div>
+      </a>
+
+      <nav>
+        <button type="button" id="hamburger" class="hamburger" aria-controls="main-nav" aria-expanded="false" aria-label="Ouvrir le menu">☰</button>
+
+        <ul id="main-nav" role="menubar" aria-hidden="false">
+          <li role="none"><a role="menuitem" href="/">Accueil</a></li>
+          <li role="none"><a role="menuitem" href="/api/courses/">Courses</a></li>
+          <li role="none"><a role="menuitem" href="/api/training/">Training</a></li>
+
+          <li class="submenu" role="none">
+            <button class="submenu-toggle" aria-haspopup="true" aria-expanded="false" id="playToggle">Play & Learn ▾</button>
+            <div class="submenu-list" id="submenu" role="menu" aria-label="Play and learn submenu">
+              <a role="menuitem" href="/play/learn-by-coding/">Learn by coding</a>
+              <a role="menuitem" href="/play/learn-with-ia/">Learn with IA</a>
+              <a role="menuitem" href="/play/learn-with-games/">Learn with games</a>
+            </div>
+          </li>
+
+          <li role="none"><a role="menuitem" class="cta" href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="main">
+    <div class="page-header">
+        <h1>Commencez votre parcours</h1>
+        <p>Choisissez un domaine pour explorer nos ateliers et commencer à apprendre dès aujourd'hui.</p>
+    </div>
+
+    <section class="cards" aria-label="Domaines d'apprentissage">
+      <!-- Card 1 -->
+      <a href="#section-communication" class="card flip" tabindex="0" aria-labelledby="card1-title" style="text-decoration: none;">
+        <div class="card-inner">
+          <div class="card-face card-front" aria-hidden="false">
+            <h3 id="card1-title">Communication et Présentation</h3>
+            <p>Maîtrisez l'art de présenter vos projets et de communiquer efficacement vos idées.</p>
+          </div>
+          <div class="card-face card-back" aria-hidden="true">
+            <h3>Outils et techniques</h3>
+            <p>Pitch, Storytelling, Design de présentation, Prise de parole en public.</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 2 -->
+      <a href="#section-ia" class="card flip" tabindex="0" aria-labelledby="card2-title" style="text-decoration: none;">
+        <div class="card-inner">
+          <div class="card-face card-front" aria-hidden="false">
+            <h3 id="card2-title">IA, Coding & Apps Mobiles</h3>
+            <p>Plongez dans le code, l'IA et créez vos propres applications.</p>
+          </div>
+          <div class="card-face card-back" aria-hidden="true">
+            <h3>Technologies</h3>
+            <p>Python, JavaScript, Swift/Kotlin, TensorFlow, Scikit-learn.</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 3 -->
+      <a href="#section-robotique" class="card flip" tabindex="0" aria-labelledby="card3-title" style="text-decoration: none;">
+        <div class="card-inner">
+          <div class="card-face card-front" aria-hidden="false">
+            <h3 id="card3-title">Robotique, Arduino & IoT</h3>
+            <p>Construisez et programmez des objets connectés et des robots interactifs.</p>
+          </div>
+          <div class="card-face card-back" aria-hidden="true">
+            <h3>Plateformes et projets</h3>
+            <p>Arduino, Raspberry Pi, Blockly, Capteurs & Actuateurs, Projets IoT.</p>
+          </div>
+        </div>
+      </a>
+    </section>
+
+    <!-- Sections de détails qui apparaissent au clic -->
+    <section id="section-communication" class="details-section">
+      <h2>Communication et Présentation</h2>
+      <div class="details-options">
+        <a href="#" class="cta">Suivre le cours</a>
+        <a href="#" class="cta">Faire les exercices</a>
+        <a href="#" class="cta">Réserver un cours en ligne</a>
+      </div>
+    </section>
+
+    <section id="section-ia" class="details-section">
+      <h2>IA, Coding & Apps Mobiles</h2>
+      <div class="details-options">
+        <a href="#" class="cta">Suivre le cours</a>
+        <a href="#" class="cta">Faire les exercices</a>
+        <a href="#" class="cta">Réserver un cours en ligne</a>
+      </div>
+    </section>
+
+    <section id="section-robotique" class="details-section">
+      <h2>Robotique, Arduino & IoT</h2>
+      <div class="details-options">
+        <a href="#" class="cta">Suivre le cours</a>
+        <a href="#" class="cta">Faire les exercices</a>
+        <a href="#" class="cta">Réserver un cours en ligne</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      © Play & Learn — Enseignement de la programmation, des robots et de l'IA
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      // NAV / submenu logic (robust cross-browser)
+      const hamb = document.getElementById('hamburger');
+      const nav = document.getElementById('main-nav');
+      const playToggle = document.getElementById('playToggle');
+      const submenu = document.getElementById('submenu');
+
+      function setExpanded(el, v){ if(!el) return; el.setAttribute('aria-expanded', v ? 'true' : 'false'); }
+
+      function toggleNav(e){
+        if(e) e.preventDefault();
+        if(!nav) return;
+        const open = nav.classList.toggle('open');
+        setExpanded(hamb, open);
+        if(!open && submenu){ submenu.style.display=''; setExpanded(playToggle,false); }
+      }
+      if(hamb){
+        hamb.addEventListener('click', toggleNav);
+        hamb.addEventListener('touchstart', function(e){ e.preventDefault(); toggleNav(e); }, {passive:false});
+      }
+
+      function toggleSubmenu(e){
+        if(!submenu || !playToggle) return;
+        const isDesktop = window.matchMedia('(pointer: fine) and (min-width:901px)').matches;
+        if(isDesktop){
+          const visible = submenu.style.display === 'block' || submenu.matches(':hover') || submenu.matches(':focus-within');
+          setExpanded(playToggle, visible);
+          return;
+        }
+        if(e) e.preventDefault();
+        const open = submenu.style.display === 'block';
+        submenu.style.display = open ? 'none' : 'block';
+        setExpanded(playToggle, !open);
+      }
+      if(playToggle){
+        playToggle.addEventListener('click', toggleSubmenu);
+        playToggle.addEventListener('keydown', function(e){
+          if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); toggleSubmenu(e); }
+          if(e.key==='Escape'){ submenu.style.display='none'; setExpanded(playToggle,false); playToggle.blur(); }
+        });
+      }
+
+      document.addEventListener('click', function(evt){
+        const t = evt.target;
+        if(window.matchMedia('(max-width:900px)').matches){
+          if(nav && !nav.contains(t) && nav.classList.contains('open')){ nav.classList.remove('open'); setExpanded(hamb,false); }
+          if(submenu && !submenu.contains(t) && playToggle && playToggle !== t){ submenu.style.display='none'; setExpanded(playToggle,false); }
+        }
+      }, true);
+
+      window.addEventListener('resize', function(){
+        if(window.innerWidth > 900){ if(nav){ nav.classList.remove('open'); setExpanded(hamb,false); } if(submenu){ submenu.style.display=''; setExpanded(playToggle,false); } }
+      });
+    })();
+  </script>
+</body>
+</html>

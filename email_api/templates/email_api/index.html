@@ -173,6 +173,45 @@
     /* rotating title transition */
     #rotating-title{ transition:opacity .38s ease; display:block; }
   </style>
+  <style>
+    /* Carrousel */
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      margin-top: 24px;
+      padding: 0 16px; /* Add padding to container instead of margin on items */
+    }
+    .carousel-track {
+      display: flex;
+      transition: transform 0.4s ease;
+      gap: 16px; /* Use gap for spacing */
+    }
+    .carousel-item {
+      flex-shrink: 0;
+      width: 80%;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(12,40,80,0.04);
+      padding: 16px;
+      text-align: center;
+    }
+    .carousel-item img { max-width: 100%; border-radius: 8px; margin-bottom: 12px; }
+    .carousel-item h3 { color: var(--accent); margin: 8px 0; }
+    .carousel-item p { color: var(--muted); font-size: 14px; }
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(118, 195, 243, 0.8); backdrop-filter: blur(4px);
+      color: var(--dark); border: 1px solid #e6eef7;
+      width: 40px; height: 40px; border-radius: 50%;
+      cursor: pointer; transition: all 0.2s ease; z-index: 10;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .carousel-btn:hover { background: var(--accent); color: #f5f6f8; border-color: var(--accent); }
+    .carousel-btn.prev { left: -4px; }
+    .carousel-btn.next { right: -4px; }
+    @media (min-width: 600px) { .carousel-item { width: calc(50% - 8px); } }
+    @media (min-width: 900px) { .carousel-item { width: calc(33.333% - 11px); } }
+  </style>
 </head>
 <body>
   <header>
@@ -198,7 +237,7 @@
           <li class="submenu" role="none">
             <button class="submenu-toggle" aria-haspopup="true" aria-expanded="false" id="playToggle">Play & Learn ▾</button>
             <div class="submenu-list" id="submenu" role="menu" aria-label="Play and learn submenu">
-              <a role="menuitem" href="/play/learn-by-coding/">Learn by coding</a>
+              <a role="menuitem" href="/api/start/">Learn by coding</a>
               <a role="menuitem" href="/play/learn-with-ia/">Learn with IA</a>
               <a role="menuitem" href="/play/learn-with-games/">Learn with games</a>
             </div>
@@ -215,7 +254,7 @@
       <div class="hero-background">
         <h1 id="hero-title">Apprenez à coder et piloter des robots — enfants & adultes</h1>
         <p id="hero-lead">Parcours ludiques et ateliers pratiques : programmation, IA, jeux éducatifs et robotique.</p>
-        <p  style="margin-top:14px"><a class="cta" href="/play/learn-by-coding/">Commencer</a></p>
+        <p  style="margin-top:14px"><a class="cta" href="/api/start/">Commencer</a></p>
       </div>
 
       <div class="hero-canvas-wrapper" aria-hidden="false" style="flex:1">
@@ -228,6 +267,41 @@
         </div>
       </div>
     </section>
+
+    <div class="container">
+      <h2>Nos fonctionnalités</h2>
+      <div class="carousel">
+        <div class="carousel-track">
+          <div class="carousel-item">
+            <img src="https://via.placeholder.com/300x200/2b7cff/ffffff?text=Code" alt="Apprendre à coder">
+            <h3>Apprendre à coder1</h3>
+            <p>Parcours ludiques et ateliers pas à pas.</p>
+          </div>
+          <div class="carousel-item">
+            <img src="https://via.placeholder.com/300x200/2b7cff/ffffff?text=Code" alt="Apprendre à coder">
+            <h3>Apprendre à coder2</h3>
+            <p>Parcours ludiques et ateliers pas à pas.</p>
+          </div>
+          <div class="carousel-item">
+            <img src="https://via.placeholder.com/300x200/2b7cff/ffffff?text=Code" alt="Apprendre à coder">
+            <h3>Apprendre à coder</h3>
+            <p>Parcours ludiques et ateliers pas à pas.</p>
+          </div>
+          <div class="carousel-item">
+            <img src="https://via.placeholder.com/300x200/7af0b3/0b1724?text=IA" alt="IA pour tous">
+            <h3>IA pour tous</h3>
+            <p>Initiation aux concepts d'IA avec projets visuels.</p>
+          </div>
+          <div class="carousel-item">
+            <img src="https://via.placeholder.com/300x200/ff7a7a/ffffff?text=Robots" alt="Robots et jeux">
+            <h3>Robots et jeux</h3>
+            <p>Programmez des robots et apprenez en jouant.</p>
+          </div>
+        </div>
+        <button class="carousel-btn prev" aria-label="Précédent">&#10094;</button>
+        <button class="carousel-btn next" aria-label="Suivant">&#10095;</button>
+      </div>
+    </div>
 
     <section class="cards" aria-label="programmes">
       <!-- card 1 -->
@@ -481,6 +555,37 @@
     }
     // start after a short delay
     setTimeout(()=>{ setInterval(showNext, interval); }, interval);
+  })();
+  </script>
+
+  <script>
+  (function(){
+    const track = document.querySelector('.carousel-track');
+    if (!track) return;
+
+    const items = track.querySelectorAll('.carousel-item');
+    const prevBtn = document.querySelector('.carousel-btn.prev');
+    const nextBtn = document.querySelector('.carousel-btn.next');
+    let index = 0;
+
+    function getVisibleItems() {
+      if (window.innerWidth >= 900) return 3;
+      if (window.innerWidth >= 600) return 2;
+      return 1;
+    }
+
+    function updateCarousel() {
+      const itemWidth = items[0].offsetWidth;
+      const gap = parseInt(window.getComputedStyle(track).gap) || 16;
+      track.style.transform = `translateX(-${index * (itemWidth + gap)}px)`;
+      prevBtn.style.display = index === 0 ? 'none' : 'flex';
+      nextBtn.style.display = index >= items.length - getVisibleItems() ? 'none' : 'flex';
+    }
+
+    nextBtn.addEventListener('click', () => { if (index < items.length - getVisibleItems()) { index++; updateCarousel(); } });
+    prevBtn.addEventListener('click', () => { if (index > 0) { index--; updateCarousel(); } });
+    window.addEventListener('resize', updateCarousel);
+    updateCarousel(); // Initial call
   })();
   </script>
 </body>

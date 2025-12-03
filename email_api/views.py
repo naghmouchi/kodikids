@@ -17,6 +17,12 @@ def index_page(request):
     """
     return render(request, 'email_api/index.html')
 
+def start_page(request):
+    """
+    Renders the site index / landing page with navigation.
+    """
+    return render(request, 'email_api/commencer.html')
+
 def email_form_page(request):
     """
     Renders the HTML page that contains the JS test form to call the send-email API.
