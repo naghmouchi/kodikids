@@ -44,7 +44,23 @@
     nav a{color:var(--dark);text-decoration:none;padding:8px 8px;border-radius:8px;display:inline-block}
     nav a:focus{outline:2px solid rgba(43,124,255,0.2);outline-offset:2px}
     nav a:hover{background:#b3ceec}
-    .cta{
+
+ .ctabtn{
+      background:#4d73c4; /* Vert */
+      color:#fff;
+      padding:8px 12px;
+      border-radius:8px;
+      text-decoration:none;
+      transition: background .18s ease, box-shadow .18s ease;
+    }
+  .ctabtn:hover,
+  .ctabtn:focus,
+  .ctabtn:focus-visible{
+      background:#1558d6; /* Bleu au survol/focus */
+      box-shadow:0 8px 24px rgba(21,88,214,0.12);
+      outline:none;
+    }
+ .cta{
       background:var(--accent);
       color:#fff;
       padding:8px 12px;
@@ -168,8 +184,8 @@
     .details-options a {
       text-align: center;
       padding: 16px;
-      background: var(--bg);
       border-radius: 8px;
+      text-decoration: none; /* Ajout pour être cohérent avec ctabtn */
     }
     @media (max-width: 700px) { .details-options { grid-template-columns: 1fr; } }
   </style>
@@ -264,27 +280,27 @@
     <section id="section-communication" class="details-section">
       <h2>Communication et Présentation</h2>
       <div class="details-options">
-        <a href="#" class="cta">Suivre le cours</a>
-        <a href="#" class="cta">Faire les exercices</a>
-        <a href="#" class="cta">Réserver un cours en ligne</a>
+        <a href="#" class="ctabtn">Suivre le cours</a>
+        <a href="#" class="ctabtn">Faire les exercices</a>
+        <a href="#" class="ctabtn">Réserver un cours en ligne</a>
       </div>
     </section>
 
     <section id="section-ia" class="details-section">
       <h2>IA, Coding & Apps Mobiles</h2>
       <div class="details-options">
-        <a href="#" class="cta">Suivre le cours</a>
-        <a href="#" class="cta">Faire les exercices</a>
-        <a href="#" class="cta">Réserver un cours en ligne</a>
+        <a href="#" class="ctabtn">Suivre le cours</a>
+        <a href="#" class="ctabtn">Faire les exercices</a>
+        <a href="#" class="ctabtn">Réserver un cours en ligne</a>
       </div>
     </section>
 
     <section id="section-robotique" class="details-section">
       <h2>Robotique, Arduino & IoT</h2>
       <div class="details-options">
-        <a href="#" class="cta">Suivre le cours</a>
-        <a href="#" class="cta">Faire les exercices</a>
-        <a href="#" class="cta">Réserver un cours en ligne</a>
+        <a href="#" class="ctabtn">Suivre le cours</a>
+        <a href="#" class="ctabtn">Faire les exercices</a>
+        <a href="#" class="ctabtn">Réserver un cours en ligne</a>
       </div>
     </section>
   </main>
