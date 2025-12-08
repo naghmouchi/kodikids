@@ -1,0 +1,93 @@
+{% load static %}
+<header>
+  <div class="container nav-inner">
+    <a class="brand" href="/">
+      <div class="logo">
+         <img src="{% static 'email_api/logo.png' %}" alt="KodiKids logo" />
+      </div>
+      <div>
+        <div style="font-weight:700">KodiKids</div>
+        <small style="color:var(--muted);font-weight:600">Coding, Robot & IA</small>
+      </div>
+    </a>
+
+    <nav>
+      <button type="button" id="hamburger" class="hamburger" aria-controls="main-nav" aria-expanded="false" aria-label="Ouvrir le menu">☰</button>
+
+      <ul id="main-nav" role="menubar" aria-hidden="false">
+        <li role="none"><a role="menuitem" href="/">Accueil</a></li>
+        <li role="none"><a role="menuitem" href="/api/courses/">Courses</a></li>
+        <li role="none"><a role="menuitem" href="/api/training/">Training</a></li>
+
+        <li class="submenu" role="none">
+          <button class="submenu-toggle" aria-haspopup="true" aria-expanded="false" id="playToggle">Play & Learn ▾</button>
+          <div class="submenu-list" id="submenu" role="menu" aria-label="Play and learn submenu">
+            <a role="menuitem" href="/api/start/">Learn by coding</a>
+            <a role="menuitem" href="/play/learn-with-ia/">Learn with IA</a>
+            <a role="menuitem" href="/play/learn-with-games/">Learn with games</a>
+          </div>
+        </li>
+
+        <li role="none"><a role="menuitem" class="cta" href="/contact/">Contact</a></li>
+        <li role="none"><button id="lang-switcher" type="button" class="lang-btn" title="Switch language">EN</button></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  (function(){
+    // NAV / submenu logic (robust cross-browser)
+    const hamb = document.getElementById('hamburger');
+    const nav = document.getElementById('main-nav');
+    const playToggle = document.getElementById('playToggle');
+    const submenu = document.getElementById('submenu');
+
+    function setExpanded(el, v){ if(!el) return; el.setAttribute('aria-expanded', v ? 'true' : 'false'); }
+
+    function toggleNav(e){
+      if(e) e.preventDefault();
+      if(!nav) return;
+      const open = nav.classList.toggle('open');
+      setExpanded(hamb, open);
+      if(!open && submenu){ submenu.style.display=''; setExpanded(playToggle,false); }
+    }
+    if(hamb){
+      hamb.addEventListener('click', toggleNav);
+      hamb.addEventListener('touchstart', function(e){ e.preventDefault(); toggleNav(e); }, {passive:false});
+    }
+
+    function toggleSubmenu(e){
+      if(!submenu || !playToggle) return;
+      const isDesktop = window.matchMedia('(pointer: fine) and (min-width:901px)').matches;
+      if(isDesktop){
+        const visible = submenu.style.display === 'block' || submenu.matches(':hover') || submenu.matches(':focus-within');
+        setExpanded(playToggle, visible);
+        return;
+      }
+      if(e) e.preventDefault();
+      const open = submenu.style.display === 'block';
+      submenu.style.display = open ? 'none' : 'block';
+      setExpanded(playToggle, !open);
+    }
+    if(playToggle){
+      playToggle.addEventListener('click', toggleSubmenu);
+      playToggle.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){ e.preventDefault(); toggleSubmenu(e); }
+        if(e.key==='Escape'){ submenu.style.display='none'; setExpanded(playToggle,false); playToggle.blur(); }
+      });
+    }
+
+    document.addEventListener('click', function(evt){
+      const t = evt.target;
+      if(window.matchMedia('(max-width:900px)').matches){
+        if(nav && !nav.contains(t) && nav.classList.contains('open')){ nav.classList.remove('open'); setExpanded(hamb,false); }
+        if(submenu && !submenu.contains(t) && playToggle && playToggle !== t){ submenu.style.display='none'; setExpanded(playToggle,false); }
+      }
+    }, true);
+
+    window.addEventListener('resize', function(){
+      if(window.innerWidth > 900){ if(nav){ nav.classList.remove('open'); setExpanded(hamb,false); } if(submenu){ submenu.style.display=''; setExpanded(playToggle,false); } }
+    });
+  })();
+</script>
