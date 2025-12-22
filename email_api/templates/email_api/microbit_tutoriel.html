@@ -1,0 +1,504 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel Micro:bit — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👾</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #e63022; box-shadow: 0 8px 20px rgba(230, 48, 34, 0.15); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #fff5f5; 
+      border-radius: 16px; border-left: 5px solid #e63022; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: white;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-makecode { background-color: #8e44ad; }
+    .btn-reset { background-color: #636e72; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #ffffff; height: 350px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex; align-items: center; justify-content: center;
+      background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    
+    /* Virtual Micro:bit */
+    .virtual-microbit {
+        width: 260px; height: 200px; background: #333; border-radius: 20px;
+        position: relative; box-shadow: 0 10px 25px rgba(0,0,0, 0.3);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        border-bottom: 8px solid #222;
+    }
+    .virtual-microbit::before { content: 'micro:bit'; position: absolute; top: 15px; left: 15px; font-family: sans-serif; font-weight: bold; color: white; font-size: 14px; }
+    .logo-face { position: absolute; top: 10px; left: 80px; font-size: 20px; }
+    
+    .led-matrix {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+        margin-top: 20px;
+    }
+    .led {
+        width: 12px; height: 12px; background: #550000; border-radius: 2px;
+        box-shadow: inset 0 0 2px rgba(0,0,0,0.5);
+        transition: background 0.1s;
+    }
+    .led.on { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
+
+    .buttons-row {
+        display: flex; justify-content: space-between; width: 100%; padding: 0 20px;
+        position: absolute; top: 50%; transform: translateY(-50%); pointer-events: none;
+    }
+    .mb-btn {
+        width: 30px; height: 30px; background: #000; border: 2px solid #555; border-radius: 50%;
+        cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;
+        color: #777; font-size: 10px; font-weight: bold;
+    }
+    .mb-btn:active { background: #222; transform: scale(0.95); }
+    .mb-btn.pressed { background: #444; border-color: #888; }
+
+    .pins-strip {
+        position: absolute; bottom: 0; width: 100%; height: 25px;
+        background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 10px, #333 10px, #333 14px);
+        border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+    }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #e63022; background: #fff5f5; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Découvrir Micro:bit</h1>
+      <p class="lead" data-lang-key="pageDesc">Une petite carte programmable conçue pour apprendre à coder facilement. Elle possède des boutons, des capteurs et un écran LED !</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">Le matériel</h2>
+      <p data-lang-key="compDesc">Cliquez sur un élément pour voir à quoi il sert.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('leds')">
+          <span class="component-icon">💡</span>
+          <h3 data-lang-key="compLeds">Matrice LED</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('buttons')">
+          <span class="component-icon">🔘</span>
+          <h3 data-lang-key="compButtons">Boutons A & B</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('sensors')">
+          <span class="component-icon">🌡️</span>
+          <h3 data-lang-key="compSensors">Capteurs</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('radio')">
+          <span class="component-icon">📡</span>
+          <h3 data-lang-key="compRadio">Radio / Bluetooth</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #e63022; display:block; margin-bottom:5px;">Comment l'utiliser ?</strong>
+            <p id="detail-usage" style="margin:0; color: #333;"></p>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #e63022; display:block; margin-bottom:5px;">Dans la vraie vie :</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Coder avec des blocs</h2>
+      <p data-lang-key="codeDesc">On utilise l'éditeur MakeCode pour glisser-déposer des blocs. Essaie les boutons ci-dessous pour voir le résultat sur la carte virtuelle.</p>
+
+      <div class="code-playground">
+        <div class="block-container">
+          <button class="block-btn btn-makecode" onclick="runCommand('smile')" data-lang-key="btnSmile">Afficher Sourire</button>
+          <button class="block-btn btn-makecode" onclick="runCommand('heart')" data-lang-key="btnHeart">Afficher Cœur</button>
+          <button class="block-btn btn-makecode" onclick="runCommand('text')" data-lang-key="btnText">Défiler Texte</button>
+          <button class="block-btn btn-reset" onclick="runCommand('clear')" data-lang-key="btnClear">Effacer</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div class="virtual-microbit">
+            <div class="logo-face">👾</div>
+            <div class="led-matrix" id="matrix">
+                <!-- Generated by JS -->
+            </div>
+            <div class="buttons-row">
+                <div class="mb-btn" id="btnA" onclick="pressBtn('A')">A</div>
+                <div class="mb-btn" id="btnB" onclick="pressBtn('B')">B</div>
+            </div>
+            <div class="pins-strip"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">Le Micro:bit est parfait pour créer des gadgets.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🎲</span>
+          <h3 data-lang-key="projDiceTitle">Dé électronique</h3>
+          <p data-lang-key="projDiceDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Secoue la carte pour afficher un nombre aléatoire entre 1 et 6.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🧭</span>
+          <h3 data-lang-key="projCompassTitle">Boussole</h3>
+          <p data-lang-key="projCompassDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Utilise le magnétomètre pour indiquer le Nord.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🎸</span>
+          <h3 data-lang-key="projGuitarTitle">Guitare à air</h3>
+          <p data-lang-key="projGuitarDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Change la note de musique en fonction de l'inclinaison de la carte.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : As-tu bien suivi ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Combien de LEDs y a-t-il sur la matrice ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">10 (2x5)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">25 (5x5)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">100 (10x10)</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Quel capteur permet de détecter si on secoue la carte ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt1">L'accéléromètre</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt2">Le thermomètre</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Le capteur de lumière</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    // Generate LEDs
+    const matrix = document.getElementById('matrix');
+    for(let i=0; i<25; i++) {
+        const led = document.createElement('div');
+        led.className = 'led';
+        led.id = 'led-' + i;
+        matrix.appendChild(led);
+    }
+
+    const translations = {
+      en: {
+        pageTitle: "Discover Micro:bit",
+        pageDesc: "A tiny programmable board designed to make learning to code easy. It has buttons, sensors, and an LED display!",
+        compTitle: "The Hardware",
+        compDesc: "Click on an item to see what it does.",
+        compLeds: "LED Matrix",
+        compButtons: "Buttons A & B",
+        compSensors: "Sensors",
+        compRadio: "Radio / Bluetooth",
+        codeTitle: "Block Coding",
+        codeDesc: "We use the MakeCode editor to drag and drop blocks. Try the buttons below to see the result on the virtual board.",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "In Real Life:",
+        usageTitle: "How to use it?",
+        detailLedsTitle: "5x5 LED Matrix",
+        detailLedsDesc: "A grid of 25 red lights. It can display scrolling text, numbers, and simple images like a heart or a smile.",
+        detailLedsUsage: "Use the 'Show Icon' or 'Show String' blocks in MakeCode.",
+        detailLedsReal: "Similar to giant advertising screens in Times Square or stadium scoreboards.",
+        detailButtonsTitle: "Buttons A & B",
+        detailButtonsDesc: "Two programmable buttons on the front. You can detect when they are pressed individually or together (A+B).",
+        detailButtonsUsage: "Use the 'On Button A Pressed' event block to trigger code.",
+        detailButtonsReal: "Like the buttons on a game controller or a keyboard.",
+        detailSensorsTitle: "Sensors (Motion, Light, Temp)",
+        detailSensorsDesc: "It has an accelerometer (motion), a compass, a temperature sensor (inside the CPU), and can use the LEDs as a light sensor.",
+        detailSensorsUsage: "Use 'On Shake' block for motion or 'Temperature' variable.",
+        detailSensorsReal: "Accelerometers are used in phones to rotate the screen and in airbags to detect crashes.",
+        detailRadioTitle: "Radio / Bluetooth",
+        detailRadioDesc: "Allows Micro:bits to talk to each other wirelessly or connect to a phone/tablet.",
+        detailRadioUsage: "Use 'Radio Send Number' to send data to a friend's Micro:bit.",
+        detailRadioReal: "Used in walkie-talkies, Wi-Fi, and connecting wireless headphones.",
+        projectTitle: "Project Ideas",
+        projectDesc: "The Micro:bit is perfect for creating gadgets.",
+        projDiceTitle: "Electronic Dice",
+        projDiceDesc: "Shake the board to show a random number between 1 and 6.",
+        projCompassTitle: "Compass",
+        projCompassDesc: "Use the magnetometer to point North.",
+        projGuitarTitle: "Air Guitar",
+        projGuitarDesc: "Change the music note based on the tilt of the board.",
+        btnSmile: "Show Smile",
+        btnHeart: "Show Heart",
+        btnText: "Scroll Text",
+        btnClear: "Clear",
+        quizTitle: "Quiz: Did you follow?",
+        q1Text: "How many LEDs are on the matrix?",
+        q1Opt1: "10 (2x5)",
+        q1Opt2: "25 (5x5)",
+        q1Opt3: "100 (10x10)",
+        q2Text: "Which sensor detects shaking?",
+        q2Opt1: "Accelerometer",
+        q2Opt2: "Thermometer",
+        q2Opt3: "Light Sensor",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Découvrir Micro:bit",
+        pageDesc: "Une petite carte programmable conçue pour apprendre à coder facilement. Elle possède des boutons, des capteurs et un écran LED !",
+        compTitle: "Le matériel",
+        compDesc: "Cliquez sur un élément pour voir à quoi il sert.",
+        compLeds: "Matrice LED",
+        compButtons: "Boutons A & B",
+        compSensors: "Capteurs",
+        compRadio: "Radio / Bluetooth",
+        codeTitle: "Coder avec des blocs",
+        codeDesc: "On utilise l'éditeur MakeCode pour glisser-déposer des blocs. Essaie les boutons ci-dessous pour voir le résultat sur la carte virtuelle.",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "Dans la vraie vie :",
+        usageTitle: "Comment l'utiliser ?",
+        detailLedsTitle: "Matrice LED 5x5",
+        detailLedsDesc: "Une grille de 25 lumières rouges. Elle peut afficher du texte défilant, des nombres et des images simples comme un cœur ou un sourire.",
+        detailLedsUsage: "Utilise les blocs 'Afficher l'icône' ou 'Afficher le texte' dans MakeCode.",
+        detailLedsReal: "Similaire aux écrans géants publicitaires ou aux panneaux de scores dans les stades.",
+        detailButtonsTitle: "Boutons A & B",
+        detailButtonsDesc: "Deux boutons programmables en façade. On peut détecter l'appui sur A, B ou les deux en même temps (A+B).",
+        detailButtonsUsage: "Utilise le bloc événement 'Lorsque le bouton A est pressé' pour déclencher du code.",
+        detailButtonsReal: "Comme les boutons d'une manette de jeu ou d'un clavier.",
+        detailSensorsTitle: "Capteurs (Mouvement, Lumière, Temp)",
+        detailSensorsDesc: "Il possède un accéléromètre (mouvement), une boussole, un capteur de température (dans le processeur) et peut utiliser les LEDs comme capteur de lumière.",
+        detailSensorsUsage: "Utilise le bloc 'Si secoué' pour le mouvement ou la variable 'Température'.",
+        detailSensorsReal: "Les accéléromètres sont utilisés dans les téléphones pour tourner l'écran et dans les airbags pour détecter les chocs.",
+        detailRadioTitle: "Radio / Bluetooth",
+        detailRadioDesc: "Permet aux Micro:bits de parler entre eux sans fil ou de se connecter à un téléphone/tablette.",
+        detailRadioUsage: "Utilise 'Radio envoyer nombre' pour envoyer des données au Micro:bit d'un ami.",
+        detailRadioReal: "Utilisé dans les talkie-walkies, le Wi-Fi et les casques sans fil.",
+        projectTitle: "Idées de projets",
+        projectDesc: "Le Micro:bit est parfait pour créer des gadgets.",
+        projDiceTitle: "Dé électronique",
+        projDiceDesc: "Secoue la carte pour afficher un nombre aléatoire entre 1 et 6.",
+        projCompassTitle: "Boussole",
+        projCompassDesc: "Utilise le magnétomètre pour indiquer le Nord.",
+        projGuitarTitle: "Guitare à air",
+        projGuitarDesc: "Change la note de musique en fonction de l'inclinaison de la carte.",
+        btnSmile: "Afficher Sourire",
+        btnHeart: "Afficher Cœur",
+        btnText: "Défiler Texte",
+        btnClear: "Effacer",
+        quizTitle: "Quiz : As-tu bien suivi ?",
+        q1Text: "Combien de LEDs y a-t-il sur la matrice ?",
+        q1Opt1: "10 (2x5)",
+        q1Opt2: "25 (5x5)",
+        q1Opt3: "100 (10x10)",
+        q2Text: "Quel capteur permet de détecter si on secoue la carte ?",
+        q2Opt1: "L'accéléromètre",
+        q2Opt2: "Le thermomètre",
+        q2Opt3: "Le capteur de lumière",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'leds') { tKeyTitle = 'detailLedsTitle'; tKeyDesc = 'detailLedsDesc'; tKeyUsage = 'detailLedsUsage'; tKeyReal = 'detailLedsReal'; }
+      if(type === 'buttons') { tKeyTitle = 'detailButtonsTitle'; tKeyDesc = 'detailButtonsDesc'; tKeyUsage = 'detailButtonsUsage'; tKeyReal = 'detailButtonsReal'; }
+      if(type === 'sensors') { tKeyTitle = 'detailSensorsTitle'; tKeyDesc = 'detailSensorsDesc'; tKeyUsage = 'detailSensorsUsage'; tKeyReal = 'detailSensorsReal'; }
+      if(type === 'radio') { tKeyTitle = 'detailRadioTitle'; tKeyDesc = 'detailRadioDesc'; tKeyUsage = 'detailRadioUsage'; tKeyReal = 'detailRadioReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    // Simulation Logic
+    const smilePattern = [
+        0,1,0,1,0,
+        0,1,0,1,0,
+        0,0,0,0,0,
+        1,0,0,0,1,
+        0,1,1,1,0
+    ];
+    const heartPattern = [
+        0,1,0,1,0,
+        1,1,1,1,1,
+        1,1,1,1,1,
+        0,1,1,1,0,
+        0,0,1,0,0
+    ];
+
+    function clearLeds() {
+        document.querySelectorAll('.led').forEach(l => l.classList.remove('on'));
+    }
+
+    function showPattern(pattern) {
+        clearLeds();
+        pattern.forEach((val, idx) => {
+            if(val) document.getElementById('led-'+idx).classList.add('on');
+        });
+    }
+
+    let scrollInterval = null;
+    function runCommand(cmd) {
+      if(scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
+      
+      if(cmd === 'clear') {
+        clearLeds();
+      } else if(cmd === 'smile') {
+        showPattern(smilePattern);
+      } else if(cmd === 'heart') {
+        showPattern(heartPattern);
+      } else if(cmd === 'text') {
+        // Simple animation simulation
+        let frame = 0;
+        scrollInterval = setInterval(() => {
+            frame++;
+            if(frame % 2 === 0) showPattern(smilePattern);
+            else showPattern(heartPattern);
+            if(frame > 5) { clearInterval(scrollInterval); clearLeds(); }
+        }, 400);
+      }
+    }
+
+    function pressBtn(btn) {
+        const el = document.getElementById('btn'+btn);
+        el.classList.add('pressed');
+        setTimeout(() => el.classList.remove('pressed'), 200);
+        // Visual feedback on LEDs
+        if(btn === 'A') showPattern(smilePattern);
+        if(btn === 'B') showPattern(heartPattern);
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>

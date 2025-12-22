@@ -1,0 +1,448 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel Raspberry Pi — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍓</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #C51A4A; box-shadow: 0 8px 20px rgba(197, 26, 74, 0.15); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #fff0f5; 
+      border-radius: 16px; border-left: 5px solid #C51A4A; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground - Terminal Style */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .terminal-screen {
+        background: #000; color: #0f0; font-family: 'Courier New', monospace;
+        padding: 15px; border-radius: 8px; margin-bottom: 15px;
+        min-height: 60px; font-size: 0.9rem;
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: white;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-py { background-color: #C51A4A; }
+    .btn-reset { background-color: #636e72; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #ffffff; height: 350px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex; align-items: center; justify-content: center;
+      background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    
+    /* Virtual Pi */
+    .virtual-pi {
+        width: 240px; height: 160px; background: #4caf50; border-radius: 6px;
+        position: relative; box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .virtual-pi::before { content: 'Raspberry Pi'; position: absolute; bottom: 10px; left: 15px; font-size: 14px; color: white; font-weight: bold; }
+    .pi-chip { width: 60px; height: 60px; background: #333; border-radius: 4px; }
+    .pi-usb { width: 30px; height: 50px; background: #bdc3c7; position: absolute; right: -5px; top: 20px; border-radius: 2px; }
+    .pi-gpio { 
+        width: 180px; height: 20px; background: #222; position: absolute; top: 10px; left: 10px; 
+        display: flex; gap: 2px; padding: 2px;
+    }
+    .pin { width: 4px; height: 4px; background: gold; border-radius: 50%; margin: auto 0; }
+    
+    .screen-output {
+        position: absolute; top: 20px; right: 20px; width: 120px; height: 80px;
+        background: #333; border: 4px solid #555; border-radius: 4px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 12px; text-align: center; display: none;
+    }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #C51A4A; background: #fff0f5; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Découvrir Raspberry Pi</h1>
+      <p class="lead" data-lang-key="pageDesc">Un ordinateur complet qui tient dans la main ! Apprends à utiliser Linux, Python et à connecter des composants électroniques.</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">Le matériel</h2>
+      <p data-lang-key="compDesc">Cliquez sur un élément pour voir à quoi il sert.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('board')">
+          <span class="component-icon">🍓</span>
+          <h3 data-lang-key="compBoard">La Carte Pi</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('gpio')">
+          <span class="component-icon">🔌</span>
+          <h3 data-lang-key="compGpio">Ports GPIO</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('sd')">
+          <span class="component-icon">💾</span>
+          <h3 data-lang-key="compSd">Carte MicroSD</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('cam')">
+          <span class="component-icon">📷</span>
+          <h3 data-lang-key="compCam">Module Caméra</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #C51A4A; display:block; margin-bottom:5px;">Comment l'utiliser ?</strong>
+            <p id="detail-usage" style="margin:0; color: #333;"></p>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #C51A4A; display:block; margin-bottom:5px;">Dans la vraie vie :</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Coder en Python</h2>
+      <p data-lang-key="codeDesc">Sur Raspberry Pi, on utilise souvent Python pour contrôler le matériel. Essaie les commandes ci-dessous !</p>
+
+      <div class="code-playground">
+        <div class="terminal-screen" id="terminal">pi@raspberrypi:~$ _</div>
+        <div class="block-container">
+          <button class="block-btn btn-py" onclick="runCommand('print')" data-lang-key="btnPrint">print("Hello")</button>
+          <button class="block-btn btn-py" onclick="runCommand('gpio')" data-lang-key="btnGpio">GPIO.output(LED, HIGH)</button>
+          <button class="block-btn btn-py" onclick="runCommand('cam')" data-lang-key="btnCam">camera.capture()</button>
+          <button class="block-btn btn-reset" onclick="runCommand('clear')" data-lang-key="btnClear">Clear</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div class="virtual-pi">
+            <div class="pi-gpio">
+                <!-- Just visual pins -->
+                <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+            </div>
+            <div class="pi-chip"></div>
+            <div class="pi-usb"></div>
+        </div>
+        <div id="sim-screen" class="screen-output">Hello World!</div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">Le Raspberry Pi peut presque tout faire !</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🕹️</span>
+          <h3 data-lang-key="projRetroTitle">Console Rétro</h3>
+          <p data-lang-key="projRetroDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Installe RetroPie pour jouer à des milliers de vieux jeux vidéo.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🪞</span>
+          <h3 data-lang-key="projMirrorTitle">Miroir Magique</h3>
+          <p data-lang-key="projMirrorDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Un miroir qui affiche l'heure, la météo et ton agenda.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🛡️</span>
+          <h3 data-lang-key="projPiholeTitle">Bloqueur de Pubs</h3>
+          <p data-lang-key="projPiholeDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Utilise Pi-hole pour bloquer les publicités sur tout ton réseau Wi-Fi.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : Expert du Pi ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Qu'est-ce qu'un Raspberry Pi ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">Une sorte de gâteau</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">Un ordinateur miniature complet</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">Un simple capteur</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Où est stocké le système d'exploitation (Windows/Linux) ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt1">Sur une carte MicroSD</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt2">Dans le processeur</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Dans le Cloud uniquement</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Discover Raspberry Pi",
+        pageDesc: "A complete computer that fits in your hand! Learn to use Linux, Python, and connect electronic components.",
+        compTitle: "The Hardware",
+        compDesc: "Click on an item to see what it does.",
+        compBoard: "Pi Board",
+        compGpio: "GPIO Pins",
+        compSd: "MicroSD Card",
+        compCam: "Camera Module",
+        codeTitle: "Coding in Python",
+        codeDesc: "On Raspberry Pi, we often use Python to control hardware. Try the commands below!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "In Real Life:",
+        usageTitle: "How to use it?",
+        detailBoardTitle: "Raspberry Pi Board",
+        detailBoardDesc: "The heart of the system. It has a processor (CPU), RAM, USB ports, and HDMI output to connect a screen.",
+        detailBoardUsage: "Plug in a mouse, keyboard, and screen. Power it up via USB-C.",
+        detailBoardReal: "Used in factories, schools, and even on the International Space Station (Astro Pi).",
+        detailGpioTitle: "GPIO Pins",
+        detailGpioDesc: "General Purpose Input/Output. These metal pins allow the computer to talk to the real world (lights, motors, sensors).",
+        detailGpioUsage: "Connect jumper wires from these pins to a breadboard.",
+        detailGpioReal: "Similar to the internal wiring in your microwave or washing machine controller.",
+        detailSdTitle: "MicroSD Card",
+        detailSdDesc: "The hard drive of the Pi. It stores the Operating System (usually Raspberry Pi OS, based on Linux) and your files.",
+        detailSdUsage: "Insert it into the slot underneath the board before turning it on.",
+        detailSdReal: "The same cards used in cameras and smartphones to store photos.",
+        detailCamTitle: "Camera Module",
+        detailCamDesc: "A small camera connected directly to the board via a ribbon cable. It can take HD photos and video.",
+        detailCamUsage: "Use Python code like `camera.capture('image.jpg')`.",
+        detailCamReal: "Used in security systems, wildlife monitoring, and drones.",
+        projectTitle: "Project Ideas",
+        projectDesc: "The Raspberry Pi can do almost anything!",
+        projRetroTitle: "Retro Console",
+        projRetroDesc: "Install RetroPie to play thousands of classic video games.",
+        projMirrorTitle: "Magic Mirror",
+        projMirrorDesc: "A mirror that displays time, weather, and your calendar.",
+        projPiholeTitle: "Ad Blocker",
+        projPiholeDesc: "Use Pi-hole to block ads on your entire Wi-Fi network.",
+        btnPrint: "print(\"Hello\")",
+        btnGpio: "GPIO.output(LED, HIGH)",
+        btnCam: "camera.capture()",
+        btnClear: "Clear",
+        quizTitle: "Quiz: Pi Expert?",
+        q1Text: "What is a Raspberry Pi?",
+        q1Opt1: "A type of cake",
+        q1Opt2: "A complete miniature computer",
+        q1Opt3: "A simple sensor",
+        q2Text: "Where is the Operating System stored?",
+        q2Opt1: "On a MicroSD card",
+        q2Opt2: "Inside the processor",
+        q2Opt3: "In the Cloud only",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Découvrir Raspberry Pi",
+        pageDesc: "Un ordinateur complet qui tient dans la main ! Apprends à utiliser Linux, Python et à connecter des composants électroniques.",
+        compTitle: "Le matériel",
+        compDesc: "Cliquez sur un élément pour voir à quoi il sert.",
+        compBoard: "La Carte Pi",
+        compGpio: "Ports GPIO",
+        compSd: "Carte MicroSD",
+        compCam: "Module Caméra",
+        codeTitle: "Coder en Python",
+        codeDesc: "Sur Raspberry Pi, on utilise souvent Python pour contrôler le matériel. Essaie les commandes ci-dessous !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "Dans la vraie vie :",
+        usageTitle: "Comment l'utiliser ?",
+        detailBoardTitle: "Carte Raspberry Pi",
+        detailBoardDesc: "Le cœur du système. Elle possède un processeur (CPU), de la mémoire RAM, des ports USB et une sortie HDMI pour l'écran.",
+        detailBoardUsage: "Branche une souris, un clavier et un écran. Alimente-la via USB-C.",
+        detailBoardReal: "Utilisée dans les usines, les écoles et même dans la Station Spatiale Internationale (Astro Pi).",
+        detailGpioTitle: "Ports GPIO",
+        detailGpioDesc: "General Purpose Input/Output. Ces broches métalliques permettent à l'ordinateur de parler au monde réel (lumières, moteurs).",
+        detailGpioUsage: "Connecte des câbles (jumpers) de ces broches vers une breadboard.",
+        detailGpioReal: "Similaire au câblage interne de ton micro-ondes ou de ta machine à laver.",
+        detailSdTitle: "Carte MicroSD",
+        detailSdDesc: "Le disque dur du Pi. Elle stocke le système d'exploitation (souvent Raspberry Pi OS, basé sur Linux) et tes fichiers.",
+        detailSdUsage: "Insère-la dans la fente sous la carte avant d'allumer.",
+        detailSdReal: "Les mêmes cartes utilisées dans les appareils photo et smartphones.",
+        detailCamTitle: "Module Caméra",
+        detailCamDesc: "Une petite caméra connectée directement à la carte par une nappe. Elle prend des photos et vidéos HD.",
+        detailCamUsage: "Utilise du code Python comme `camera.capture('image.jpg')`.",
+        detailCamReal: "Utilisée dans la surveillance, l'observation des animaux et les drones.",
+        projectTitle: "Idées de projets",
+        projectDesc: "Le Raspberry Pi peut presque tout faire !",
+        projRetroTitle: "Console Rétro",
+        projRetroDesc: "Installe RetroPie pour jouer à des milliers de vieux jeux vidéo.",
+        projMirrorTitle: "Miroir Magique",
+        projMirrorDesc: "Un miroir qui affiche l'heure, la météo et ton agenda.",
+        projPiholeTitle: "Bloqueur de Pubs",
+        projPiholeDesc: "Utilise Pi-hole pour bloquer les publicités sur tout ton réseau Wi-Fi.",
+        btnPrint: "print(\"Hello\")",
+        btnGpio: "GPIO.output(LED, HIGH)",
+        btnCam: "camera.capture()",
+        btnClear: "Clear",
+        quizTitle: "Quiz : Expert du Pi ?",
+        q1Text: "Qu'est-ce qu'un Raspberry Pi ?",
+        q1Opt1: "Une sorte de gâteau",
+        q1Opt2: "Un ordinateur miniature complet",
+        q1Opt3: "Un simple capteur",
+        q2Text: "Où est stocké le système d'exploitation (Windows/Linux) ?",
+        q2Opt1: "Sur une carte MicroSD",
+        q2Opt2: "Dans le processeur",
+        q2Opt3: "Dans le Cloud uniquement",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'board') { tKeyTitle = 'detailBoardTitle'; tKeyDesc = 'detailBoardDesc'; tKeyUsage = 'detailBoardUsage'; tKeyReal = 'detailBoardReal'; }
+      if(type === 'gpio') { tKeyTitle = 'detailGpioTitle'; tKeyDesc = 'detailGpioDesc'; tKeyUsage = 'detailGpioUsage'; tKeyReal = 'detailGpioReal'; }
+      if(type === 'sd') { tKeyTitle = 'detailSdTitle'; tKeyDesc = 'detailSdDesc'; tKeyUsage = 'detailSdUsage'; tKeyReal = 'detailSdReal'; }
+      if(type === 'cam') { tKeyTitle = 'detailCamTitle'; tKeyDesc = 'detailCamDesc'; tKeyUsage = 'detailCamUsage'; tKeyReal = 'detailCamReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    const terminal = document.getElementById('terminal');
+    const screen = document.getElementById('sim-screen');
+
+    function runCommand(cmd) {
+      if(cmd === 'clear') {
+        terminal.textContent = 'pi@raspberrypi:~$ _';
+        screen.style.display = 'none';
+      } else if(cmd === 'print') {
+        terminal.innerHTML += '<br>>> print("Hello")<br>Hello';
+        screen.textContent = "Hello";
+        screen.style.display = 'flex';
+      } else if(cmd === 'gpio') {
+        terminal.innerHTML += '<br>>> GPIO.output(LED, HIGH)<br>LED is ON';
+        screen.textContent = "💡 ON";
+        screen.style.display = 'flex';
+      } else if(cmd === 'cam') {
+        terminal.innerHTML += '<br>>> camera.capture()<br>Image saved: image.jpg';
+        screen.textContent = "📸 SNAP";
+        screen.style.display = 'flex';
+      }
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>

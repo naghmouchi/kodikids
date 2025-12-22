@@ -1,0 +1,516 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel IA & ML — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #8e44ad; box-shadow: 0 8px 20px rgba(142, 68, 173, 0.15); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #fbf5ff; 
+      border-radius: 16px; border-left: 5px solid #8e44ad; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: white;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-ai { background-color: #8e44ad; }
+    .btn-reset { background-color: #636e72; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #ffffff; height: 350px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex; align-items: center; justify-content: center;
+      background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    
+    /* Neural Network Visual */
+    .neural-net {
+        display: flex; align-items: center; gap: 60px; position: relative;
+    }
+    .layer { display: flex; flex-direction: column; gap: 20px; }
+    .neuron {
+        width: 40px; height: 40px; border-radius: 50%; background: #eee;
+        border: 3px solid #ccc; display: flex; align-items: center; justify-content: center;
+        font-weight: bold; color: #555; z-index: 2; transition: all 0.3s;
+    }
+    .neuron.active { background: #8e44ad; border-color: #6c3483; color: white; box-shadow: 0 0 15px #8e44ad; }
+    
+    .connection {
+        position: absolute; height: 2px; background: #ddd; transform-origin: 0 50%;
+        z-index: 1; transition: all 0.5s;
+    }
+    .connection.active { background: #8e44ad; height: 4px; }
+
+    .prediction-box {
+        position: absolute; bottom: 20px; right: 20px;
+        background: #333; color: white; padding: 10px 20px; border-radius: 8px;
+        font-family: monospace; display: none;
+    }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #8e44ad; background: #fbf5ff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">IA & Machine Learning</h1>
+      <p class="lead" data-lang-key="pageDesc">L'Intelligence Artificielle (IA) permet aux ordinateurs d'apprendre par eux-mêmes. Découvre comment les machines reconnaissent des images et prennent des décisions.</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">Les concepts clés</h2>
+      <p data-lang-key="compDesc">Cliquez sur un concept pour le comprendre.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('dataset')">
+          <span class="component-icon">📚</span>
+          <h3 data-lang-key="compData">Dataset (Données)</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('model')">
+          <span class="component-icon">🧠</span>
+          <h3 data-lang-key="compModel">Modèle / Réseau de neurones</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('training')">
+          <span class="component-icon">🏋️</span>
+          <h3 data-lang-key="compTrain">Entraînement</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('inference')">
+          <span class="component-icon">🔮</span>
+          <h3 data-lang-key="compInfer">Prédiction (Inférence)</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #8e44ad; display:block; margin-bottom:5px;">Comment ça marche ?</strong>
+            <p id="detail-usage" style="margin:0; color: #333;"></p>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #8e44ad; display:block; margin-bottom:5px;">Dans la vraie vie :</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Entraîner une IA</h2>
+      <p data-lang-key="codeDesc">Voici une simulation d'un réseau de neurones simple. Charge les données, entraîne le modèle, et fais une prédiction !</p>
+
+      <div class="code-playground">
+        <div class="block-container">
+          <button class="block-btn btn-ai" onclick="runCommand('load')" data-lang-key="btnLoad">1. Charger Données</button>
+          <button class="block-btn btn-ai" onclick="runCommand('train')" data-lang-key="btnTrain">2. Entraîner (Train)</button>
+          <button class="block-btn btn-ai" onclick="runCommand('predict')" data-lang-key="btnPredict">3. Prédire</button>
+          <button class="block-btn btn-reset" onclick="runCommand('reset')" data-lang-key="btnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div class="neural-net" id="neural-net">
+            <!-- Input Layer -->
+            <div class="layer">
+                <div class="neuron" id="n-i1">X1</div>
+                <div class="neuron" id="n-i2">X2</div>
+            </div>
+            <!-- Hidden Layer -->
+            <div class="layer">
+                <div class="neuron" id="n-h1"></div>
+                <div class="neuron" id="n-h2"></div>
+                <div class="neuron" id="n-h3"></div>
+            </div>
+            <!-- Output Layer -->
+            <div class="layer">
+                <div class="neuron" id="n-o1">Y</div>
+            </div>
+        </div>
+        <div class="prediction-box" id="pred-box">Result: <span id="pred-val">?</span></div>
+        <div class="prediction-box" id="train-box" style="right: auto; left: 20px; background: #8e44ad;"></div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">L'IA est partout aujourd'hui.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🐱</span>
+          <h3 data-lang-key="projCatTitle">Reconnaissance d'images</h3>
+          <p data-lang-key="projCatDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Crée une IA capable de distinguer un chat d'un chien.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">💬</span>
+          <h3 data-lang-key="projChatTitle">Chatbot</h3>
+          <p data-lang-key="projChatDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Un robot qui répond à tes questions comme un humain.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🎮</span>
+          <h3 data-lang-key="projGameTitle">IA de Jeu</h3>
+          <p data-lang-key="projGameDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Une IA qui apprend à jouer à Mario ou aux échecs toute seule.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : Expert IA ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Qu'est-ce qu'un "Dataset" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">Un robot qui danse</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">Un ensemble de données pour apprendre</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">Un type d'écran d'ordinateur</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Comment appelle-t-on la phase où l'IA apprend ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt1">L'entraînement (Training)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt2">La sieste</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">La compilation</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "AI & Machine Learning",
+        pageDesc: "Artificial Intelligence (AI) allows computers to learn on their own. Discover how machines recognize images and make decisions.",
+        compTitle: "Key Concepts",
+        compDesc: "Click on a concept to understand it.",
+        compData: "Dataset",
+        compModel: "Model / Neural Net",
+        compTrain: "Training",
+        compInfer: "Prediction (Inference)",
+        codeTitle: "Train an AI",
+        codeDesc: "Here is a simulation of a simple neural network. Load data, train the model, and make a prediction!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "In Real Life:",
+        usageTitle: "How does it work?",
+        detailDataTitle: "Dataset",
+        detailDataDesc: "A collection of examples (images, text, numbers) used to teach the AI. The more data, the better it learns.",
+        detailDataUsage: "You label data: 'This is a cat', 'This is a dog'.",
+        detailDataReal: "Millions of photos on the internet used to train Google Images.",
+        detailModelTitle: "Model / Neural Network",
+        detailModelDesc: "The 'brain' of the AI. It is composed of layers of artificial neurons connected together mathematically.",
+        detailModelUsage: "It takes inputs (pixels of an image) and calculates an output (probability it's a cat).",
+        detailModelReal: "Used in ChatGPT or FaceID on your iPhone.",
+        detailTrainTitle: "Training",
+        detailTrainDesc: "The process where the model looks at the dataset and adjusts its internal connections to minimize errors.",
+        detailTrainUsage: "It requires a lot of computing power (GPU). It's like studying for an exam.",
+        detailTrainReal: "Self-driving cars driving millions of miles in simulation to learn traffic rules.",
+        detailInferTitle: "Prediction (Inference)",
+        detailInferDesc: "Once trained, the model can look at NEW data it has never seen and make a decision.",
+        detailInferUsage: "You show a new photo, and it says 'Cat' with 95% confidence.",
+        detailInferReal: "Netflix suggesting a movie you might like.",
+        projectTitle: "Project Ideas",
+        projectDesc: "AI is everywhere today.",
+        projCatTitle: "Image Recognition",
+        projCatDesc: "Create an AI capable of distinguishing a cat from a dog.",
+        projChatTitle: "Chatbot",
+        projChatDesc: "A robot that answers your questions like a human.",
+        projGameTitle: "Game AI",
+        projGameDesc: "An AI that learns to play Mario or Chess by itself.",
+        btnLoad: "1. Load Data",
+        btnTrain: "2. Train",
+        btnPredict: "3. Predict",
+        btnReset: "Reset",
+        quizTitle: "Quiz: AI Expert?",
+        q1Text: "What is a 'Dataset'?",
+        q1Opt1: "A dancing robot",
+        q1Opt2: "A set of data for learning",
+        q1Opt3: "A type of computer screen",
+        q2Text: "What do we call the phase where AI learns?",
+        q2Opt1: "Training",
+        q2Opt2: "Napping",
+        q2Opt3: "Compiling",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "IA & Machine Learning",
+        pageDesc: "L'Intelligence Artificielle (IA) permet aux ordinateurs d'apprendre par eux-mêmes. Découvre comment les machines reconnaissent des images et prennent des décisions.",
+        compTitle: "Les concepts clés",
+        compDesc: "Cliquez sur un concept pour le comprendre.",
+        compData: "Dataset (Données)",
+        compModel: "Modèle / Réseau de neurones",
+        compTrain: "Entraînement",
+        compInfer: "Prédiction (Inférence)",
+        codeTitle: "Entraîner une IA",
+        codeDesc: "Voici une simulation d'un réseau de neurones simple. Charge les données, entraîne le modèle, et fais une prédiction !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "Dans la vraie vie :",
+        usageTitle: "Comment ça marche ?",
+        detailDataTitle: "Dataset (Données)",
+        detailDataDesc: "Une collection d'exemples (images, textes, nombres) utilisée pour apprendre à l'IA. Plus il y a de données, mieux elle apprend.",
+        detailDataUsage: "On étiquette les données : 'Ceci est un chat', 'Ceci est un chien'.",
+        detailDataReal: "Les millions de photos sur internet utilisées pour entraîner Google Images.",
+        detailModelTitle: "Modèle / Réseau de neurones",
+        detailModelDesc: "Le 'cerveau' de l'IA. Il est composé de couches de neurones artificiels connectés entre eux par des mathématiques.",
+        detailModelUsage: "Il prend des entrées (pixels d'une image) et calcule une sortie (probabilité que ce soit un chat).",
+        detailModelReal: "Utilisé dans ChatGPT ou FaceID sur ton iPhone.",
+        detailTrainTitle: "Entraînement",
+        detailTrainDesc: "Le processus où le modèle regarde le dataset et ajuste ses connexions internes pour faire moins d'erreurs.",
+        detailTrainUsage: "Ça demande beaucoup de puissance de calcul (GPU). C'est comme réviser pour un examen.",
+        detailTrainReal: "Les voitures autonomes qui roulent des millions de km en simulation pour apprendre le code de la route.",
+        detailInferTitle: "Prédiction (Inférence)",
+        detailInferDesc: "Une fois entraîné, le modèle peut regarder de NOUVELLES données qu'il n'a jamais vues et prendre une décision.",
+        detailInferUsage: "Tu montres une nouvelle photo, et il dit 'Chat' avec 95% de confiance.",
+        detailInferReal: "Netflix qui te suggère un film que tu pourrais aimer.",
+        projectTitle: "Idées de projets",
+        projectDesc: "L'IA est partout aujourd'hui.",
+        projCatTitle: "Reconnaissance d'images",
+        projCatDesc: "Crée une IA capable de distinguer un chat d'un chien.",
+        projChatTitle: "Chatbot",
+        projChatDesc: "Un robot qui répond à tes questions comme un humain.",
+        projGameTitle: "IA de Jeu",
+        projGameDesc: "Une IA qui apprend à jouer à Mario ou aux échecs toute seule.",
+        btnLoad: "1. Charger Données",
+        btnTrain: "2. Entraîner (Train)",
+        btnPredict: "3. Prédire",
+        btnReset: "Réinitialiser",
+        quizTitle: "Quiz : Expert IA ?",
+        q1Text: "Qu'est-ce qu'un 'Dataset' ?",
+        q1Opt1: "Un robot qui danse",
+        q1Opt2: "Un ensemble de données pour apprendre",
+        q1Opt3: "Un type d'écran d'ordinateur",
+        q2Text: "Comment appelle-t-on la phase où l'IA apprend ?",
+        q2Opt1: "L'entraînement (Training)",
+        q2Opt2: "La sieste",
+        q2Opt3: "La compilation",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'dataset') { tKeyTitle = 'detailDataTitle'; tKeyDesc = 'detailDataDesc'; tKeyUsage = 'detailDataUsage'; tKeyReal = 'detailDataReal'; }
+      if(type === 'model') { tKeyTitle = 'detailModelTitle'; tKeyDesc = 'detailModelDesc'; tKeyUsage = 'detailModelUsage'; tKeyReal = 'detailModelReal'; }
+      if(type === 'training') { tKeyTitle = 'detailTrainTitle'; tKeyDesc = 'detailTrainDesc'; tKeyUsage = 'detailTrainUsage'; tKeyReal = 'detailTrainReal'; }
+      if(type === 'inference') { tKeyTitle = 'detailInferTitle'; tKeyDesc = 'detailInferDesc'; tKeyUsage = 'detailInferUsage'; tKeyReal = 'detailInferReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    // Simulation Logic
+    const net = document.getElementById('neural-net');
+    const predBox = document.getElementById('pred-box');
+    const predVal = document.getElementById('pred-val');
+    const trainBox = document.getElementById('train-box');
+    let isLoaded = false;
+    let isTrained = false;
+
+    // Draw connections
+    function drawConnections() {
+        // Simple hardcoded connections for visual
+        // Input to Hidden
+        const inputs = ['n-i1', 'n-i2'];
+        const hiddens = ['n-h1', 'n-h2', 'n-h3'];
+        const output = 'n-o1';
+
+        // Helper to get center
+        const getCenter = (id) => {
+            const el = document.getElementById(id);
+            return {
+                x: el.offsetLeft + el.offsetWidth/2,
+                y: el.offsetTop + el.offsetHeight/2
+            };
+        };
+
+        // Create lines
+        const createLine = (id1, id2) => {
+            const p1 = getCenter(id1);
+            const p2 = getCenter(id2);
+            const length = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+            const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+            
+            const line = document.createElement('div');
+            line.className = 'connection';
+            line.style.width = length + 'px';
+            line.style.left = p1.x + 'px';
+            line.style.top = p1.y + 'px';
+            line.style.transform = `rotate(${angle}deg)`;
+            net.appendChild(line);
+            return line;
+        };
+
+        // Connect I -> H
+        inputs.forEach(i => hiddens.forEach(h => createLine(i, h)));
+        // Connect H -> O
+        hiddens.forEach(h => createLine(h, output));
+    }
+    
+    // Wait for layout
+    setTimeout(drawConnections, 100);
+
+    function runCommand(cmd) {
+      const neurons = document.querySelectorAll('.neuron');
+      const connections = document.querySelectorAll('.connection');
+
+      if(cmd === 'reset') {
+        isLoaded = false; isTrained = false;
+        neurons.forEach(n => n.classList.remove('active'));
+        connections.forEach(c => c.classList.remove('active'));
+        predBox.style.display = 'none';
+        trainBox.style.display = 'none';
+      } else if(cmd === 'load') {
+        isLoaded = true;
+        document.getElementById('n-i1').classList.add('active');
+        document.getElementById('n-i2').classList.add('active');
+      } else if(cmd === 'train') {
+        if(!isLoaded) { alert("Load data first!"); return; }
+        trainBox.style.display = 'block';
+        trainBox.textContent = "Training...";
+        // Animate connections
+        connections.forEach(c => c.classList.add('active'));
+        setTimeout(() => {
+            document.querySelectorAll('#n-h1, #n-h2, #n-h3').forEach(n => n.classList.add('active'));
+        }, 500);
+        setTimeout(() => {
+            isTrained = true;
+            trainBox.textContent = "Training Complete! Accuracy: 98%";
+        }, 1000);
+      } else if(cmd === 'predict') {
+        if(!isTrained) { alert("Train the model first!"); return; }
+        document.getElementById('n-o1').classList.add('active');
+        predBox.style.display = 'block';
+        predVal.textContent = Math.random() > 0.5 ? "Cat 🐱" : "Dog 🐶";
+      }
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>

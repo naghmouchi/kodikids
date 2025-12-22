@@ -1,0 +1,453 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel Python — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #306998; box-shadow: 0 8px 20px rgba(48, 105, 152, 0.15); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #f7faff; 
+      border-radius: 16px; border-left: 5px solid #306998; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: #333;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-py { background-color: #FFD43B; } /* Python Yellow */
+    .btn-reset { background-color: #ff5e57; color: white; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #ffffff; height: 350px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex; gap: 20px; padding: 20px;
+    }
+    
+    .terminal {
+        flex: 1; background: #1e1e1e; border-radius: 8px; padding: 15px;
+        font-family: 'Courier New', monospace; color: #0f0; font-size: 14px;
+        overflow-y: auto; border: 1px solid #333;
+    }
+    .turtle-canvas-container {
+        flex: 1; background: #f0f0f0; border-radius: 8px; border: 1px solid #ccc;
+        position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    #turtle-canvas { width: 100%; height: 100%; }
+    
+    .turtle-cursor {
+        width: 0; height: 0; 
+        border-left: 8px solid transparent; border-right: 8px solid transparent;
+        border-bottom: 16px solid #306998;
+        position: absolute; transform-origin: 50% 50%;
+        transition: all 0.5s linear;
+    }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #306998; background: #f7faff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Apprendre Python</h1>
+      <p class="lead" data-lang-key="pageDesc">Python est l'un des langages les plus populaires au monde. Il est simple, puissant et utilisé pour tout : du développement web à l'intelligence artificielle.</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">Les bases du langage</h2>
+      <p data-lang-key="compDesc">Cliquez sur un concept pour voir un exemple.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('var')">
+          <span class="component-icon">📦</span>
+          <h3 data-lang-key="compVar">Variables</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('loop')">
+          <span class="component-icon">🔄</span>
+          <h3 data-lang-key="compLoop">Boucles (Loops)</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('cond')">
+          <span class="component-icon">❓</span>
+          <h3 data-lang-key="compCond">Conditions (If/Else)</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('func')">
+          <span class="component-icon">🛠️</span>
+          <h3 data-lang-key="compFunc">Fonctions</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #306998; display:block; margin-bottom:5px;">Exemple de code :</strong>
+            <code id="detail-usage" style="display:block; background:#2d3436; color:#f8f8f2; padding:10px; border-radius:4px; font-family:monospace;"></code>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #306998; display:block; margin-bottom:5px;">À quoi ça sert ?</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Playground Python</h2>
+      <p data-lang-key="codeDesc">Teste ces commandes pour voir le résultat dans le terminal ou sur le dessin "Turtle" !</p>
+
+      <div class="code-playground">
+        <div class="block-container">
+          <button class="block-btn btn-py" onclick="runCommand('print')" data-lang-key="btnPrint">print("Hello")</button>
+          <button class="block-btn btn-py" onclick="runCommand('math')" data-lang-key="btnMath">Calcul (2 + 2)</button>
+          <button class="block-btn btn-py" onclick="runCommand('loop')" data-lang-key="btnLoop">Boucle (0 à 4)</button>
+          <button class="block-btn btn-py" onclick="runCommand('square')" data-lang-key="btnSquare">Dessiner Carré</button>
+          <button class="block-btn btn-reset" onclick="runCommand('reset')" data-lang-key="btnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div class="terminal" id="terminal">
+            >>> Python 3.9.0<br>
+            >>> _
+        </div>
+        <div class="turtle-canvas-container">
+            <canvas id="turtle-canvas" width="300" height="300"></canvas>
+            <div id="turtle" class="turtle-cursor" style="left: 150px; top: 150px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">Avec Python, tu peux tout créer.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🐍</span>
+          <h3 data-lang-key="projSnakeTitle">Jeu du Serpent</h3>
+          <p data-lang-key="projSnakeDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Recrée le célèbre jeu Snake avec la bibliothèque Pygame.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🌐</span>
+          <h3 data-lang-key="projWebTitle">Site Web</h3>
+          <p data-lang-key="projWebDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Crée un blog ou une boutique en ligne avec Django ou Flask.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">📊</span>
+          <h3 data-lang-key="projDataTitle">Analyse de Données</h3>
+          <p data-lang-key="projDataDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Analyse des fichiers Excel et crée des graphiques automatiques.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : Pythonista ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Quelle fonction utilise-t-on pour afficher du texte ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">echo()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">print()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">show()</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Comment écrit-on une boucle qui se répète 5 fois ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt1">for i in range(5):</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt2">loop 5 times:</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">repeat(5)</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Learn Python",
+        pageDesc: "Python is one of the most popular languages in the world. It is simple, powerful, and used for everything: from web development to artificial intelligence.",
+        compTitle: "Language Basics",
+        compDesc: "Click on a concept to see an example.",
+        compVar: "Variables",
+        compLoop: "Loops",
+        compCond: "Conditions (If/Else)",
+        compFunc: "Functions",
+        codeTitle: "Python Playground",
+        codeDesc: "Test these commands to see the result in the terminal or on the 'Turtle' drawing!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "What is it used for?",
+        usageTitle: "Code Example:",
+        detailVarTitle: "Variables",
+        detailVarDesc: "A variable is like a box where you store information (numbers, text).",
+        detailVarUsage: "score = 10\nname = 'Alice'",
+        detailVarReal: "Storing the player's score or a user's name in an app.",
+        detailLoopTitle: "Loops",
+        detailLoopDesc: "Allows repeating an action multiple times without rewriting the code.",
+        detailLoopUsage: "for i in range(5):\n    print('Hello')",
+        detailLoopReal: "Sending an email to a list of 1000 people automatically.",
+        detailCondTitle: "Conditions",
+        detailCondDesc: "Allows the program to make decisions based on criteria.",
+        detailCondUsage: "if age >= 18:\n    print('Adult')\nelse:\n    print('Minor')",
+        detailCondReal: "Checking if a password is correct before logging in.",
+        detailFuncTitle: "Functions",
+        detailFuncDesc: "A block of code that you give a name to and can reuse anywhere.",
+        detailFuncUsage: "def greet(name):\n    print('Hello ' + name)",
+        detailFuncReal: "A 'Calculate Total' function used every time you add an item to a cart.",
+        projectTitle: "Project Ideas",
+        projectDesc: "With Python, you can create anything.",
+        projSnakeTitle: "Snake Game",
+        projSnakeDesc: "Recreate the famous Snake game with the Pygame library.",
+        projWebTitle: "Website",
+        projWebDesc: "Create a blog or online store with Django or Flask.",
+        projDataTitle: "Data Analysis",
+        projDataDesc: "Analyze Excel files and create automatic charts.",
+        btnPrint: "print(\"Hello\")",
+        btnMath: "Math (2 + 2)",
+        btnLoop: "Loop (0 to 4)",
+        btnSquare: "Draw Square",
+        btnReset: "Reset",
+        quizTitle: "Quiz: Pythonista?",
+        q1Text: "Which function is used to display text?",
+        q1Opt1: "echo()",
+        q1Opt2: "print()",
+        q1Opt3: "show()",
+        q2Text: "How do you write a loop that repeats 5 times?",
+        q2Opt1: "for i in range(5):",
+        q2Opt2: "loop 5 times:",
+        q2Opt3: "repeat(5)",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Apprendre Python",
+        pageDesc: "Python est l'un des langages les plus populaires au monde. Il est simple, puissant et utilisé pour tout : du développement web à l'intelligence artificielle.",
+        compTitle: "Les bases du langage",
+        compDesc: "Cliquez sur un concept pour voir un exemple.",
+        compVar: "Variables",
+        compLoop: "Boucles (Loops)",
+        compCond: "Conditions (If/Else)",
+        compFunc: "Fonctions",
+        codeTitle: "Playground Python",
+        codeDesc: "Teste ces commandes pour voir le résultat dans le terminal ou sur le dessin 'Turtle' !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "À quoi ça sert ?",
+        usageTitle: "Exemple de code :",
+        detailVarTitle: "Variables",
+        detailVarDesc: "Une variable est comme une boîte où l'on stocke une information (nombre, texte).",
+        detailVarUsage: "score = 10\nnom = 'Alice'",
+        detailVarReal: "Stocker le score du joueur ou le nom d'un utilisateur dans une appli.",
+        detailLoopTitle: "Boucles (Loops)",
+        detailLoopDesc: "Permet de répéter une action plusieurs fois sans réécrire le code.",
+        detailLoopUsage: "for i in range(5):\n    print('Bonjour')",
+        detailLoopReal: "Envoyer un email à une liste de 1000 personnes automatiquement.",
+        detailCondTitle: "Conditions",
+        detailCondDesc: "Permet au programme de prendre des décisions selon des critères.",
+        detailCondUsage: "if age >= 18:\n    print('Majeur')\nelse:\n    print('Mineur')",
+        detailCondReal: "Vérifier si un mot de passe est correct avant de se connecter.",
+        detailFuncTitle: "Fonctions",
+        detailFuncDesc: "Un bloc de code auquel on donne un nom et qu'on peut réutiliser partout.",
+        detailFuncUsage: "def saluer(nom):\n    print('Bonjour ' + nom)",
+        detailFuncReal: "Une fonction 'Calculer Total' utilisée à chaque ajout d'article au panier.",
+        projectTitle: "Idées de projets",
+        projectDesc: "Avec Python, tu peux tout créer.",
+        projSnakeTitle: "Jeu du Serpent",
+        projSnakeDesc: "Recrée le célèbre jeu Snake avec la bibliothèque Pygame.",
+        projWebTitle: "Site Web",
+        projWebDesc: "Crée un blog ou une boutique en ligne avec Django ou Flask.",
+        projDataTitle: "Analyse de Données",
+        projDataDesc: "Analyse des fichiers Excel et crée des graphiques automatiques.",
+        btnPrint: "print(\"Hello\")",
+        btnMath: "Calcul (2 + 2)",
+        btnLoop: "Boucle (0 à 4)",
+        btnSquare: "Dessiner Carré",
+        btnReset: "Réinitialiser",
+        quizTitle: "Quiz : Pythonista ?",
+        q1Text: "Quelle fonction utilise-t-on pour afficher du texte ?",
+        q1Opt1: "echo()",
+        q1Opt2: "print()",
+        q1Opt3: "show()",
+        q2Text: "Comment écrit-on une boucle qui se répète 5 fois ?",
+        q2Opt1: "for i in range(5):",
+        q2Opt2: "loop 5 times:",
+        q2Opt3: "repeat(5)",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'var') { tKeyTitle = 'detailVarTitle'; tKeyDesc = 'detailVarDesc'; tKeyUsage = 'detailVarUsage'; tKeyReal = 'detailVarReal'; }
+      if(type === 'loop') { tKeyTitle = 'detailLoopTitle'; tKeyDesc = 'detailLoopDesc'; tKeyUsage = 'detailLoopUsage'; tKeyReal = 'detailLoopReal'; }
+      if(type === 'cond') { tKeyTitle = 'detailCondTitle'; tKeyDesc = 'detailCondDesc'; tKeyUsage = 'detailCondUsage'; tKeyReal = 'detailCondReal'; }
+      if(type === 'func') { tKeyTitle = 'detailFuncTitle'; tKeyDesc = 'detailFuncDesc'; tKeyUsage = 'detailFuncUsage'; tKeyReal = 'detailFuncReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    // Simulation Logic
+    const terminal = document.getElementById('terminal');
+    const canvas = document.getElementById('turtle-canvas');
+    const ctx = canvas.getContext('2d');
+    const turtle = document.getElementById('turtle');
+
+    function runCommand(cmd) {
+      if(cmd === 'reset') {
+        terminal.innerHTML = '>>> Python 3.9.0<br>>>> _';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        turtle.style.left = '150px';
+        turtle.style.top = '150px';
+        turtle.style.transform = 'rotate(0deg)';
+      } else if(cmd === 'print') {
+        terminal.innerHTML += '<br>>>> print("Hello World")<br>Hello World';
+      } else if(cmd === 'math') {
+        terminal.innerHTML += '<br>>>> 2 + 2<br>4';
+      } else if(cmd === 'loop') {
+        terminal.innerHTML += '<br>>>> for i in range(5): print(i)<br>0<br>1<br>2<br>3<br>4';
+      } else if(cmd === 'square') {
+        terminal.innerHTML += '<br>>>> draw_square()';
+        // Simple visual simulation of drawing a square
+        ctx.strokeStyle = '#306998';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.rect(100, 100, 100, 100);
+        ctx.stroke();
+        // Move turtle
+        turtle.style.left = '100px';
+        turtle.style.top = '100px';
+        setTimeout(() => turtle.style.left = '200px', 500);
+        setTimeout(() => turtle.style.top = '200px', 1000);
+        setTimeout(() => turtle.style.left = '100px', 1500);
+        setTimeout(() => turtle.style.top = '100px', 2000);
+      }
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>

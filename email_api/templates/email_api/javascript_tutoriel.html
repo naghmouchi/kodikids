@@ -1,0 +1,463 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel JavaScript — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #f7df1e; box-shadow: 0 8px 20px rgba(247, 223, 30, 0.25); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #fffdef; 
+      border-radius: 16px; border-left: 5px solid #f7df1e; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: #333;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-js { background-color: #f7df1e; } /* JS Yellow */
+    .btn-reset { background-color: #ff5e57; color: white; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #ffffff; height: 380px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex; flex-direction: column;
+    }
+    
+    .browser-bar {
+        height: 30px; background: #e0e0e0; display: flex; align-items: center; padding: 0 10px; gap: 5px;
+    }
+    .browser-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+    .browser-dot.red { background: #ff5f56; }
+    .browser-dot.yellow { background: #ffbd2e; }
+    .browser-dot.green { background: #27c93f; }
+    .browser-url { 
+        flex: 1; height: 20px; background: white; border-radius: 3px; margin-left: 10px; 
+        font-size: 10px; display: flex; align-items: center; padding-left: 5px; color: #777;
+    }
+
+    .browser-content {
+        flex: 2; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: background 0.3s;
+    }
+    
+    .console-panel {
+        flex: 1; background: #1e1e1e; border-top: 2px solid #333; padding: 10px;
+        font-family: 'Courier New', monospace; color: #ccc; font-size: 12px; overflow-y: auto;
+    }
+    .console-line { margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 2px; }
+    .console-line.log { color: #ccc; }
+    .console-line.warn { color: #f7df1e; }
+    .console-line::before { content: '> '; color: #777; }
+
+    #demo-element {
+        padding: 15px 25px; border: 2px dashed #333; border-radius: 8px;
+        font-size: 1.2rem; font-weight: bold; transition: all 0.3s;
+    }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #f7df1e; background: #fffdef; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Apprendre JavaScript</h1>
+      <p class="lead" data-lang-key="pageDesc">JavaScript est le langage du Web. Il permet de rendre les pages interactives, de créer des jeux et des applications dynamiques.</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">Les concepts clés</h2>
+      <p data-lang-key="compDesc">Cliquez sur un concept pour voir un exemple.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('var')">
+          <span class="component-icon">📦</span>
+          <h3 data-lang-key="compVar">Variables (let/const)</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('func')">
+          <span class="component-icon">⚙️</span>
+          <h3 data-lang-key="compFunc">Fonctions</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('dom')">
+          <span class="component-icon">🌐</span>
+          <h3 data-lang-key="compDom">Le DOM</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('event')">
+          <span class="component-icon">🖱️</span>
+          <h3 data-lang-key="compEvent">Événements</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #d4be00; display:block; margin-bottom:5px;">Exemple de code :</strong>
+            <code id="detail-usage" style="display:block; background:#2d3436; color:#f8f8f2; padding:10px; border-radius:4px; font-family:monospace;"></code>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #d4be00; display:block; margin-bottom:5px;">À quoi ça sert ?</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Playground JavaScript</h2>
+      <p data-lang-key="codeDesc">JavaScript agit sur la page Web (DOM) et la Console. Teste les boutons pour voir l'effet !</p>
+
+      <div class="code-playground">
+        <div class="block-container">
+          <button class="block-btn btn-js" onclick="runCommand('alert')" data-lang-key="btnAlert">alert("Bonjour")</button>
+          <button class="block-btn btn-js" onclick="runCommand('log')" data-lang-key="btnLog">console.log("Info")</button>
+          <button class="block-btn btn-js" onclick="runCommand('color')" data-lang-key="btnColor">style.color = "red"</button>
+          <button class="block-btn btn-js" onclick="runCommand('text')" data-lang-key="btnText">innerHTML = "Texte"</button>
+          <button class="block-btn btn-reset" onclick="runCommand('reset')" data-lang-key="btnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div class="browser-bar">
+            <div class="browser-dot red"></div><div class="browser-dot yellow"></div><div class="browser-dot green"></div>
+            <div class="browser-url">https://monsite.com</div>
+        </div>
+        <div class="browser-content" id="browser-content">
+            <div id="demo-element">Élément HTML</div>
+        </div>
+        <div class="console-panel" id="console-output">
+            <div style="color:#777; font-style:italic;">// Console JavaScript</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">Quelques classiques pour débuter.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🧮</span>
+          <h3 data-lang-key="projCalcTitle">Calculatrice</h3>
+          <p data-lang-key="projCalcDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Crée une interface avec des boutons pour additionner et soustraire.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">✅</span>
+          <h3 data-lang-key="projTodoTitle">To-Do List</h3>
+          <p data-lang-key="projTodoDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Une liste de tâches où tu peux ajouter et supprimer des éléments.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🎮</span>
+          <h3 data-lang-key="projGameTitle">Jeu de Mémoire</h3>
+          <p data-lang-key="projGameDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Retourne des cartes pour trouver les paires identiques.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : Maître du Web ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Comment sélectionne-t-on un élément par son ID ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt1">document.getElementById('id')</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt2">select('id')</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">window.find('id')</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Où s'affichent les messages de console.log() ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt1">Sur la page web directement</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt2">Dans la console du développeur (F12)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Dans la barre d'adresse</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Learn JavaScript",
+        pageDesc: "JavaScript is the language of the Web. It makes pages interactive, creates games, and dynamic applications.",
+        compTitle: "Key Concepts",
+        compDesc: "Click on a concept to see an example.",
+        compVar: "Variables (let/const)",
+        compFunc: "Functions",
+        compDom: "The DOM",
+        compEvent: "Events",
+        codeTitle: "JavaScript Playground",
+        codeDesc: "JavaScript acts on the Web page (DOM) and the Console. Test the buttons to see the effect!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "What is it used for?",
+        usageTitle: "Code Example:",
+        detailVarTitle: "Variables",
+        detailVarDesc: "Containers for storing data values. 'let' allows change, 'const' does not.",
+        detailVarUsage: "let score = 0;\nconst name = 'Kodi';",
+        detailVarReal: "Saving your game score or username.",
+        detailFuncTitle: "Functions",
+        detailFuncDesc: "A block of code designed to perform a particular task.",
+        detailFuncUsage: "function sayHello() {\n  alert('Hello!');\n}",
+        detailFuncReal: "Calculating the total price of a shopping cart.",
+        detailDomTitle: "The DOM",
+        detailDomDesc: "Document Object Model. It's the structure of the HTML page that JS can modify.",
+        detailDomUsage: "document.body.style.background = 'blue';",
+        detailDomReal: "Changing the 'Like' button color when you click it.",
+        detailEventTitle: "Events",
+        detailEventDesc: "Things that happen to HTML elements (clicks, mouse movements, key presses).",
+        detailEventUsage: "button.onclick = function() { ... }",
+        detailEventReal: "Detecting when a user clicks 'Submit' on a form.",
+        projectTitle: "Project Ideas",
+        projectDesc: "Some classics to get started.",
+        projCalcTitle: "Calculator",
+        projCalcDesc: "Create an interface with buttons to add and subtract.",
+        projTodoTitle: "To-Do List",
+        projTodoDesc: "A task list where you can add and remove items.",
+        projGameTitle: "Memory Game",
+        projGameDesc: "Flip cards to find matching pairs.",
+        btnAlert: "alert(\"Hello\")",
+        btnLog: "console.log(\"Info\")",
+        btnColor: "style.color = \"red\"",
+        btnText: "innerHTML = \"Text\"",
+        btnReset: "Reset",
+        quizTitle: "Quiz: Web Master?",
+        q1Text: "How do you select an element by ID?",
+        q1Opt1: "document.getElementById('id')",
+        q1Opt2: "select('id')",
+        q1Opt3: "window.find('id')",
+        q2Text: "Where do console.log() messages appear?",
+        q2Opt1: "On the web page directly",
+        q2Opt2: "In the developer console (F12)",
+        q2Opt3: "In the address bar",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Apprendre JavaScript",
+        pageDesc: "JavaScript est le langage du Web. Il permet de rendre les pages interactives, de créer des jeux et des applications dynamiques.",
+        compTitle: "Les concepts clés",
+        compDesc: "Cliquez sur un concept pour voir un exemple.",
+        compVar: "Variables (let/const)",
+        compFunc: "Fonctions",
+        compDom: "Le DOM",
+        compEvent: "Événements",
+        codeTitle: "Playground JavaScript",
+        codeDesc: "JavaScript agit sur la page Web (DOM) et la Console. Teste les boutons pour voir l'effet !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "À quoi ça sert ?",
+        usageTitle: "Exemple de code :",
+        detailVarTitle: "Variables",
+        detailVarDesc: "Des conteneurs pour stocker des données. 'let' permet de changer la valeur, 'const' non.",
+        detailVarUsage: "let score = 0;\nconst nom = 'Kodi';",
+        detailVarReal: "Sauvegarder ton score de jeu ou ton nom d'utilisateur.",
+        detailFuncTitle: "Fonctions",
+        detailFuncDesc: "Un bloc de code conçu pour effectuer une tâche précise.",
+        detailFuncUsage: "function direBonjour() {\n  alert('Bonjour !');\n}",
+        detailFuncReal: "Calculer le prix total d'un panier d'achat.",
+        detailDomTitle: "Le DOM",
+        detailDomDesc: "Document Object Model. C'est la structure de la page HTML que JS peut modifier.",
+        detailDomUsage: "document.body.style.background = 'blue';",
+        detailDomReal: "Changer la couleur du bouton 'J'aime' quand tu cliques dessus.",
+        detailEventTitle: "Événements",
+        detailEventDesc: "Des choses qui arrivent aux éléments HTML (clics, mouvements de souris, touches).",
+        detailEventUsage: "bouton.onclick = function() { ... }",
+        detailEventReal: "Détecter quand un utilisateur clique sur 'Envoyer' dans un formulaire.",
+        projectTitle: "Idées de projets",
+        projectDesc: "Quelques classiques pour débuter.",
+        projCalcTitle: "Calculatrice",
+        projCalcDesc: "Crée une interface avec des boutons pour additionner et soustraire.",
+        projTodoTitle: "To-Do List",
+        projTodoDesc: "Une liste de tâches où tu peux ajouter et supprimer des éléments.",
+        projGameTitle: "Jeu de Mémoire",
+        projGameDesc: "Retourne des cartes pour trouver les paires identiques.",
+        btnAlert: "alert(\"Bonjour\")",
+        btnLog: "console.log(\"Info\")",
+        btnColor: "style.color = \"red\"",
+        btnText: "innerHTML = \"Texte\"",
+        btnReset: "Réinitialiser",
+        quizTitle: "Quiz : Maître du Web ?",
+        q1Text: "Comment sélectionne-t-on un élément par son ID ?",
+        q1Opt1: "document.getElementById('id')",
+        q1Opt2: "select('id')",
+        q1Opt3: "window.find('id')",
+        q2Text: "Où s'affichent les messages de console.log() ?",
+        q2Opt1: "Sur la page web directement",
+        q2Opt2: "Dans la console du développeur (F12)",
+        q2Opt3: "Dans la barre d'adresse",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'var') { tKeyTitle = 'detailVarTitle'; tKeyDesc = 'detailVarDesc'; tKeyUsage = 'detailVarUsage'; tKeyReal = 'detailVarReal'; }
+      if(type === 'func') { tKeyTitle = 'detailFuncTitle'; tKeyDesc = 'detailFuncDesc'; tKeyUsage = 'detailFuncUsage'; tKeyReal = 'detailFuncReal'; }
+      if(type === 'dom') { tKeyTitle = 'detailDomTitle'; tKeyDesc = 'detailDomDesc'; tKeyUsage = 'detailDomUsage'; tKeyReal = 'detailDomReal'; }
+      if(type === 'event') { tKeyTitle = 'detailEventTitle'; tKeyDesc = 'detailEventDesc'; tKeyUsage = 'detailEventUsage'; tKeyReal = 'detailEventReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    // Simulation Logic
+    const consoleOutput = document.getElementById('console-output');
+    const demoEl = document.getElementById('demo-element');
+    const browserContent = document.getElementById('browser-content');
+
+    function logToConsole(msg, type='log') {
+        const line = document.createElement('div');
+        line.className = 'console-line ' + type;
+        line.textContent = msg;
+        consoleOutput.appendChild(line);
+        consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    function runCommand(cmd) {
+      if(cmd === 'reset') {
+        consoleOutput.innerHTML = '<div style="color:#777; font-style:italic;">// Console JavaScript</div>';
+        demoEl.style.color = 'black';
+        demoEl.textContent = 'Élément HTML';
+        browserContent.style.background = 'white';
+      } else if(cmd === 'alert') {
+        logToConsole('alert("Bonjour")');
+        alert(currentLang === 'fr' ? 'Bonjour !' : 'Hello!');
+      } else if(cmd === 'log') {
+        logToConsole('console.log("Info")', 'log');
+        logToConsole('Info', 'log');
+      } else if(cmd === 'color') {
+        logToConsole('document.getElementById("demo").style.color = "red"');
+        demoEl.style.color = '#ff5f56';
+      } else if(cmd === 'text') {
+        logToConsole('document.getElementById("demo").innerHTML = "Texte Modifié"');
+        demoEl.textContent = currentLang === 'fr' ? 'Texte Modifié !' : 'Text Changed!';
+      }
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -84,3 +84,33 @@ def send_email(request):
         logger.error(f"ERREUR FATALE DU SERVEUR dans send_email_api: {e}", exc_info=True)
         # Le 500 erreur indique maintenant le type d'erreur pour faciliter le débogage
         return JsonResponse({'success': False, 'message': f'Échec de l\'envoi de l\'e-mail. Erreur interne du serveur : {type(e).__name__}'}, status=500)
+    
+def mbot_tutorial(request):
+    return render(request, 'email_api/mbot_tutorial.html')
+
+def arduino_tutorial(request):
+    return render(request, 'email_api/arduino_tutoriel.html')
+
+def raspberry_tutorial(request):
+    return render(request, 'email_api/raspberry_tutoriel.html')
+
+def microbit_tutorial(request):
+    return render(request, 'email_api/microbit_tutoriel.html')
+
+def iot_tutorial(request):
+    return render(request, 'email_api/iot_tutoriel.html')
+
+def ia_tutorial(request):
+    return render(request, 'email_api/ia_tutoriel.html')
+
+def python_tutorial(request):
+    return render(request, 'email_api/python_tutoriel.html')
+
+def javascript_tutorial(request):
+    return render(request, 'email_api/javascript_tutoriel.html')
+
+def scratch_tutorial(request):
+    return render(request, 'email_api/scratch_tutoriel.html')
+
+def tutorials_hub(request):
+    return render(request, 'email_api/tutorials_hub.html')

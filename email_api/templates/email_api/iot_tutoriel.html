@@ -1,0 +1,491 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel IoT — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #3498db; box-shadow: 0 8px 20px rgba(52, 152, 219, 0.15); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #f0f9ff; 
+      border-radius: 16px; border-left: 5px solid #3498db; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: white;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-iot { background-color: #3498db; }
+    .btn-reset { background-color: #636e72; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #ffffff; height: 350px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex; align-items: center; justify-content: center;
+      background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    
+    /* Virtual IoT Setup */
+    .iot-device {
+        width: 100px; height: 140px; background: #2c3e50; border-radius: 8px;
+        position: absolute; left: 50px; top: 100px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        color: white; font-size: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .iot-device::before { content: 'ESP32'; position: absolute; top: 5px; font-weight: bold; color: #bdc3c7; }
+    .sensor-val { font-size: 24px; font-weight: bold; color: #f1c40f; margin-top: 10px; }
+    
+    .wifi-waves {
+        position: absolute; top: -25px; right: -10px; font-size: 24px; color: #3498db; opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .wifi-waves.active { animation: blink 1s infinite; opacity: 1; }
+
+    .cloud {
+        font-size: 80px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+        color: #ecf0f1; text-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: color 0.3s;
+    }
+    .cloud.connected { color: #3498db; }
+
+    .phone-app {
+        width: 100px; height: 180px; background: #333; border-radius: 12px;
+        position: absolute; right: 50px; top: 80px; border: 4px solid #111;
+        display: flex; flex-direction: column; align-items: center; padding-top: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .phone-screen {
+        width: 85px; height: 140px; background: white;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-weight: bold; color: #333; font-size: 14px; text-align: center;
+    }
+
+    .data-packet {
+        width: 12px; height: 12px; background: #e74c3c; border-radius: 50%;
+        position: absolute; opacity: 0; z-index: 10;
+    }
+
+    @keyframes blink { 50% { opacity: 0.3; } }
+    @keyframes moveData {
+        0% { left: 100px; top: 120px; opacity: 1; }
+        50% { left: 50%; top: 60px; opacity: 1; }
+        100% { left: calc(100% - 100px); top: 120px; opacity: 1; }
+    }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #3498db; background: #f0f9ff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Découvrir l'IoT</h1>
+      <p class="lead" data-lang-key="pageDesc">L'Internet des Objets (IoT), c'est connecter des objets du quotidien à Internet pour les contrôler ou recevoir des données sur son téléphone.</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">Les outils de l'IoT</h2>
+      <p data-lang-key="compDesc">Cliquez sur un élément pour comprendre son rôle.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('esp32')">
+          <span class="component-icon">📟</span>
+          <h3 data-lang-key="compEsp">Carte ESP32</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('sensor')">
+          <span class="component-icon">🌡️</span>
+          <h3 data-lang-key="compSensor">Capteurs</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('mqtt')">
+          <span class="component-icon">☁️</span>
+          <h3 data-lang-key="compMqtt">Cloud / MQTT</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('app')">
+          <span class="component-icon">📱</span>
+          <h3 data-lang-key="compApp">Dashboard App</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #3498db; display:block; margin-bottom:5px;">Comment l'utiliser ?</strong>
+            <p id="detail-usage" style="margin:0; color: #333;"></p>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #3498db; display:block; margin-bottom:5px;">Dans la vraie vie :</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Connecter un objet</h2>
+      <p data-lang-key="codeDesc">Simulons une station météo connectée. Connecte le WiFi, lis la température et envoie-la sur le téléphone !</p>
+
+      <div class="code-playground">
+        <div class="block-container">
+          <button class="block-btn btn-iot" onclick="runCommand('wifi')" data-lang-key="btnWifi">1. Connecter WiFi</button>
+          <button class="block-btn btn-iot" onclick="runCommand('read')" data-lang-key="btnRead">2. Lire Capteur</button>
+          <button class="block-btn btn-iot" onclick="runCommand('send')" data-lang-key="btnSend">3. Envoyer au Cloud</button>
+          <button class="block-btn btn-reset" onclick="runCommand('reset')" data-lang-key="btnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div class="cloud" id="cloud-icon">☁️</div>
+        <div class="data-packet" id="packet"></div>
+        
+        <div class="iot-device">
+            <div class="wifi-waves" id="wifi-icon">📶</div>
+            <div class="sensor-val" id="dev-val">--°C</div>
+        </div>
+
+        <div class="phone-app">
+            <div class="phone-screen">
+                <div style="font-size:10px; color:#999; margin-bottom:5px;">My Home App</div>
+                <div style="font-size:20px;" id="app-val">--</div>
+                <div style="font-size:12px;">Temp (°C)</div>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">L'IoT permet de rendre ta maison intelligente.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🏠</span>
+          <h3 data-lang-key="projHomeTitle">Maison Intelligente</h3>
+          <p data-lang-key="projHomeDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Allume la lumière de ta chambre depuis ton téléphone.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🌱</span>
+          <h3 data-lang-key="projPlantTitle">Plante Connectée</h3>
+          <p data-lang-key="projPlantDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Reçois une notification quand ta plante a soif.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🌦️</span>
+          <h3 data-lang-key="projWeatherTitle">Station Météo</h3>
+          <p data-lang-key="projWeatherDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Enregistre la température et l'humidité sur un graphique web.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : Expert IoT ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Que signifie IoT ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">Input of Technology</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">Internet of Things (Internet des Objets)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">International Office of Tea</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Quel composant permet de se connecter au WiFi ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt1">La carte ESP32</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt2">Une simple LED</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Une batterie</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Discover IoT",
+        pageDesc: "The Internet of Things (IoT) is connecting everyday objects to the internet to control them or receive data on your phone.",
+        compTitle: "IoT Tools",
+        compDesc: "Click on an item to understand its role.",
+        compEsp: "ESP32 Board",
+        compSensor: "Sensors",
+        compMqtt: "Cloud / MQTT",
+        compApp: "Dashboard App",
+        codeTitle: "Connect an Object",
+        codeDesc: "Let's simulate a connected weather station. Connect WiFi, read temperature, and send it to the phone!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "In Real Life:",
+        usageTitle: "How to use it?",
+        detailEspTitle: "ESP32 Board",
+        detailEspDesc: "A powerful microcontroller like Arduino, but with built-in WiFi and Bluetooth. It's the brain of connected objects.",
+        detailEspUsage: "Program it with Arduino IDE or MicroPython to connect to your WiFi network.",
+        detailEspReal: "Used in smart bulbs, connected plugs, and industrial sensors.",
+        detailSensorTitle: "Sensors (DHT11, etc.)",
+        detailSensorDesc: "Electronic components that measure the physical world: temperature, humidity, motion, light.",
+        detailSensorUsage: "Connect them to the ESP32 pins to read data.",
+        detailSensorReal: "Thermostats (Nest), fire alarms, and fitness trackers.",
+        detailMqttTitle: "Cloud / MQTT",
+        detailMqttDesc: "The 'postman' of the internet. MQTT is a lightweight protocol used to send messages between devices and the server.",
+        detailMqttUsage: "The ESP32 'publishes' data to a 'topic', and the phone 'subscribes' to receive it.",
+        detailMqttReal: "Used by Facebook Messenger and smart home hubs.",
+        detailAppTitle: "Dashboard App",
+        detailAppDesc: "The interface on your phone or computer to visualize data and control devices remotely.",
+        detailAppUsage: "Use apps like Blynk or Home Assistant to create buttons and graphs.",
+        detailAppReal: "The Philips Hue app to control lights or the Tesla app for your car.",
+        projectTitle: "Project Ideas",
+        projectDesc: "IoT makes your home smart.",
+        projHomeTitle: "Smart Home",
+        projHomeDesc: "Turn on your bedroom light from your phone.",
+        projPlantTitle: "Connected Plant",
+        projPlantDesc: "Get a notification when your plant is thirsty.",
+        projWeatherTitle: "Weather Station",
+        projWeatherDesc: "Log temperature and humidity on a web chart.",
+        btnWifi: "1. Connect WiFi",
+        btnRead: "2. Read Sensor",
+        btnSend: "3. Send to Cloud",
+        btnReset: "Reset",
+        quizTitle: "Quiz: IoT Expert?",
+        q1Text: "What does IoT stand for?",
+        q1Opt1: "Input of Technology",
+        q1Opt2: "Internet of Things",
+        q1Opt3: "International Office of Tea",
+        q2Text: "Which component allows WiFi connection?",
+        q2Opt1: "The ESP32 board",
+        q2Opt2: "A simple LED",
+        q2Opt3: "A battery",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Découvrir l'IoT",
+        pageDesc: "L'Internet des Objets (IoT), c'est connecter des objets du quotidien à Internet pour les contrôler ou recevoir des données sur son téléphone.",
+        compTitle: "Les outils de l'IoT",
+        compDesc: "Cliquez sur un élément pour comprendre son rôle.",
+        compEsp: "Carte ESP32",
+        compSensor: "Capteurs",
+        compMqtt: "Cloud / MQTT",
+        compApp: "Dashboard App",
+        codeTitle: "Connecter un objet",
+        codeDesc: "Simulons une station météo connectée. Connecte le WiFi, lis la température et envoie-la sur le téléphone !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "Dans la vraie vie :",
+        usageTitle: "Comment l'utiliser ?",
+        detailEspTitle: "Carte ESP32",
+        detailEspDesc: "Un microcontrôleur puissant comme l'Arduino, mais avec WiFi et Bluetooth intégrés. C'est le cerveau des objets connectés.",
+        detailEspUsage: "Programme-la avec Arduino IDE ou MicroPython pour se connecter à ta box Internet.",
+        detailEspReal: "Utilisée dans les ampoules connectées, les prises intelligentes et les capteurs industriels.",
+        detailSensorTitle: "Capteurs (DHT11, etc.)",
+        detailSensorDesc: "Des composants électroniques qui mesurent le monde physique : température, humidité, mouvement, lumière.",
+        detailSensorUsage: "Branche-les sur les broches de l'ESP32 pour lire les données.",
+        detailSensorReal: "Thermostats (Nest), détecteurs de fumée et montres connectées.",
+        detailMqttTitle: "Cloud / MQTT",
+        detailMqttDesc: "Le 'facteur' d'Internet. MQTT est un protocole léger utilisé pour envoyer des messages entre les objets et le serveur.",
+        detailMqttUsage: "L'ESP32 'publie' des données sur un 'sujet', et le téléphone 's'abonne' pour les recevoir.",
+        detailMqttReal: "Utilisé par Facebook Messenger et les hubs domotiques.",
+        detailAppTitle: "Dashboard App",
+        detailAppDesc: "L'interface sur ton téléphone ou ordinateur pour visualiser les données et contrôler les objets à distance.",
+        detailAppUsage: "Utilise des applis comme Blynk ou Home Assistant pour créer des boutons et graphiques.",
+        detailAppReal: "L'appli Philips Hue pour les lumières ou l'appli Tesla pour la voiture.",
+        projectTitle: "Idées de projets",
+        projectDesc: "L'IoT permet de rendre ta maison intelligente.",
+        projHomeTitle: "Maison Intelligente",
+        projHomeDesc: "Allume la lumière de ta chambre depuis ton téléphone.",
+        projPlantTitle: "Plante Connectée",
+        projPlantDesc: "Reçois une notification quand ta plante a soif.",
+        projWeatherTitle: "Station Météo",
+        projWeatherDesc: "Enregistre la température et l'humidité sur un graphique web.",
+        btnWifi: "1. Connecter WiFi",
+        btnRead: "2. Lire Capteur",
+        btnSend: "3. Envoyer au Cloud",
+        btnReset: "Réinitialiser",
+        quizTitle: "Quiz : Expert IoT ?",
+        q1Text: "Que signifie IoT ?",
+        q1Opt1: "Input of Technology",
+        q1Opt2: "Internet of Things (Internet des Objets)",
+        q1Opt3: "International Office of Tea",
+        q2Text: "Quel composant permet de se connecter au WiFi ?",
+        q2Opt1: "La carte ESP32",
+        q2Opt2: "Une simple LED",
+        q2Opt3: "Une batterie",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'esp32') { tKeyTitle = 'detailEspTitle'; tKeyDesc = 'detailEspDesc'; tKeyUsage = 'detailEspUsage'; tKeyReal = 'detailEspReal'; }
+      if(type === 'sensor') { tKeyTitle = 'detailSensorTitle'; tKeyDesc = 'detailSensorDesc'; tKeyUsage = 'detailSensorUsage'; tKeyReal = 'detailSensorReal'; }
+      if(type === 'mqtt') { tKeyTitle = 'detailMqttTitle'; tKeyDesc = 'detailMqttDesc'; tKeyUsage = 'detailMqttUsage'; tKeyReal = 'detailMqttReal'; }
+      if(type === 'app') { tKeyTitle = 'detailAppTitle'; tKeyDesc = 'detailAppDesc'; tKeyUsage = 'detailAppUsage'; tKeyReal = 'detailAppReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    // Simulation Logic
+    const wifiIcon = document.getElementById('wifi-icon');
+    const devVal = document.getElementById('dev-val');
+    const appVal = document.getElementById('app-val');
+    const packet = document.getElementById('packet');
+    const cloud = document.getElementById('cloud-icon');
+    
+    let isWifiOn = false;
+    let currentTemp = 0;
+
+    function runCommand(cmd) {
+      if(cmd === 'reset') {
+        isWifiOn = false;
+        currentTemp = 0;
+        wifiIcon.classList.remove('active');
+        cloud.classList.remove('connected');
+        devVal.textContent = '--°C';
+        appVal.textContent = '--';
+        packet.style.opacity = 0;
+        packet.style.animation = 'none';
+      } else if(cmd === 'wifi') {
+        isWifiOn = true;
+        wifiIcon.classList.add('active');
+        setTimeout(() => cloud.classList.add('connected'), 500);
+      } else if(cmd === 'read') {
+        currentTemp = Math.floor(Math.random() * 10) + 20; // 20-30°C
+        devVal.textContent = currentTemp + '°C';
+      } else if(cmd === 'send') {
+        if(!isWifiOn) { alert("Connect WiFi first!"); return; }
+        if(currentTemp === 0) { alert("Read sensor first!"); return; }
+        
+        // Animate packet
+        packet.style.animation = 'none';
+        packet.offsetHeight; /* trigger reflow */
+        packet.style.animation = 'moveData 1.5s linear';
+        
+        setTimeout(() => {
+            appVal.textContent = currentTemp;
+        }, 1500);
+      }
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>

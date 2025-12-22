@@ -1,0 +1,451 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel mBot — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #2b7cff; box-shadow: 0 8px 20px rgba(43, 124, 255, 0.15); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #f0f7ff; 
+      border-radius: 16px; border-left: 5px solid #2b7cff; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: white;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-move { background-color: #4c97ff; }
+    .btn-light { background-color: #9966ff; }
+    .btn-sound { background-color: #cf63cf; }
+    .btn-reset { background-color: #ff5e57; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #ffffff; height: 350px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex; align-items: center; justify-content: center;
+      background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .virtual-mbot { 
+      width: 70px; height: 70px; background: #2b7cff; border-radius: 12px; 
+      position: absolute; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      display: flex; align-items: center; justify-content: center; 
+      color: white; font-size: 30px; box-shadow: 0 10px 20px rgba(43, 124, 255, 0.3);
+      z-index: 10;
+    }
+    .virtual-mbot::before { content: '👀'; font-size: 20px; position: absolute; top: 5px; }
+    .virtual-mbot::after { content: ''; position: absolute; bottom: -5px; width: 80%; height: 10px; background: #000; border-radius: 4px; opacity: 0.2; }
+    .virtual-mbot.light-on { background: #ffd700; box-shadow: 0 0 30px #ffd700; color: #333; }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #2b7cff; background: #f0f7ff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Découvrir le robot mBot</h1>
+      <p class="lead" data-lang-key="pageDesc">Le mBot est un robot éducatif basé sur Arduino, conçu pour initier les jeunes à la robotique. Grâce à sa carte mCore et ses capteurs, il peut voir, entendre et se déplacer. Dans ce tutoriel, nous allons explorer son fonctionnement interne, ses applications réelles et apprendre à le programmer.</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">Anatomie du mBot</h2>
+      <p data-lang-key="compDesc">Cliquez sur un composant pour découvrir sa fonction.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('mcore')">
+          <span class="component-icon">🧠</span>
+          <h3 data-lang-key="compMcore">Carte mCore</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('ultra')">
+          <span class="component-icon">👀</span>
+          <h3 data-lang-key="compUltra">Capteur Ultrason</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('line')">
+          <span class="component-icon">〰️</span>
+          <h3 data-lang-key="compLine">Suiveur de ligne</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('motor')">
+          <span class="component-icon">⚙️</span>
+          <h3 data-lang-key="compMotor">Moteurs</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #2b7cff; display:block; margin-bottom:5px;">Comment l'utiliser ?</strong>
+            <p id="detail-usage" style="margin:0; color: #333;"></p>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #2b7cff; display:block; margin-bottom:5px;">Dans la vraie vie :</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Apprendre à coder</h2>
+      <p data-lang-key="codeDesc">mBot se programme avec des blocs colorés (comme Scratch). Essaie les boutons ci-dessous pour contrôler le robot virtuel !</p>
+
+      <div class="code-playground">
+        <div class="block-container">
+          <button class="block-btn btn-move" onclick="runCommand('forward')" data-lang-key="btnForward">Avancer</button>
+          <button class="block-btn btn-move" onclick="runCommand('backward')" data-lang-key="btnBackward">Reculer</button>
+          <button class="block-btn btn-move" onclick="runCommand('turn')" data-lang-key="btnTurn">Tourner à droite</button>
+          <button class="block-btn btn-light" onclick="runCommand('light')" data-lang-key="btnLight">Lumières</button>
+          <button class="block-btn btn-sound" onclick="runCommand('beep')" data-lang-key="btnBeep">Jouer une note</button>
+          <button class="block-btn btn-reset" onclick="runCommand('reset')" data-lang-key="btnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div id="virtual-bot" class="virtual-mbot">🤖</div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">Voici quelques missions pour commencer avec ton mBot.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🚓</span>
+          <h3 data-lang-key="projPoliceTitle">Voiture de Police</h3>
+          <p data-lang-key="projPoliceDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Fais clignoter les lumières en bleu et rouge et active la sirène !</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🦇</span>
+          <h3 data-lang-key="projAvoidTitle">L'éviteur d'obstacles</h3>
+          <p data-lang-key="projAvoidDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Le robot avance et tourne s'il voit un mur à moins de 10cm.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🏁</span>
+          <h3 data-lang-key="projLineTitle">Le circuit de course</h3>
+          <p data-lang-key="projLineDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Dessine un circuit noir au sol et regarde le robot le suivre tout seul.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : As-tu tout compris ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Quel composant est le "cerveau" du robot ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">Les moteurs</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">La carte mCore</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">Le capteur ultrason</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Comment le robot évite-t-il les obstacles ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt1">Avec des ondes sonores (Ultrason)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt2">Avec une caméra vidéo</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">En touchant les murs</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q3">
+          <p class="question-text" data-lang-key="q3Text">Où trouve-t-on la technologie "Suiveur de ligne" dans la vraie vie ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt1">Dans les grille-pains</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q3Opt2">Dans les robots d'entrepôt (Amazon)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt3">Dans les voitures volantes</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Discover mBot Robot",
+        pageDesc: "mBot is an Arduino-based educational robot designed to introduce youth to robotics, programming, and electronics. With its mCore board and sensors, it can see, hear, and move. In this tutorial, we will explore its internal workings, real-world applications, and learn how to code it.",
+        compTitle: "mBot Anatomy",
+        compDesc: "Click on a component to discover its function.",
+        compMcore: "mCore Board",
+        compUltra: "Ultrasonic Sensor",
+        compLine: "Line Follower",
+        compMotor: "Motors",
+        codeTitle: "Learn to Code",
+        codeDesc: "mBot is programmed with colorful blocks (like Scratch). Try the buttons below to control the virtual robot!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "In Real Life:",
+        usageTitle: "How to use it?",
+        detailMcoreTitle: "mCore Board",
+        detailMcoreDesc: "The brain of the robot! Based on Arduino (ATmega328P), it processes your code and controls all other parts. It has ports (RJ25) to easily connect sensors without soldering.",
+        detailMcoreUsage: "Connect the battery, turn on the switch on the side. Connect it to your computer via USB or Bluetooth to upload your code.",
+        detailMcoreReal: "Similar to a computer motherboard or the ECU (Electronic Control Unit) in cars that manages the engine and electronics.",
+        detailUltraTitle: "Ultrasonic Sensor",
+        detailUltraDesc: "The robot's 'eyes'. It emits high-frequency sound waves and measures the time it takes for the echo to return to calculate distance. Distance = (Time × Speed of Sound) / 2.",
+        detailUltraUsage: "Connect to Port 3. In your code, use the block 'Ultrasonic sensor distance' to detect walls.",
+        detailUltraReal: "Used in car parking sensors (reversing radar), automatic door openers, and medical ultrasound imaging.",
+        detailLineTitle: "Line Follower",
+        detailLineDesc: "Allows the robot to 'see' the ground using Infrared (IR) light. Black surfaces absorb IR, white surfaces reflect it. The robot uses this contrast to follow tracks.",
+        detailLineUsage: "Connect to Port 2. Use the block 'Line follower status'. 0=Both white, 3=Both black (on line).",
+        detailLineReal: "Used in automated warehouse robots (AGVs) to move goods and in barcode scanners at supermarkets.",
+        detailMotorTitle: "Motors",
+        detailMotorDesc: "Two DC (Direct Current) motors convert electrical energy into mechanical rotation. By controlling the speed of each wheel independently, the mBot can steer like a tank.",
+        detailMotorUsage: "Plug them into ports M1 (Left) and M2 (Right). Use blocks 'Run forward at speed 100' to move.",
+        detailMotorReal: "Found in electric cars (Tesla), washing machines, fans, and drones.",
+        projectTitle: "Project Ideas",
+        projectDesc: "Here are a few missions to get started with your mBot.",
+        projPoliceTitle: "Police Car",
+        projPoliceDesc: "Flash the lights blue and red and turn on the siren!",
+        projAvoidTitle: "Obstacle Avoider",
+        projAvoidDesc: "The robot moves forward and turns if it sees a wall closer than 10cm.",
+        projLineTitle: "Race Track",
+        projLineDesc: "Draw a black track on the floor and watch the robot follow it automatically.",
+        btnForward: "Move Forward",
+        btnBackward: "Move Backward",
+        btnTurn: "Turn Right",
+        btnLight: "Toggle Lights",
+        btnBeep: "Play Note",
+        btnReset: "Reset",
+        quizTitle: "Quiz: Did you get it?",
+        q1Text: "Which component is the robot's 'brain'?",
+        q1Opt1: "Motors",
+        q1Opt2: "mCore Board",
+        q1Opt3: "Ultrasonic Sensor",
+        q2Text: "How does the robot avoid obstacles?",
+        q2Opt1: "With sound waves (Ultrasonic)",
+        q2Opt2: "With a video camera",
+        q2Opt3: "By touching walls",
+        q3Text: "Where is 'Line Follower' technology used in real life?",
+        q3Opt1: "In toasters",
+        q3Opt2: "In warehouse robots (Amazon)",
+        q3Opt3: "In flying cars",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Découvrir le robot mBot",
+        pageDesc: "Le mBot est un robot éducatif basé sur Arduino, conçu pour initier les jeunes à la robotique, à la programmation et à l'électronique. Grâce à sa carte mCore et ses capteurs, il peut voir, entendre et se déplacer. Dans ce tutoriel, nous allons explorer son fonctionnement interne, ses applications réelles et apprendre à le programmer.",
+        compTitle: "Anatomie du mBot",
+        compDesc: "Cliquez sur un composant pour découvrir sa fonction.",
+        compMcore: "Carte mCore",
+        compUltra: "Capteur Ultrason",
+        compLine: "Suiveur de ligne",
+        compMotor: "Moteurs",
+        codeTitle: "Apprendre à coder",
+        codeDesc: "mBot se programme avec des blocs colorés (comme Scratch). Essaie les boutons ci-dessous pour contrôler le robot virtuel !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "Dans la vraie vie :",
+        usageTitle: "Comment l'utiliser ?",
+        detailMcoreTitle: "Carte mCore",
+        detailMcoreDesc: "Le cerveau du robot ! Basée sur Arduino (ATmega328P), elle traite ton code et contrôle tout. Elle possède des ports (RJ25) pour brancher facilement des capteurs sans soudure.",
+        detailMcoreUsage: "Branche la batterie, allume l'interrupteur sur le côté. Connecte-la à l'ordinateur via USB ou Bluetooth pour envoyer ton code.",
+        detailMcoreReal: "Similaire à la carte mère d'un ordinateur ou au calculateur (ECU) des voitures qui gère le moteur et l'électronique.",
+        detailUltraTitle: "Capteur Ultrason",
+        detailUltraDesc: "Les 'yeux' du robot. Il émet des ondes sonores (ultrasons) et mesure le temps que met l'écho à revenir pour calculer la distance. Distance = (Temps × Vitesse du son) / 2.",
+        detailUltraUsage: "Branche-le sur le Port 3. Dans ton code, utilise le bloc 'Distance du capteur ultrason' pour détecter les murs.",
+        detailUltraReal: "Utilisé dans les radars de recul des voitures, les portes automatiques et l'échographie médicale.",
+        detailLineTitle: "Suiveur de ligne",
+        detailLineDesc: "Permet au robot de 'voir' le sol grâce à la lumière Infrarouge (IR). Le noir absorbe l'IR, le blanc le réfléchit. Le robot utilise ce contraste pour suivre un parcours.",
+        detailLineUsage: "Branche-le sur le Port 2. Utilise le bloc 'État du suiveur de ligne'. 0=Tout blanc, 3=Tout noir (sur la ligne).",
+        detailLineReal: "Utilisé dans les robots d'entrepôt (AGV) pour déplacer des marchandises et dans les douchettes code-barres au supermarché.",
+        detailMotorTitle: "Moteurs",
+        detailMotorDesc: "Deux moteurs à courant continu (DC) convertissent l'électricité en rotation. En contrôlant la vitesse de chaque roue indépendamment, le mBot peut se diriger comme un tank.",
+        detailMotorUsage: "Branche-les sur les ports M1 (Gauche) et M2 (Droit). Utilise les blocs 'Avancer à la vitesse 100' pour bouger.",
+        detailMotorReal: "On les trouve dans les voitures électriques (Tesla), les machines à laver, les ventilateurs et les drones.",
+        projectTitle: "Idées de projets",
+        projectDesc: "Voici quelques missions pour commencer avec ton mBot.",
+        projPoliceTitle: "Voiture de Police",
+        projPoliceDesc: "Fais clignoter les lumières en bleu et rouge et active la sirène !",
+        projAvoidTitle: "L'éviteur d'obstacles",
+        projAvoidDesc: "Le robot avance et tourne s'il voit un mur à moins de 10cm.",
+        projLineTitle: "Le circuit de course",
+        projLineDesc: "Dessine un circuit noir au sol et regarde le robot le suivre tout seul.",
+        btnForward: "Avancer",
+        btnBackward: "Reculer",
+        btnTurn: "Tourner à droite",
+        btnLight: "Lumières",
+        btnBeep: "Jouer une note",
+        btnReset: "Réinitialiser",
+        quizTitle: "Quiz : As-tu tout compris ?",
+        q1Text: "Quel composant est le 'cerveau' du robot ?",
+        q1Opt1: "Les moteurs",
+        q1Opt2: "La carte mCore",
+        q1Opt3: "Le capteur ultrason",
+        q2Text: "Comment le robot évite-t-il les obstacles ?",
+        q2Opt1: "Avec des ondes sonores (Ultrason)",
+        q2Opt2: "Avec une caméra vidéo",
+        q2Opt3: "En touchant les murs",
+        q3Text: "Où trouve-t-on la technologie 'Suiveur de ligne' dans la vraie vie ?",
+        q3Opt1: "Dans les grille-pains",
+        q3Opt2: "Dans les robots d'entrepôt (Amazon)",
+        q3Opt3: "Dans les voitures volantes",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      // Update detail box if visible
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'mcore') { tKeyTitle = 'detailMcoreTitle'; tKeyDesc = 'detailMcoreDesc'; tKeyUsage = 'detailMcoreUsage'; tKeyReal = 'detailMcoreReal'; }
+      if(type === 'ultra') { tKeyTitle = 'detailUltraTitle'; tKeyDesc = 'detailUltraDesc'; tKeyUsage = 'detailUltraUsage'; tKeyReal = 'detailUltraReal'; }
+      if(type === 'line') { tKeyTitle = 'detailLineTitle'; tKeyDesc = 'detailLineDesc'; tKeyUsage = 'detailLineUsage'; tKeyReal = 'detailLineReal'; }
+      if(type === 'motor') { tKeyTitle = 'detailMotorTitle'; tKeyDesc = 'detailMotorDesc'; tKeyUsage = 'detailMotorUsage'; tKeyReal = 'detailMotorReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    const bot = document.getElementById('virtual-bot');
+    let botX = 0, botY = 0, botRot = 0;
+
+    function runCommand(cmd) {
+      if(cmd === 'reset') {
+        botX = 0; botY = 0; botRot = 0;
+        bot.classList.remove('light-on');
+      } else if(cmd === 'forward') {
+        const rad = botRot * (Math.PI / 180);
+        botX += Math.sin(rad) * 50;
+        botY -= Math.cos(rad) * 50;
+      } else if(cmd === 'backward') {
+        const rad = botRot * (Math.PI / 180);
+        botX -= Math.sin(rad) * 50;
+        botY += Math.cos(rad) * 50;
+      } else if(cmd === 'turn') {
+        botRot += 90;
+      } else if(cmd === 'light') {
+        bot.classList.toggle('light-on');
+      } else if(cmd === 'beep') {
+        bot.style.transform = `translate(${botX}px, ${botY}px) rotate(${botRot}deg) scale(1.2)`;
+        setTimeout(() => {
+          bot.style.transform = `translate(${botX}px, ${botY}px) rotate(${botRot}deg) scale(1)`;
+        }, 200);
+        return;
+      }
+      bot.style.transform = `translate(${botX}px, ${botY}px) rotate(${botRot}deg)`;
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>
