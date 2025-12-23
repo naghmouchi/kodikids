@@ -114,3 +114,9 @@ def scratch_tutorial(request):
 
 def tutorials_hub(request):
     return render(request, 'email_api/tutorials_hub.html')
+
+def coaching_page(request):
+    return render(request, 'email_api/coaching.html')
+
+def contact_page(request):
+    return render(request, 'email_api/contact.html')

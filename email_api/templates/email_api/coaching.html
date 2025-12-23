@@ -1,0 +1,441 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coaching & Projets — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    /* Page Specific Styles */
+    body { background-color: #f4f7f6; overflow-x: hidden; }
+    
+    .hero-section {
+      text-align: center; padding: 100px 20px 120px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; border-radius: 0 0 50px 50px; margin-bottom: 60px;
+      position: relative; overflow: hidden;
+    }
+    .hero-content { position: relative; z-index: 2; }
+    .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
+    .hero-subtitle { font-size: 1.3rem; opacity: 0.95; max-width: 700px; margin: 0 auto; line-height: 1.6; }
+    
+    .section-title { text-align: center; font-size: 2.5rem; color: #2d3436; margin-bottom: 50px; font-weight: 700; }
+    
+    /* Steps */
+    .steps-container { max-width: 1000px; margin: 0 auto 100px; padding: 0 20px; position: relative; }
+    /* Connecting line for desktop */
+    @media (min-width: 769px) {
+        .steps-container::before {
+            content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+            background: #e0e0e0; transform: translateX(-50%); z-index: -1;
+        }
+    }
+
+    .step-card {
+      display: flex; align-items: center; gap: 40px; margin-bottom: 40px;
+      background: white; padding: 40px; border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.02);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0; /* For animation */
+      position: relative; z-index: 1;
+    }
+    .step-card:nth-child(even) { flex-direction: row-reverse; }
+    .step-icon {
+      width: 80px; height: 80px; background: #f0f4ff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: #667eea; flex-shrink: 0;
+    }
+    .step-text h3 { margin: 0 0 15px; font-size: 1.8rem; color: #333; }
+    .step-text p { margin: 0; color: #666; font-size: 1.1rem; line-height: 1.6; }
+    .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(118, 75, 162, 0.1);
+    }
+
+    /* Project Types */
+    .projects-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px; max-width: 1100px; margin: 0 auto 100px; padding: 0 20px;
+    }
+    .project-card {
+      background: white; padding: 40px 30px; border-radius: 24px; text-align: center;
+      border: 2px solid transparent; transition: all 0.3s; cursor: default;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; overflow: hidden;
+    }
+    .project-card::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+    }
+    .project-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(118, 75, 162, 0.15); }
+    .project-card:hover::before { transform: scaleX(1); }
+
+    .p-icon { font-size: 4rem; margin-bottom: 20px; display: block; }
+    .p-title { font-size: 1.4rem; font-weight: 700; color: #2d3436; margin-bottom: 10px; }
+    .p-desc { color: #636e72; }
+
+    /* Contact Form */
+    .contact-wrapper {
+      max-width: 700px; margin: 0 auto 100px; padding: 0 20px;
+    }
+    .contact-card {
+      background: white; padding: 50px; border-radius: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08); border-top: 6px solid #764ba2;
+    }
+    .form-group { margin-bottom: 25px; }
+    .form-label { display: block; margin-bottom: 10px; font-weight: 600; color: #2d3436; }
+    .form-input, .form-textarea {
+      width: 100%; padding: 15px 20px; border: 2px solid #eee; border-radius: 12px;
+      font-size: 1rem; transition: border-color 0.3s; font-family: inherit;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: #764ba2; outline: none; box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1); }
+    .submit-btn {
+      width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3); }
+    .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    /* Status Message */
+    .status-msg {
+        margin-top: 20px; padding: 15px; border-radius: 10px; text-align: center;
+        font-weight: 600; display: none;
+    }
+    .status-msg.success { background: #e6fffa; color: #00b894; }
+    .status-msg.error { background: #ffecec; color: #d63031; }
+
+    /* Background Shapes */
+    .bg-shape {
+        position: absolute; border-radius: 50%; background: rgba(255,255,255,0.1);
+        z-index: 1;
+    }
+    
+    /* Global Animated Background */
+    .global-anim-bg {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1; overflow: hidden; pointer-events: none;
+    }
+    .anim-circle { position: absolute; border-radius: 50%; background: linear-gradient(45deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); }
+
+
+    @media (max-width: 768px) {
+        .step-card { flex-direction: column !important; text-align: center; padding: 30px; }
+        .hero-title { font-size: 2.5rem; }
+        .contact-card { padding: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title" data-lang-key="heroTitle">Réalisez Votre Projet</h1>
+            <p class="hero-subtitle" data-lang-key="heroDesc">Vous avez une idée d'application, de site web ou d'automatisation ? Ne l'achetez pas toute faite. Apprenez à la construire vous-même avec nos experts lors de sessions de coaching en ligne.</p>
+        </div>
+        <!-- Animated Shapes -->
+        <div id="heroShapes"></div>
+    </section>
+
+    <!-- How it works -->
+    <section class="steps-container">
+        <h2 class="section-title" data-lang-key="stepsTitle">Comment ça marche ?</h2>
+        
+        <div class="step-card">
+            <div class="step-icon">1</div>
+            <div class="step-text">
+                <h3 data-lang-key="step1Title">Proposez votre idée</h3>
+                <p data-lang-key="step1Desc">Décrivez-nous votre projet : une application mobile, un site web, un script d'automatisation ou un robot.</p>
+            </div>
+        </div>
+
+        <div class="step-card">
+            <div class="step-icon">2</div>
+            <div class="step-text">
+                <h3 data-lang-key="step2Title">Session de Coaching</h3>
+                <p data-lang-key="step2Desc">Nous organisons une session en ligne. Pas de cours théoriques ennuyeux, nous travaillons directement sur VOTRE projet.</p>
+            </div>
+        </div>
+
+        <div class="step-card">
+            <div class="step-icon">3</div>
+            <div class="step-text">
+                <h3 data-lang-key="step3Title">Apprenez en créant</h3>
+                <p data-lang-key="step3Desc">Vous repartez avec votre projet fonctionnel et la compétence pour le maintenir et l'améliorer vous-même.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Types -->
+    <section class="projects-grid">
+        <div class="project-card">
+            <span class="p-icon">📱</span>
+            <h3 class="p-title" data-lang-key="typeApp">App Mobile</h3>
+            <p class="p-desc" data-lang-key="typeAppDesc">iOS ou Android. Créez l'application dont vous avez toujours rêvé.</p>
+        </div>
+        <div class="project-card">
+            <span class="p-icon">💻</span>
+            <h3 class="p-title" data-lang-key="typeWeb">Site Web</h3>
+            <p class="p-desc" data-lang-key="typeWebDesc">Vitrine, e-commerce ou application web complexe.</p>
+        </div>
+        <div class="project-card">
+            <span class="p-icon">⚙️</span>
+            <h3 class="p-title" data-lang-key="typeAuto">Automatisation</h3>
+            <p class="p-desc" data-lang-key="typeAutoDesc">Scripts Python pour automatiser vos tâches répétitives au travail.</p>
+        </div>
+        <div class="project-card">
+            <span class="p-icon">🤖</span>
+            <h3 class="p-title" data-lang-key="typeRobot">Robotique</h3>
+            <p class="p-desc" data-lang-key="typeRobotDesc">Projets Arduino ou Raspberry Pi sur mesure.</p>
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="contact-wrapper">
+        <h2 class="section-title" data-lang-key="contactTitle">Parlons de votre projet</h2>
+        <div class="contact-card">
+            <form id="projectForm">
+                <div class="form-group">
+                    <label class="form-label" data-lang-key="labelName">Votre Nom</label>
+                    <input type="text" id="name" class="form-input" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-lang-key="labelEmail">Votre Email</label>
+                    <input type="email" id="email" class="form-input" required placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-lang-key="labelProject">Description du Projet</label>
+                    <textarea id="description" class="form-textarea" rows="5" required placeholder="Je voudrais créer une application pour..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn" id="sendBtn" data-lang-key="btnSend">Envoyer ma demande</button>
+            </form>
+            <div id="statusMessage" class="status-msg"></div>
+        </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    // --- Translations ---
+    const translations = {
+      en: {
+        heroTitle: "Build Your Own Project",
+        heroDesc: "Have an idea for an app, website, or automation? Don't just buy it. Learn to build it yourself with our experts during online coaching sessions.",
+        stepsTitle: "How it works?",
+        step1Title: "Propose your idea",
+        step1Desc: "Describe your project: a mobile app, a website, an automation script, or a robot.",
+        step2Title: "Coaching Session",
+        step2Desc: "We organize an online session. No boring theory, we work directly on YOUR project.",
+        step3Title: "Learn by Creating",
+        step3Desc: "You leave with a working project and the skills to maintain and improve it yourself.",
+        typeApp: "Mobile App",
+        typeAppDesc: "iOS or Android. Create the app you've always dreamed of.",
+        typeWeb: "Website",
+        typeWebDesc: "Showcase, e-commerce, or complex web application.",
+        typeAuto: "Automation",
+        typeAutoDesc: "Python scripts to automate your repetitive tasks at work.",
+        typeRobot: "Robotics",
+        typeRobotDesc: "Custom Arduino or Raspberry Pi projects.",
+        contactTitle: "Let's talk about your project",
+        labelName: "Your Name",
+        labelEmail: "Your Email",
+        labelProject: "Project Description",
+        btnSend: "Send Request",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        msgSuccess: "Message sent successfully! We will contact you soon.",
+        msgError: "Error sending message. Please try again.",
+        msgSending: "Sending..."
+      },
+      fr: {
+        heroTitle: "Réalisez Votre Projet",
+        heroDesc: "Vous avez une idée d'application, de site web ou d'automatisation ? Ne l'achetez pas toute faite. Apprenez à la construire vous-même avec nos experts lors de sessions de coaching en ligne.",
+        stepsTitle: "Comment ça marche ?",
+        step1Title: "Proposez votre idée",
+        step1Desc: "Décrivez-nous votre projet : une application mobile, un site web, un script d'automatisation ou un robot.",
+        step2Title: "Session de Coaching",
+        step2Desc: "Nous organisons une session en ligne. Pas de cours théoriques ennuyeux, nous travaillons directement sur VOTRE projet.",
+        step3Title: "Apprenez en créant",
+        step3Desc: "Vous repartez avec votre projet fonctionnel et la compétence pour le maintenir et l'améliorer vous-même.",
+        typeApp: "App Mobile",
+        typeAppDesc: "iOS ou Android. Créez l'application dont vous avez toujours rêvé.",
+        typeWeb: "Site Web",
+        typeWebDesc: "Vitrine, e-commerce ou application web complexe.",
+        typeAuto: "Automatisation",
+        typeAutoDesc: "Scripts Python pour automatiser vos tâches répétitives au travail.",
+        typeRobot: "Robotique",
+        typeRobotDesc: "Projets Arduino ou Raspberry Pi sur mesure.",
+        contactTitle: "Parlons de votre projet",
+        labelName: "Votre Nom",
+        labelEmail: "Votre Email",
+        labelProject: "Description du Projet",
+        btnSend: "Envoyer ma demande",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        msgSuccess: "Message envoyé avec succès ! Nous vous recontacterons bientôt.",
+        msgError: "Erreur lors de l'envoi. Veuillez réessayer.",
+        msgSending: "Envoi en cours..."
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    // --- Animations ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Global Background Animation
+        const bgContainer = document.createElement('div');
+        bgContainer.classList.add('global-anim-bg');
+        document.body.prepend(bgContainer);
+
+        for(let i=0; i<20; i++) {
+            const circle = document.createElement('div');
+            circle.classList.add('anim-circle');
+            const size = Math.random() * 300 + 50;
+            circle.style.width = size + 'px';
+            circle.style.height = size + 'px';
+            circle.style.left = Math.random() * 100 + '%';
+            circle.style.top = Math.random() * 100 + '%';
+            bgContainer.appendChild(circle);
+        }
+
+        // 2. Hero Shapes
+        const heroShapes = document.getElementById('heroShapes');
+        for(let i=0; i<10; i++) {
+            const s = document.createElement('div');
+            s.classList.add('bg-shape');
+            const size = Math.random() * 100 + 50;
+            s.style.width = size + 'px';
+            s.style.height = size + 'px';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            heroShapes.appendChild(s);
+        }
+        
+        // Animate Global Background
+        anime({
+            targets: '.anim-circle',
+            translateX: () => anime.random(-200, 200),
+            translateY: () => anime.random(-200, 200),
+            scale: [0.8, 1.2],
+            duration: () => anime.random(5000, 10000),
+            direction: 'alternate',
+            loop: true,
+            easing: 'easeInOutSine'
+        });
+
+        // Animate Hero Shapes
+        anime({
+            targets: '.bg-shape',
+            translateY: () => anime.random(-50, 50),
+            translateX: () => anime.random(-50, 50),
+            scale: [0.8, 1.2],
+            opacity: [0.1, 0.3],
+            duration: () => anime.random(3000, 8000),
+            direction: 'alternate',
+            loop: true,
+            easing: 'easeInOutSine'
+        });
+
+        // 3. Scroll Animations (Steps & Cards)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    anime({
+                        targets: entry.target,
+                        translateY: [50, 0],
+                        opacity: [0, 1],
+                        duration: 800,
+                        easing: 'easeOutExpo'
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        document.querySelectorAll('.step-card').forEach(el => observer.observe(el));
+    });
+
+    // --- Form Handling ---
+    const form = document.getElementById('projectForm');
+    const statusMsg = document.getElementById('statusMessage');
+    const sendBtn = document.getElementById('sendBtn');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const description = document.getElementById('description').value;
+
+        // Prepare data
+        // We send to admin, but include user details in the message body
+        const adminEmail = "hassen.naghmouchi@gmail.com"; // Placeholder
+        const subject = `New Project Proposal from ${name}`;
+        const message = `Client Name: ${name}\nClient Email: ${email}\n\nProject Description:\n${description}`;
+
+        sendBtn.disabled = true;
+        sendBtn.textContent = translations[currentLang].msgSending;
+        statusMsg.style.display = 'none';
+
+        const apiUrl = 'https://hassen86naghmouchi.pythonanywhere.com/api/send-email/';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient: adminEmail, subject: subject, message: message })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                statusMsg.textContent = translations[currentLang].msgSuccess;
+                statusMsg.className = 'status-msg success';
+                form.reset();
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error(error);
+            statusMsg.textContent = translations[currentLang].msgError;
+            statusMsg.className = 'status-msg error';
+        } finally {
+            statusMsg.style.display = 'block';
+            sendBtn.disabled = false;
+            sendBtn.textContent = translations[currentLang].btnSend;
+        }
+    });
+  </script>
+</body>
+</html>

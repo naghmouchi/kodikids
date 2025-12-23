@@ -16,4 +16,6 @@ urlpatterns = [
     path('play/javascript/', views.javascript_tutorial, name='javascript_tutorial'),
     path('play/scratch/', views.scratch_tutorial, name='scratch_tutorial'),
     path('play/tutorials/', views.tutorials_hub, name='tutorials_hub'),
+    path('coaching/', views.coaching_page, name='coaching_page'),
+    path('contact/', views.contact_page, name='contact_page'),
 ]

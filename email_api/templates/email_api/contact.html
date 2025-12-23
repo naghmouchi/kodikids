@@ -1,0 +1,330 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contactez-nous — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📬</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    body { background-color: #f4f7f6; overflow-x: hidden; }
+    
+    /* Hero Section */
+    .hero-section {
+      text-align: center; padding: 80px 20px 100px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; border-radius: 0 0 50px 50px; margin-bottom: 60px;
+      position: relative; overflow: hidden;
+    }
+    .hero-title { font-size: 3rem; font-weight: 800; margin-bottom: 15px; }
+    .hero-subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+
+    /* Services Grid */
+    .services-container {
+        max-width: 1100px; margin: -80px auto 60px; padding: 0 20px;
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px; position: relative; z-index: 10;
+    }
+    
+    .service-card {
+        background: white; padding: 30px; border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 2px solid transparent; text-align: center;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .service-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(118, 75, 162, 0.15); }
+    .service-card.selected { border-color: #764ba2; background: #fbf5ff; transform: scale(1.02); }
+    
+    .s-icon { font-size: 3.5rem; margin-bottom: 15px; display: block; }
+    .s-title { font-size: 1.3rem; font-weight: 700; color: #2d3436; margin-bottom: 10px; }
+    .s-desc { font-size: 0.95rem; color: #636e72; line-height: 1.5; }
+
+    /* Contact Form Section */
+    .form-section { max-width: 700px; margin: 0 auto 100px; padding: 0 20px; }
+    .contact-card {
+        background: white; padding: 40px; border-radius: 24px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.08); border-top: 5px solid #667eea;
+    }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #2d3436; font-size: 0.95rem; }
+    .form-input, .form-textarea {
+        width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 10px;
+        font-size: 1rem; transition: border-color 0.3s, box-shadow 0.3s; font-family: inherit;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+    
+    .submit-btn {
+        width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold;
+        cursor: pointer; transition: transform 0.2s; margin-top: 10px;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(118, 75, 162, 0.25); }
+    .submit-btn:disabled { opacity: 0.7; cursor: wait; }
+
+    /* Status Message */
+    .status-msg { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: 600; display: none; }
+    .status-msg.success { background: #e6fffa; color: #00b894; }
+    .status-msg.error { background: #ffecec; color: #d63031; }
+
+    /* Background Animation */
+    .bg-shape { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.1); z-index: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero-section">
+        <div style="position: relative; z-index: 2;">
+            <h1 class="hero-title" data-lang-key="heroTitle">Contactez-nous</h1>
+            <p class="hero-subtitle" data-lang-key="heroDesc">Sélectionnez un domaine ci-dessous pour que nous puissions vous orienter vers le bon expert.</p>
+        </div>
+        <div id="heroShapes"></div>
+    </section>
+
+    <!-- Services Selection -->
+    <section class="services-container">
+        <!-- Robotics -->
+        <div class="service-card" onclick="selectService(this, 'Robotique & Électronique')">
+            <span class="s-icon">🤖</span>
+            <h3 class="s-title" data-lang-key="s1Title">Robotique & IoT</h3>
+            <p class="s-desc" data-lang-key="s1Desc">Apprenez à construire et programmer des robots avec Arduino et Raspberry Pi.</p>
+        </div>
+
+        <!-- AI & ML -->
+        <div class="service-card" onclick="selectService(this, 'IA & Machine Learning')">
+            <span class="s-icon">🧠</span>
+            <h3 class="s-title" data-lang-key="s2Title">IA & Data Science</h3>
+            <p class="s-desc" data-lang-key="s2Desc">Comprendre et créer des modèles d'intelligence artificielle et de Machine Learning.</p>
+        </div>
+
+        <!-- Web & Mobile -->
+        <div class="service-card" onclick="selectService(this, 'Développement Web & Mobile')">
+            <span class="s-icon">💻</span>
+            <h3 class="s-title" data-lang-key="s3Title">Web & Apps Mobiles</h3>
+            <p class="s-desc" data-lang-key="s3Desc">Apprenez le codage pour créer des sites web modernes et des applications mobiles.</p>
+        </div>
+
+        <!-- Custom Project -->
+        <div class="service-card" onclick="selectService(this, 'Coaching Projet Personnalisé')">
+            <span class="s-icon">🚀</span>
+            <h3 class="s-title" data-lang-key="s4Title">Coaching Projet</h3>
+            <p class="s-desc" data-lang-key="s4Desc">Un accompagnement sur mesure pour réaliser votre propre idée de A à Z en apprenant.</p>
+        </div>
+
+        <!-- Presentation -->
+        <div class="service-card" onclick="selectService(this, 'Communication & Présentation')">
+            <span class="s-icon">📢</span>
+            <h3 class="s-title" data-lang-key="s5Title">Communication Tech</h3>
+            <p class="s-desc" data-lang-key="s5Desc">Maîtrisez l'art de présenter vos projets techniques et de créer des supports impactants.</p>
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="form-section" id="formSection">
+        <div class="contact-card">
+            <h2 style="text-align:center; margin-bottom:30px; color:#333;" data-lang-key="formTitle">Votre demande</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label class="form-label" data-lang-key="lblSubject">Sujet</label>
+                    <input type="text" id="subject" class="form-input" required placeholder="Sujet de votre demande...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-lang-key="lblName">Votre Nom</label>
+                    <input type="text" id="name" class="form-input" required placeholder="Votre nom complet">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-lang-key="lblEmail">Votre Email</label>
+                    <input type="email" id="email" class="form-input" required placeholder="exemple@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-lang-key="lblMessage">Message</label>
+                    <textarea id="message" class="form-textarea" rows="5" required placeholder="Dites-nous en plus sur vos objectifs..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn" id="sendBtn" data-lang-key="btnSend">Envoyer le message</button>
+            </form>
+            <div id="statusMessage" class="status-msg"></div>
+        </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    // --- Translations ---
+    const translations = {
+      en: {
+        heroTitle: "Contact Us",
+        heroDesc: "Select a field below so we can direct you to the right expert.",
+        s1Title: "Robotics & IoT",
+        s1Desc: "Learn to build and program robots with Arduino and Raspberry Pi.",
+        s2Title: "AI & Data Science",
+        s2Desc: "Understand and create Artificial Intelligence and Machine Learning models.",
+        s3Title: "Web & Mobile Apps",
+        s3Desc: "Learn coding to create modern websites and mobile applications.",
+        s4Title: "Project Coaching",
+        s4Desc: "Custom guidance to realize your own idea from A to Z while learning.",
+        s5Title: "Tech Communication",
+        s5Desc: "Master the art of presenting your technical projects and creating impactful materials.",
+        formTitle: "Your Request",
+        lblSubject: "Subject",
+        lblName: "Your Name",
+        lblEmail: "Your Email",
+        lblMessage: "Message",
+        btnSend: "Send Message",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        msgSuccess: "Message sent successfully! We will reply within 24h.",
+        msgError: "Error sending message. Check your connection.",
+        msgSending: "Sending..."
+      },
+      fr: {
+        heroTitle: "Contactez-nous",
+        heroDesc: "Sélectionnez un domaine ci-dessous pour que nous puissions vous orienter vers le bon expert.",
+        s1Title: "Robotique & IoT",
+        s1Desc: "Apprenez à construire et programmer des robots avec Arduino et Raspberry Pi.",
+        s2Title: "IA & Data Science",
+        s2Desc: "Comprendre et créer des modèles d'intelligence artificielle et de Machine Learning.",
+        s3Title: "Web & Apps Mobiles",
+        s3Desc: "Apprenez le codage pour créer des sites web modernes et des applications mobiles.",
+        s4Title: "Coaching Projet",
+        s4Desc: "Un accompagnement sur mesure pour réaliser votre propre idée de A à Z en apprenant.",
+        s5Title: "Communication Tech",
+        s5Desc: "Maîtrisez l'art de présenter vos projets techniques et de créer des supports impactants.",
+        formTitle: "Votre demande",
+        lblSubject: "Sujet",
+        lblName: "Votre Nom",
+        lblEmail: "Votre Email",
+        lblMessage: "Message",
+        btnSend: "Envoyer le message",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        msgSuccess: "Message envoyé avec succès ! Nous vous répondrons sous 24h.",
+        msgError: "Erreur lors de l'envoi. Vérifiez votre connexion.",
+        msgSending: "Envoi en cours..."
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    // --- Animation Background ---
+    const heroShapes = document.getElementById('heroShapes');
+    for(let i=0; i<15; i++) {
+        const s = document.createElement('div');
+        s.classList.add('bg-shape');
+        const size = Math.random() * 80 + 20;
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        heroShapes.appendChild(s);
+    }
+    anime({
+        targets: '.bg-shape',
+        translateY: () => anime.random(-50, 50),
+        translateX: () => anime.random(-50, 50),
+        opacity: [0.1, 0.3],
+        duration: () => anime.random(3000, 8000),
+        direction: 'alternate',
+        loop: true,
+        easing: 'easeInOutSine'
+    });
+
+    // --- Service Selection Logic ---
+    function selectService(card, serviceName) {
+        // Visual selection
+        document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+
+        // Update Form
+        const subjectInput = document.getElementById('subject');
+        subjectInput.value = serviceName;
+
+        // Scroll to form
+        document.getElementById('formSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // --- Form Submission ---
+    const form = document.getElementById('contactForm');
+    const statusMsg = document.getElementById('statusMessage');
+    const sendBtn = document.getElementById('sendBtn');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const subjectVal = document.getElementById('subject').value;
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const messageBody = document.getElementById('message').value;
+
+        // Construct email payload
+        const adminEmail = "hassen.naghmouchi@gmail.com"; // Email de réception
+        const fullSubject = `Nouveau Contact: ${subjectVal} - ${name}`;
+        const fullMessage = `Service demandé: ${subjectVal}\nNom: ${name}\nEmail: ${email}\n\nMessage:\n${messageBody}`;
+
+        sendBtn.disabled = true;
+        sendBtn.textContent = translations[currentLang].msgSending;
+        statusMsg.style.display = 'none';
+
+        // URL API (Absolute path for reliability)
+        const apiUrl = 'https://hassen86naghmouchi.pythonanywhere.com/api/send-email/';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient: adminEmail, subject: fullSubject, message: fullMessage })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                statusMsg.textContent = translations[currentLang].msgSuccess;
+                statusMsg.className = 'status-msg success';
+                form.reset();
+                document.getElementById('subject').value = ""; // Reset subject
+                document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+            } else {
+                throw new Error(result.message || "Erreur inconnue");
+            }
+        } catch (error) {
+            console.error(error);
+            statusMsg.textContent = translations[currentLang].msgError;
+            statusMsg.className = 'status-msg error';
+        } finally {
+            statusMsg.style.display = 'block';
+            sendBtn.disabled = false;
+            sendBtn.textContent = translations[currentLang].btnSend;
+        }
+    });
+  </script>
+</body>
+</html>
