@@ -18,4 +18,5 @@ urlpatterns = [
     path('play/tutorials/', views.tutorials_hub, name='tutorials_hub'),
     path('coaching/', views.coaching_page, name='coaching_page'),
     path('contact/', views.contact_page, name='contact_page'),
+    path('courses/', views.courses_page, name='courses_page'),
 ]

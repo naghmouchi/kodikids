@@ -120,3 +120,6 @@ def coaching_page(request):
 
 def contact_page(request):
     return render(request, 'email_api/contact.html')
+
+def courses_page(request):
+    return render(request, 'email_api/courses.html')

@@ -7,6 +7,152 @@
   <title>Play & Learn — Kodikids</title>
   <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    .animated-title {
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: left;
+      color: #2b7cff;
+      margin-bottom: 10px;
+    }
+    @keyframes gradientAnim { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+    .features-subtitle {
+      text-align: left;
+      font-size: 1rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, #ff00cc, #3333ff, #00ccff, #ff00cc);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: gradientAnim 4s linear infinite;
+      margin-bottom: 30px;
+    }
+    /* Mini Game Styles */
+    .game-container {
+      margin: 60px auto;
+      text-align: center;
+      max-width: 800px;
+      padding: 0 20px;
+    }
+    .game-area {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      background-color: #f0f4f8;
+      background-image: linear-gradient(#e1e8ed 1px, transparent 1px), linear-gradient(90deg, #e1e8ed 1px, transparent 1px);
+      background-size: 20px 20px;
+      border: 3px solid #2b7cff;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 20px auto;
+    }
+    .sprite {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      user-select: none;
+      z-index: 10;
+    }
+    #robot { left: 20px; top: 130px; transition: all 0.1s linear; }
+    #obstacle {
+      left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 40px; height: 120px; background: #ff5e57;
+      position: absolute; border-radius: 4px;
+    }
+    #target { right: 20px; top: 130px; font-size: 40px; }
+    .game-controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+    
+    /* Blockly-style buttons */
+    .block-btn {
+      border: none; padding: 12px 20px; border-radius: 8px;
+      cursor: pointer; font-weight: 700; font-size: 0.9rem; color: white;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2); margin: 5px;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: transform 0.1s; font-family: sans-serif;
+    }
+    .block-btn:active { transform: translateY(4px); box-shadow: none; }
+    .btn-move { background-color: #4c97ff; } /* Scratch Motion Blue */
+    .btn-turn { background-color: #4c97ff; }
+
+    .win-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.95);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: bold; color: #00b894;
+      z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .win-overlay.visible { opacity: 1; pointer-events: auto; }
+    .confetti {
+      position: absolute; width: 8px; height: 8px;
+      animation: fall linear forwards; z-index: 15;
+    }
+    @keyframes fall { to { transform: translateY(300px) rotate(720deg); opacity: 0; } }
+    
+    /* Footer Styles */
+    footer {
+      position: relative;
+      background: linear-gradient(to bottom, #1a1a2e, #16213e);
+      color: #e0e0e0;
+      padding: 80px 0 30px;
+      margin-top: 80px;
+      overflow: hidden;
+    }
+    .footer-anim-bg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0; overflow: hidden;
+      display: flex; flex-wrap: wrap;
+    }
+    .footer-container {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto; padding: 0 20px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+    .footer-col { display: flex; flex-direction: column; align-items: center; }
+    .footer-col h3 {
+      color: #4c97ff;
+      font-size: 1.4rem;
+      margin-bottom: 25px;
+      font-weight: 800;
+      position: relative;
+      display: inline-block;
+    }
+    .footer-col h3::after {
+      content: ''; display: block; width: 50px; height: 3px;
+      background: #ff00cc; margin: 10px auto 0; border-radius: 2px;
+    }
+    .footer-link {
+      display: flex; align-items: center; gap: 10px;
+      color: #b0b0b0; text-decoration: none; margin-bottom: 15px;
+      font-size: 1.1rem; transition: all 0.3s;
+    }
+    .footer-link:hover { color: #fff; transform: translateX(5px); }
+    .footer-copyright {
+      text-align: center;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: #888; font-size: 0.9rem;
+    }
+    .anim-cell {
+      width: 40px; height: 40px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 50%;
+      transform: scale(0.5);
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -32,31 +178,32 @@
     </section>
 
     <div class="container">
-      <h2>Nos fonctionnalités</h2>
+      <h1 class="animated-title">KodiKids : l’apprentissage du futur</h1>
+      <p class="features-subtitle">Accessible à tous les enfants, aux parents et aux éducateurs.</p>
       <div class="carousel">
         <div class="carousel-track">
           <div class="carousel-item">
-            <img src="https://via.placeholder.com/300x200/2b7cff/ffffff?text=Code" alt="Apprendre à coder">
+            <img src="{% static 'email_api/but-non-lucratif.png' %}" alt="Apprendre à coder" style="width: auto; height: 110px;">
             <h3 data-lang-key="carouselTitle1">Apprendre à coder</h3>
             <p data-lang-key="carouselDesc1">Parcours ludiques et ateliers pas à pas.</p>
           </div>
           <div class="carousel-item">
-            <img src="https://via.placeholder.com/300x200/7af0b3/0b1724?text=IA" alt="IA pour tous">
+            <img src="{% static 'email_api/stem.png' %}" alt="IA pour tous" style="width: auto; height: 110px;">
             <h3 data-lang-key="carouselTitle2">IA pour tous</h3>
             <p data-lang-key="carouselDesc2">Initiation aux concepts d'IA avec projets visuels.</p>
           </div>
           <div class="carousel-item">
-            <img src="https://via.placeholder.com/300x200/ff7a7a/ffffff?text=Robots" alt="Robots et jeux">
-            <h3 data-lang-key="carouselTitle3">Robots et jeux</h3>
+            <img src="{% static 'email_api/canada-flag-v1.png' %}" alt="Robots et jeux" style="width: auto; height: 110px;">
+            <h3 data-lang-key="carouselTitle4">Communication</h3>
             <p data-lang-key="carouselDesc3">Programmez des robots et apprenez en jouant.</p>
           </div>
           <div class="carousel-item">
-            <img src="https://via.placeholder.com/300x200/7af0b3/0b1724?text=IA" alt="IA pour tous">
+            <img src="{% static 'email_api/mission-logo.png' %}" alt="IA pour tous" style="width: auto; height: 110px;">
             <h3 data-lang-key="carouselTitle4">Communication</h3>
             <p data-lang-key="carouselDesc4">Présentez vos projets et communiquez vos idées.</p>
           </div>
           <div class="carousel-item">
-            <img src="https://via.placeholder.com/300x200/ff7a7a/ffffff?text=Robots" alt="Robots et jeux">
+            <img src="{% static 'email_api/network-hub.png' %}" alt="Robots et jeux" style="width: auto; height: 110px;">
             <h3 data-lang-key="carouselTitle5">Carrière Tech</h3>
             <p data-lang-key="carouselDesc5">Préparez-vous pour les métiers du numérique.</p>
           </div>
@@ -109,6 +256,25 @@
         </div>
       </div>
     </section>
+
+    <section class="game-container">
+      <h2>Mission : Contact</h2>
+      <p>Programmez le robot 🤖 pour envoyer un email 📧 en évitant le mur !</p>
+      <div class="game-area" id="gameArea">
+        <div id="robot" class="sprite">🤖</div>
+        <div id="obstacle"></div>
+        <div id="target" class="sprite">📧</div>
+        <div id="winOverlay" class="win-overlay">
+          <div>🎉 Gagné !</div>
+          <div style="font-size: 1rem; color: #555; margin-top: 10px;">Redirection vers Contact dans <span id="gameTimer">3</span>s...</div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <button class="block-btn btn-move" onclick="gameAction('forward')">Avancer</button>
+        <button class="block-btn btn-turn" onclick="gameAction('left')">↺ Gauche</button>
+        <button class="block-btn btn-turn" onclick="gameAction('right')">Droite ↻</button>
+      </div>
+    </section>
   </main>
 
   <div id="cookie-banner" class="cookie-banner">
@@ -117,8 +283,30 @@
   </div>
 
   <footer>
-    <div class="container">
-      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    <div class="footer-anim-bg"></div>
+    <div class="footer-container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h3>Pages</h3>
+          <a href="/" class="footer-link">🏠 Accueil</a>
+          <a href="/api/courses/" class="footer-link">🎓 Cours</a>
+          <a href="/api/contact/" class="footer-link">📬 Contact</a>
+        </div>
+        <div class="footer-col">
+          <h3>Suivez-nous</h3>
+          <a href="#" class="footer-link">📘 Facebook</a>
+          <a href="#" class="footer-link">📺 YouTube</a>
+          <a href="#" class="footer-link">🎵 TikTok</a>
+        </div>
+        <div class="footer-col">
+          <h3>Contact</h3>
+          <a href="mailto:contact@kodikids.com" class="footer-link">📧 contact@kodikids.com</a>
+          <a href="tel:+1234567890" class="footer-link">📞 +1 234 567 890</a>
+        </div>
+      </div>
+      <div class="footer-copyright">
+        <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+      </div>
     </div>
   </footer>
 
@@ -395,6 +583,149 @@
   </script>
 
   <script>
+  (function(){
+    // Mini Game Logic
+    const robot = document.getElementById('robot');
+    const obstacle = document.getElementById('obstacle');
+    const target = document.getElementById('target');
+    const gameArea = document.getElementById('gameArea');
+    const winOverlay = document.getElementById('winOverlay');
+    const timerSpan = document.getElementById('gameTimer');
+    
+    if(!robot || !gameArea) return;
+
+    let robotX = 20, robotY = 130;
+    let robotAngle = 0; // 0 = Right
+    const step = 20;
+    let gameWon = false;
+
+    // --- Sound Effects (Synth) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        
+        const now = audioCtx.currentTime;
+        if(type === 'move') {
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(); osc.stop(now + 0.1);
+        } else if(type === 'bump') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(50, now + 0.2);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+            osc.start(); osc.stop(now + 0.2);
+        } else if(type === 'win') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.setValueAtTime(600, now + 0.1);
+            osc.frequency.setValueAtTime(1000, now + 0.2);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.6);
+            osc.start(); osc.stop(now + 0.6);
+        }
+    }
+
+    function spawnConfetti() {
+        for(let i=0; i<40; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + '%';
+            c.style.top = '-10px';
+            c.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+            c.style.animationDuration = (Math.random() * 1.5 + 0.5) + 's';
+            gameArea.appendChild(c);
+        }
+    }
+
+    function updatePos() {
+        robot.style.left = robotX + 'px';
+        robot.style.top = robotY + 'px';
+        robot.style.transform = `rotate(${robotAngle}deg)`;
+        checkCollision();
+    }
+
+    function checkCollision() {
+        if(gameWon) return;
+        const rRect = robot.getBoundingClientRect(); // Use visual rect for simplicity with transition
+        // To be more precise with responsive layout, we calculate logical rect relative to viewport:
+        const aRect = gameArea.getBoundingClientRect();
+        const rLeft = aRect.left + robotX;
+        const rTop = aRect.top + robotY;
+        const rRight = rLeft + 40;
+        const rBottom = rTop + 40;
+
+        const oRect = obstacle.getBoundingClientRect();
+        const tRect = target.getBoundingClientRect();
+
+        // Boundaries
+        if (robotX < 0) robotX = 0;
+        if (robotY < 0) robotY = 0;
+        if (robotX > aRect.width - 40) robotX = aRect.width - 40;
+        if (robotY > aRect.height - 40) robotY = aRect.height - 40;
+
+        // Obstacle Collision
+        const pad = 5;
+        if (!(rRight < oRect.left + pad || rLeft > oRect.right - pad || rBottom < oRect.top + pad || rTop > oRect.bottom - pad)) {
+            robotX = 20; robotY = 130; // Reset
+            robot.style.left = robotX + 'px'; robot.style.top = robotY + 'px';
+            gameArea.style.backgroundColor = '#ffecec';
+            playSound('bump');
+            setTimeout(() => gameArea.style.backgroundColor = '#f0f4f8', 200);
+            return;
+        }
+
+        // Target Collision
+        if (!(rRight < tRect.left || rLeft > tRect.right || rBottom < tRect.top || rTop > tRect.bottom)) {
+            gameWon = true;
+            playSound('win');
+            spawnConfetti();
+            winOverlay.classList.add('visible');
+            let timeLeft = 3;
+            const interval = setInterval(() => {
+                timeLeft--;
+                if(timerSpan) timerSpan.textContent = timeLeft;
+                if(timeLeft <= 0) { clearInterval(interval); window.location.href = '/api/contact/'; }
+            }, 1000);
+        }
+    }
+
+    window.gameAction = function(action) {
+        if(gameWon) return;
+        
+        if(action === 'left') {
+            robotAngle -= 90;
+            playSound('move');
+        } else if(action === 'right') {
+            robotAngle += 90;
+            playSound('move');
+        } else if(action === 'forward') {
+            const rad = robotAngle * (Math.PI / 180);
+            const dx = Math.round(Math.cos(rad)) * step;
+            const dy = Math.round(Math.sin(rad)) * step;
+            robotX += dx;
+            robotY += dy;
+            playSound('move');
+        }
+        updatePos();
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if(gameWon) return;
+        if(e.key === 'ArrowUp') { e.preventDefault(); gameAction('forward'); }
+        if(e.key === 'ArrowLeft') { e.preventDefault(); gameAction('left'); }
+        if(e.key === 'ArrowRight') { e.preventDefault(); gameAction('right'); }
+    });
+  })();
+  </script>
+
+  <script>
   (function() {
     // Cookie Consent Banner
     const banner = document.getElementById('cookie-banner');
@@ -408,6 +739,101 @@
     acceptBtn.addEventListener('click', () => {
       localStorage.setItem(cookieConsentKey, 'true');
       banner.style.display = 'none';
+    });
+  })();
+  </script>
+
+  <script>
+  (function(){
+    // Footer Animation with Anime.js
+    const bg = document.querySelector('.footer-anim-bg');
+    const footer = document.querySelector('footer');
+    if(!bg || !footer) return;
+
+    const cellSize = 40;
+    let cols, rows;
+
+    function createGrid() {
+        bg.innerHTML = '';
+        const w = footer.offsetWidth;
+        const h = footer.offsetHeight;
+        cols = Math.ceil(w / cellSize);
+        rows = Math.ceil(h / cellSize);
+        bg.style.width = w + 'px';
+        bg.style.height = h + 'px';
+        
+        for (let i = 0; i < cols * rows; i++) {
+            const el = document.createElement('div');
+            el.classList.add('anim-cell');
+            bg.appendChild(el);
+        }
+        
+        // Initial random fade in
+        anime({
+            targets: '.anim-cell',
+            opacity: [0, 0.5],
+            delay: anime.stagger(50, {grid: [cols, rows], from: 'center'}),
+            easing: 'easeOutQuad'
+        });
+    }
+
+    createGrid();
+    window.addEventListener('resize', createGrid);
+
+    // Idle Animation: Random blinking dots
+    function animateRandom() {
+        const cells = document.querySelectorAll('.anim-cell');
+        if(cells.length === 0) {
+            setTimeout(animateRandom, 500);
+            return;
+        }
+        
+        const index = Math.floor(Math.random() * cells.length);
+        
+        anime({
+            targets: cells[index],
+            scale: [
+                {value: 0.85, duration: 500, easing: 'easeInOutQuad'},
+                {value: 0.5, duration: 500, easing: 'easeInOutQuad'}
+            ],
+            opacity: [
+                {value: 1, duration: 500, easing: 'linear'},
+                {value: 0.5, duration: 500, easing: 'linear'}
+            ],
+            backgroundColor: [
+                {value: Math.random() > 0.5 ? '#4c97ff' : '#ff00cc', duration: 500, easing: 'easeInOutQuad'},
+                {value: 'rgba(255, 255, 255, 0.03)', duration: 500, easing: 'easeInOutQuad'}
+            ],
+            complete: function() {
+                setTimeout(animateRandom, Math.random() * 1500 + 500);
+            }
+        });
+    }
+    // Start multiple loops for random activity
+    setTimeout(animateRandom, 1000);
+    setTimeout(animateRandom, 2500);
+    setTimeout(animateRandom, 4000);
+
+    footer.addEventListener('click', function(e) {
+        const rect = footer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const col = Math.floor(x / cellSize);
+        const row = Math.floor(y / cellSize);
+        const index = col + row * cols;
+
+        anime({
+            targets: '.anim-cell',
+            scale: [
+                {value: 0.1, easing: 'easeOutSine', duration: 500},
+                {value: 0.5, easing: 'easeInOutQuad', duration: 1200}
+            ],
+            backgroundColor: [
+                {value: '#4c97ff', easing: 'easeOutSine', duration: 500},
+                {value: 'rgba(255, 255, 255, 0.03)', easing: 'easeInOutQuad', duration: 1200}
+            ],
+            delay: anime.stagger(50, {grid: [cols, rows], from: index})
+        });
     });
   })();
   </script>
