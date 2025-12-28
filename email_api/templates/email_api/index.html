@@ -9,6 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <style>
+    html { scroll-behavior: smooth; }
     .animated-title {
       font-size: 2rem;
       font-weight: 800;
@@ -152,18 +153,88 @@
       border-radius: 50%;
       transform: scale(0.5);
     }
+    .card-btn {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 8px 16px;
+      background: #ff00cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: transform 0.2s;
+    }
+    .card-btn:hover {
+      transform: scale(1.05);
+      background: #e600b8;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .idea-animation {
+      font-size: 10rem;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      opacity: 0.15;
+      z-index: 0;
+      pointer-events: none;
+      animation: ideaFlash 4s infinite ease-in-out;
+    }
+    @keyframes ideaFlash {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.9); filter: grayscale(100%); }
+      50% { transform: translate(-50%, -50%) scale(1.1); filter: grayscale(0%); text-shadow: 0 0 50px #ffeb3b; }
+    }
+    .heart-animation {
+      font-size: 10rem;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      opacity: 0.15;
+      z-index: 0;
+      pointer-events: none;
+      animation: heartPath 6s infinite ease-in-out;
+    }
+    @keyframes heartPath {
+      0% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+      25% { transform: translate(-50%, -50%) translate(-30px, -20px) scale(1.1); }
+      50% { transform: translate(-50%, -50%) translate(0, -40px) scale(1.2); }
+      75% { transform: translate(-50%, -50%) translate(30px, -20px) scale(1.1); }
+      100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+    }
+    .card-face h3, .card-face p { position: relative; z-index: 1; }
+    .course-animation {
+      font-size: 10rem;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      opacity: 0.15;
+      z-index: 0;
+      pointer-events: none;
+      animation: floatCourse 5s ease-in-out infinite;
+    }
+    @keyframes floatCourse {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
+      50% { transform: translate(-50%, -50%) translateY(-20px) rotate(10deg); }
+    }
   </style>
 </head>
 <body>
   <header>
     {% include "email_api/_header.html" %}
+  </header>
 
   <main class="container" id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-background">
         <h1 id="hero-title" data-lang-key="heroTitle">Apprenez à coder et piloter des robots — enfants & adultes</h1>
         <p id="hero-lead" data-lang-key="heroLead">Parcours ludiques et ateliers pratiques : programmation, IA, jeux éducatifs et robotique.</p>
-        <p style="margin-top:14px"><a class="cta" href="/api/start/" data-lang-key="heroCTA">Commencer</a></p>
+        <p style="margin-top:14px"><a class="cta" href="#start-journey" data-lang-key="heroCTA">Commencer</a></p>
       </div>
 
       <div class="hero-canvas-wrapper" aria-hidden="false" style="flex:1">
@@ -171,41 +242,41 @@
         <canvas id="hero-canvas" role="img" aria-label="Animation de points connectés"></canvas>
 
         <div class="hero-overlay" aria-hidden="false">
-          <h2 id="rotating-title" style="margin:0;font-size:20px;opacity:1">Robot & IA Learning</h2>
-          <p id="rotating-sub" style="margin:8px 0 0;color:var(--muted)" data-lang-key="rotatingSub">Projets visuels et interactifs pour tous.</p>
+          <h2 id="rotating-title" style="margin:0;font-size:20px;opacity:1">Robotic, IA, IoT, Arduino</h2>
+          <p id="rotating-sub" style="margin:8px 0 0;color:var(--muted)" data-lang-key="rotatingSub">Des cours gratuits et des projets interactifs accessibles à tous.</p>
         </div>
       </div>
     </section>
 
     <div class="container">
-      <h1 class="animated-title">KodiKids : l’apprentissage du futur</h1>
-      <p class="features-subtitle">Accessible à tous les enfants, aux parents et aux éducateurs.</p>
+      <h1 class="animated-title" data-lang-key="mainTitle">KodiKids : l’apprentissage du futur</h1>
+      <p class="features-subtitle" data-lang-key="mainSubtitle">Accessible à tous les enfants, aux parents et aux éducateurs.</p>
       <div class="carousel">
         <div class="carousel-track">
           <div class="carousel-item">
-            <img src="{% static 'email_api/but-non-lucratif.png' %}" alt="Apprendre à coder" style="width: auto; height: 110px;">
-            <h3 data-lang-key="carouselTitle1">Apprendre à coder</h3>
-            <p data-lang-key="carouselDesc1">Parcours ludiques et ateliers pas à pas.</p>
+            <img src="{% static 'email_api/but-non-lucratif.png' %}" alt="Apprends gratuitement" style="width: auto; height: 110px;">
+            <h3 data-lang-key="carouselTitle1">Apprends gratuitement</h3>
+            <p data-lang-key="carouselDesc1">“Joue et Apprends” est une section à but non lucratif offrant des cours et des sessions, en ligne ou en présentiel, gratuitement.</p>
           </div>
           <div class="carousel-item">
             <img src="{% static 'email_api/stem.png' %}" alt="IA pour tous" style="width: auto; height: 110px;">
-            <h3 data-lang-key="carouselTitle2">IA pour tous</h3>
-            <p data-lang-key="carouselDesc2">Initiation aux concepts d'IA avec projets visuels.</p>
+            <h3 data-lang-key="carouselTitle2">Les principes de l’éducation STEM</h3>
+            <p data-lang-key="carouselDesc2">Nos activités encouragent la pensée scientifique, technologique, ingénierique et mathématique.</p>
           </div>
           <div class="carousel-item">
             <img src="{% static 'email_api/canada-flag-v1.png' %}" alt="Robots et jeux" style="width: auto; height: 110px;">
-            <h3 data-lang-key="carouselTitle4">Communication</h3>
-            <p data-lang-key="carouselDesc3">Programmez des robots et apprenez en jouant.</p>
+            <h3 data-lang-key="carouselTitle3">Curriculum canadien</h3>
+            <p data-lang-key="carouselDesc3">Nos activités s’inspirent des attentes du curriculum canadien.</p>
           </div>
           <div class="carousel-item">
             <img src="{% static 'email_api/mission-logo.png' %}" alt="IA pour tous" style="width: auto; height: 110px;">
-            <h3 data-lang-key="carouselTitle4">Communication</h3>
-            <p data-lang-key="carouselDesc4">Présentez vos projets et communiquez vos idées.</p>
+            <h3 data-lang-key="carouselTitle4">Notre mission</h3>
+            <p data-lang-key="carouselDesc4">Notre mission est d’accompagner les enfants & adultes dans leur développement grâce à la robotique ludique, à l’intelligence artificielle et à la création d’apps.</p>
           </div>
           <div class="carousel-item">
             <img src="{% static 'email_api/network-hub.png' %}" alt="Robots et jeux" style="width: auto; height: 110px;">
-            <h3 data-lang-key="carouselTitle5">Carrière Tech</h3>
-            <p data-lang-key="carouselDesc5">Préparez-vous pour les métiers du numérique.</p>
+            <h3 data-lang-key="carouselTitle5">Rejoindre notre réseau</h3>
+            <p data-lang-key="carouselDesc5">Nous encourageons les bibliothèques et les organismes à s’inscrire gratuitement à nos activités.</p>
           </div>
         </div>
         <button class="carousel-btn prev" aria-label="Précédent">&#10094;</button>
@@ -213,17 +284,20 @@
       </div>
     </div>
 
+    <h2 id="start-journey" class="animated-title" style="margin-top: 50px; scroll-margin-top: 100px;" data-lang-key="startJourney">Commencer votre parcours</h2>
     <section class="cards" aria-label="programmes">
       <!-- card 1 -->
       <div class="card flip" tabindex="0" aria-labelledby="card1-title">
         <div class="card-inner">
           <div class="card-face card-front" aria-hidden="false">
-            <h3 id="card1-title" data-lang-key="card1Title">Apprendre à coder</h3>
-            <p data-lang-key="card1Desc">Ateliers pas à pas adaptés aux débutants et aux enfants.</p>
+            <div class="heart-animation">❤️</div>
+            <h3 id="card1-title" data-lang-key="card1Title">Apprends en t’amusant, gratuitement</h3>
+            <p data-lang-key="card1Desc">Inscris‑toi à la prochaine session gratuite et apprends en jouant grâce à nos cours gratuits.</p>
           </div>
           <div class="card-face card-back" aria-hidden="true">
-            <h3 data-lang-key="card1BackTitle">Programmer avec</h3>
-            <p data-lang-key="card1BackDesc">JavaScript, Python & Scratch</p>
+            <h3 data-lang-key="card1BackTitle">Cette section est à but non lucratif</h3>
+            <p data-lang-key="card1BackDesc">Inscris‑toi gratuitement à la prochaine session et profite de nos cours, simulateurs, jeux et quiz.</p>
+            <a href="/api/play/playandlearn/" class="card-btn" data-lang-key="learnMore">Savoir plus</a>
           </div>
         </div>
       </div>
@@ -232,12 +306,14 @@
       <div class="card flip" tabindex="0" aria-labelledby="card2-title">
         <div class="card-inner">
           <div class="card-face card-front" aria-hidden="false">
-            <h3 id="card2-title" data-lang-key="card2Title">IA pour tous</h3>
-            <p data-lang-key="card2Desc">Initiation aux concepts d'IA avec projets simples et visuels.</p>
+            <div class="course-animation">🎓</div>
+            <h3 id="card2-title" data-lang-key="card2Title">Tu cherches un cours spécifique pour ton enfant</h3>
+            <p data-lang-key="card2Desc">Choisis l’un de nos cours et inscris‑toi : robotique & IoT, IA, Arduino, PowerPoint & Canva, Python & Scratch.</p>
           </div>
           <div class="card-face card-back" aria-hidden="true">
-            <h3 data-lang-key="card2BackTitle">Atelier IA</h3>
-            <p data-lang-key="card2BackDesc">Mini-projets ML visuels — Python, notebooks & TinyML</p>
+            <h3 data-lang-key="card2BackTitle">Cours en groupe ou individuels</h3>
+            <p data-lang-key="card2BackDesc">Choisis ton cours</p>
+            <a href="/api/courses/" class="card-btn" data-lang-key="learnMore">Savoir plus</a>
           </div>
         </div>
       </div>
@@ -246,33 +322,35 @@
       <div class="card flip" tabindex="0" aria-labelledby="card3-title">
         <div class="card-inner">
           <div class="card-face card-front" aria-hidden="false">
-            <h3 id="card3-title" data-lang-key="card3Title">Robots et jeux</h3>
-            <p data-lang-key="card3Desc">Programmez des robots et apprenez en jouant.</p>
+            <div class="idea-animation">💡</div>
+            <h3 id="card3-title" data-lang-key="card3Title">Tu as une idée de projet?</h3>
+            <p data-lang-key="card3Desc">Nous vous accompagnons pour apprendre à créer votre application de A à Z grâce à nos labs pratiques.</p>
           </div>
           <div class="card-face card-back" aria-hidden="true">
-            <h3 data-lang-key="card3BackTitle">Défis robotiques</h3>
-            <p data-lang-key="card3BackDesc">Construisez des missions: Arduino, Blockly et challenges interactifs</p>
+            <h3 data-lang-key="card3BackTitle">Explique‑nous ton idée de projet</h3>
+            <p data-lang-key="card3BackDesc">Envoie‑nous ta demande de projet (app web/mobile, automatisation, jeu, robotique, etc.).</p>
+            <a href="/api/coaching/" class="card-btn" data-lang-key="learnMore">Savoir plus</a>
           </div>
         </div>
       </div>
     </section>
 
     <section class="game-container">
-      <h2>Mission : Contact</h2>
-      <p>Programmez le robot 🤖 pour envoyer un email 📧 en évitant le mur !</p>
+      <h2 data-lang-key="gameTitle">Mission : Contact</h2>
+      <p data-lang-key="gameDesc">Programmez le robot 🤖 pour envoyer un email 📧 en évitant le mur !</p>
       <div class="game-area" id="gameArea">
         <div id="robot" class="sprite">🤖</div>
         <div id="obstacle"></div>
         <div id="target" class="sprite">📧</div>
         <div id="winOverlay" class="win-overlay">
-          <div>🎉 Gagné !</div>
-          <div style="font-size: 1rem; color: #555; margin-top: 10px;">Redirection vers Contact dans <span id="gameTimer">3</span>s...</div>
+          <div data-lang-key="gameWin">🎉 Gagné !</div>
+          <div style="font-size: 1rem; color: #555; margin-top: 10px;"><span data-lang-key="gameRedirect">Redirection vers Contact dans</span> <span id="gameTimer">3</span>s...</div>
         </div>
       </div>
       <div class="game-controls">
-        <button class="block-btn btn-move" onclick="gameAction('forward')">Avancer</button>
-        <button class="block-btn btn-turn" onclick="gameAction('left')">↺ Gauche</button>
-        <button class="block-btn btn-turn" onclick="gameAction('right')">Droite ↻</button>
+        <button class="block-btn btn-move" onclick="gameAction('forward')" data-lang-key="btnForward">Avancer</button>
+        <button class="block-btn btn-turn" onclick="gameAction('left')" data-lang-key="btnLeft">↺ Gauche</button>
+        <button class="block-btn btn-turn" onclick="gameAction('right')" data-lang-key="btnRight">Droite ↻</button>
       </div>
     </section>
   </main>
@@ -287,19 +365,19 @@
     <div class="footer-container">
       <div class="footer-grid">
         <div class="footer-col">
-          <h3>Pages</h3>
-          <a href="/" class="footer-link">🏠 Accueil</a>
-          <a href="/api/courses/" class="footer-link">🎓 Cours</a>
-          <a href="/api/contact/" class="footer-link">📬 Contact</a>
+          <h3 data-lang-key="footerPages">Pages</h3>
+          <a href="/" class="footer-link" data-lang-key="navHome">🏠 Accueil</a>
+          <a href="/api/courses/" class="footer-link" data-lang-key="navCourses">🎓 Cours</a>
+          <a href="/api/contact/" class="footer-link" data-lang-key="navContact">📬 Contact</a>
         </div>
         <div class="footer-col">
-          <h3>Suivez-nous</h3>
-          <a href="#" class="footer-link">📘 Facebook</a>
-          <a href="#" class="footer-link">📺 YouTube</a>
-          <a href="#" class="footer-link">🎵 TikTok</a>
+          <h3 data-lang-key="footerFollow">Suivez-nous</h3>
+          <a href="#" class="footer-link" data-lang-key="socialFb">📘 Facebook</a>
+          <a href="#" class="footer-link" data-lang-key="socialYt">📺 YouTube</a>
+          <a href="#" class="footer-link" data-lang-key="socialTt">🎵 TikTok</a>
         </div>
         <div class="footer-col">
-          <h3>Contact</h3>
+          <h3 data-lang-key="footerContact">Contact</h3>
           <a href="mailto:contact@kodikids.com" class="footer-link">📧 contact@kodikids.com</a>
           <a href="tel:+1234567890" class="footer-link">📞 +1 234 567 890</a>
         </div>
@@ -439,12 +517,15 @@
   <script>
   (function(){
     // rotating title: Robot & IA Learning -> Play and Learning -> Coding games
-    const titles = ['Robot & IA Learning', 'Play and Learning', 'Coding games'];
+    const titlesFr = ['Robot, IA, IoT & Arduino', 'Inscris‑toi à des sessions d’apprentissage gratuites', 'Creation d’Application Web & Mobile ', ' Joue et apprends', 'Maîtrise l’art de la présentation PowerPoint & Canva', 'Prépare ta carrière Tech', 'Code des jeux amusants & éducatifs', 'Construis des robots intelligents', 'Découvre les bases de l’IA & du Machine Learning', 'Réalise tes projets en apprenant à coder'];
+    const titlesEn = ['Robot, AI, IoT & Arduino', 'Sign up for free learning sessions', 'Web & Mobile App Creation', 'Play and Learn', 'Master PowerPoint & Canva presentation', 'Prepare for your Tech career', 'Code fun & educational games', 'Build smart robots', 'Discover AI & Machine Learning basics', 'Build your projects by learning to code'];
     const el = document.getElementById('rotating-title');
     if(!el) return;
     let idx = 0;
     const interval = 2600;
     function showNext(){
+      const lang = document.documentElement.lang || 'fr';
+      const titles = lang === 'en' ? titlesEn : titlesFr;
       el.style.opacity = '0';
       setTimeout(()=>{
         idx = (idx + 1) % titles.length;
@@ -496,66 +577,106 @@
 
     const translations = {
       en: {
-        heroTitle: "Learn to code and control robots — for kids & adults",
-        heroLead: "Fun learning paths and hands-on workshops: programming, AI, educational games, and robotics.",
-        heroCTA: "Get Started",
-        rotatingSub: "Visual and interactive projects for everyone.",
-        carouselTitle1: "Learn to Code",
-        carouselDesc1: "Fun tracks and step-by-step workshops.",
-        carouselTitle2: "AI for Everyone",
-        carouselDesc2: "Introduction to AI concepts with visual projects.",
-        carouselTitle3: "Robots and Games",
-        carouselDesc3: "Program robots and learn by playing.",
-        carouselTitle4: "Communication",
-        carouselDesc4: "Present your projects and share your ideas.",
-        carouselTitle5: "Tech Career",
-        carouselDesc5: "Get ready for digital-age jobs.",
-        card1Title: "Learn to Code",
-        card1Desc: "Step-by-step workshops for beginners and kids.",
-        card1BackTitle: "Code with",
-        card1BackDesc: "JavaScript, Python & Scratch",
-        card2Title: "AI for Everyone",
-        card2Desc: "Introduction to AI concepts with simple, visual projects.",
-        card2BackTitle: "AI Workshop",
-        card2BackDesc: "Visual ML mini-projects — Python, notebooks & TinyML",
-        card3Title: "Robots and Games",
-        card3Desc: "Program robots and learn through play.",
-        card3BackTitle: "Robotics Challenges",
-        card3BackDesc: "Build missions: Arduino, Blockly, and interactive challenges",
-        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
-        cookieText: "We do not use tracking cookies. By clicking 'Accept', you agree to our privacy policy.",
-        cookieAccept: "Accept"
+        heroTitle: "Learn to code and control robots — kids & adults",
+        heroLead: "Fun paths and practical workshops: programming, AI, educational games, and robotics.",
+        heroCTA: "Start",
+        rotatingSub: "Free courses and interactive projects accessible to everyone.",
+        carouselTitle1: "Learn for free",
+        carouselDesc1: "“Play and Learn” is a non-profit section offering courses and sessions, online or in-person, for free.",
+        carouselTitle2: "STEM Education Principles",
+        carouselDesc2: "Our activities encourage scientific, technological, engineering, and mathematical thinking.",
+        carouselTitle3: "Canadian Curriculum",
+        carouselDesc3: "Our activities are inspired by the expectations of the Canadian curriculum.",
+        carouselTitle4: "Our Mission",
+        carouselDesc4: "Our mission is to support children & adults in their development through fun robotics, artificial intelligence, and app creation.",
+        carouselTitle5: "Join Our Network",
+        carouselDesc5: "We encourage libraries and organizations to register for our activities for free.",
+        startJourney: "Start your journey",
+        card1Title: "Learn while having fun, for free",
+        card1Desc: "Sign up for the next free session and learn by playing with our free courses.",
+        card1BackTitle: "This section is non-profit",
+        card1BackDesc: "Register for free for the next session and enjoy our courses, simulators, games, and quizzes.",
+        learnMore: "Learn more",
+        card2Title: "Looking for a specific course for your child?",
+        card2Desc: "Choose one of our courses and sign up: Robotics & IoT, AI, Arduino, PowerPoint & Canva, Python & Scratch.",
+        card2BackTitle: "Group or Individual Courses",
+        card2BackDesc: "Choose your course",
+        card3Title: "Have a project idea?",
+        card3Desc: "We guide you to learn how to create your application from A to Z through our practical labs.",
+        card3BackTitle: "Tell us about your project idea",
+        card3BackDesc: "Send us your project request (web/mobile app, automation, game, robotics, etc.).",
+        footerText: "© Play & Learn — Teaching programming, robots, and AI",
+        cookieText: "We do not use tracking cookies. By clicking \"Accept\", you agree to our privacy policy.",
+        cookieAccept: "Accept",
+        mainTitle: "KodiKids: Learning for the Future",
+        mainSubtitle: "Accessible to all children, parents, and educators.",
+        gameTitle: "Mission: Contact",
+        gameDesc: "Program the robot 🤖 to send an email 📧 while avoiding the wall!",
+        gameWin: "🎉 You Win!",
+        gameRedirect: "Redirecting to Contact in",
+        btnForward: "Forward",
+        btnLeft: "↺ Left",
+        btnRight: "Right ↻",
+        footerPages: "Pages",
+        footerFollow: "Follow Us",
+        footerContact: "Contact",
+        navHome: "🏠 Home",
+        navCourses: "🎓 Courses",
+        navContact: "📬 Contact",
+        socialFb: "📘 Facebook",
+        socialYt: "📺 YouTube",
+        socialTt: "🎵 TikTok"
       },
       fr: {
         heroTitle: "Apprenez à coder et piloter des robots — enfants & adultes",
         heroLead: "Parcours ludiques et ateliers pratiques : programmation, IA, jeux éducatifs et robotique.",
         heroCTA: "Commencer",
-        rotatingSub: "Projets visuels et interactifs pour tous.",
-        carouselTitle1: "Apprendre à coder",
-        carouselDesc1: "Parcours ludiques et ateliers pas à pas.",
-        carouselTitle2: "IA pour tous",
-        carouselDesc2: "Initiation aux concepts d'IA avec projets visuels.",
-        carouselTitle3: "Robots et jeux",
-        carouselDesc3: "Programmez des robots et apprenez en jouant.",
-        carouselTitle4: "Communication",
-        carouselDesc4: "Présentez vos projets et communiquez vos idées.",
-        carouselTitle5: "Carrière Tech",
-        carouselDesc5: "Préparez-vous pour les métiers du numérique.",
-        card1Title: "Apprendre à coder",
-        card1Desc: "Ateliers pas à pas adaptés aux débutants et aux enfants.",
-        card1BackTitle: "Programmer avec",
-        card1BackDesc: "JavaScript, Python & Scratch",
-        card2Title: "IA pour tous",
-        card2Desc: "Initiation aux concepts d'IA avec projets simples et visuels.",
-        card2BackTitle: "Atelier IA",
-        card2BackDesc: "Mini-projets ML visuels — Python, notebooks & TinyML",
-        card3Title: "Robots et jeux",
-        card3Desc: "Programmez des robots et apprenez en jouant.",
-        card3BackTitle: "Défis robotiques",
-        card3BackDesc: "Construisez des missions: Arduino, Blockly et challenges interactifs",
+        rotatingSub: "Des cours gratuits et des projets interactifs accessibles à tous.",
+        carouselTitle1: "Apprends gratuitement",
+        carouselDesc1: "“Joue et Apprends” est une section à but non lucratif offrant des cours et des sessions, en ligne ou en présentiel, gratuitement.",
+        carouselTitle2: "Les principes de l’éducation STEM",
+        carouselDesc2: "Nos activités encouragent la pensée scientifique, technologique, ingénierique et mathématique.",
+        carouselTitle3: "Curriculum canadien",
+        carouselDesc3: "Nos activités s’inspirent des attentes du curriculum canadien.",
+        carouselTitle4: "Notre mission",
+        carouselDesc4: "Notre mission est d’accompagner les enfants & adultes dans leur développement grâce à la robotique ludique, à l’intelligence artificielle et à la création d’apps.",
+        carouselTitle5: "Rejoindre notre réseau",
+        carouselDesc5: "Nous encourageons les bibliothèques et les organismes à s’inscrire gratuitement à nos activités.",
+        startJourney: "Commencer votre parcours",
+        card1Title: "Apprends en t’amusant, gratuitement",
+        card1Desc: "Inscris‑toi à la prochaine session gratuite et apprends en jouant grâce à nos cours gratuits.",
+        card1BackTitle: "Cette section est à but non lucratif",
+        card1BackDesc: "Inscris‑toi gratuitement à la prochaine session et profite de nos cours, simulateurs, jeux et quiz.",
+        learnMore: "Savoir plus",
+        card2Title: "Tu cherches un cours spécifique pour ton enfant",
+        card2Desc: "Choisis l’un de nos cours et inscris‑toi : robotique & IoT, IA, Arduino, PowerPoint & Canva, Python & Scratch.",
+        card2BackTitle: "Cours en groupe ou individuels",
+        card2BackDesc: "Choisis ton cours",
+        card3Title: "Tu as une idée de projet?",
+        card3Desc: "Nous vous accompagnons pour apprendre à créer votre application de A à Z grâce à nos labs pratiques.",
+        card3BackTitle: "Explique‑nous ton idée de projet",
+        card3BackDesc: "Envoie‑nous ta demande de projet (app web/mobile, automatisation, jeu, robotique, etc.).",
         footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
         cookieText: "Nous n'utilisons pas de cookies de suivi. En cliquant sur 'Accepter', vous acceptez notre politique de confidentialité.",
-        cookieAccept: "Accepter"
+        cookieAccept: "Accepter",
+        mainTitle: "KodiKids : l’apprentissage du futur",
+        mainSubtitle: "Accessible à tous les enfants, aux parents et aux éducateurs.",
+        gameTitle: "Mission : Contact",
+        gameDesc: "Programmez le robot 🤖 pour envoyer un email 📧 en évitant le mur !",
+        gameWin: "🎉 Gagné !",
+        gameRedirect: "Redirection vers Contact dans",
+        btnForward: "Avancer",
+        btnLeft: "↺ Gauche",
+        btnRight: "Droite ↻",
+        footerPages: "Pages",
+        footerFollow: "Suivez-nous",
+        footerContact: "Contact",
+        navHome: "🏠 Accueil",
+        navCourses: "🎓 Cours",
+        navContact: "📬 Contact",
+        socialFb: "📘 Facebook",
+        socialYt: "📺 YouTube",
+        socialTt: "🎵 TikTok"
       }
     };
 

@@ -123,3 +123,6 @@ def contact_page(request):
 
 def courses_page(request):
     return render(request, 'email_api/courses.html')
+
+def playandlearn_page(request):
+    return render(request, 'email_api/playandlearn.html')

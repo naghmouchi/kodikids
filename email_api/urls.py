@@ -19,4 +19,5 @@ urlpatterns = [
     path('coaching/', views.coaching_page, name='coaching_page'),
     path('contact/', views.contact_page, name='contact_page'),
     path('courses/', views.courses_page, name='courses_page'),
+    path('play/playandlearn/', views.playandlearn_page, name='playandlearn_page'),
 ]
