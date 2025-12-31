@@ -1,0 +1,234 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz JavaScript — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #306998; background: #f7faff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Quiz JavaScript</h1>
+      <p class="lead" data-lang-key="pageDesc">Testez vos connaissances sur le langage du Web. Êtes-vous prêt ?</p>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q1Text">Dans quel élément HTML place-t-on le JavaScript ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">&lt;js&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">&lt;script&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">&lt;javascript&gt;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q2 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q2Text">Quelle est la syntaxe correcte pour faire référence à un script externe "xxx.js" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt1">&lt;script src="xxx.js"&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt2">&lt;script href="xxx.js"&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">&lt;script name="xxx.js"&gt;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q3 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q3Text">Comment écrire "Hello World" dans une boîte d'alerte ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt1">msg("Hello World");</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q3Opt2">alert("Hello World");</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt3">msgBox("Hello World");</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q4 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q4Text">Comment créer une fonction en JavaScript ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q4Opt1">function myFunction()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt2">function:myFunction()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt3">function = myFunction()</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q5 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q5Text">Comment appeler une fonction nommée "myFunction" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt1">call function myFunction()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q5Opt2">myFunction()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt3">call myFunction()</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q6 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q6Text">Comment écrire une condition IF en JavaScript ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q6Opt1">if (i == 5)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt2">if i = 5 then</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt3">if i == 5 then</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q7 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q7Text">Comment écrire une boucle FOR ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt1">for (i <= 5; i++)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q7Opt2">for (i = 0; i <= 5; i++)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt3">for i = 1 to 5</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q8 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q8Text">Comment ajouter un commentaire sur une ligne ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt1">' Ceci est un commentaire</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q8Opt2">// Ceci est un commentaire</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt3">&lt;!-- Ceci est un commentaire --&gt;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q9 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q9Text">Quel est la bonne façon de déclarer un tableau (array) ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q9Opt1">var colors = ["red", "green", "blue"]</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt2">var colors = (1:"red", 2:"green", 3:"blue")</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt3">var colors = "red", "green", "blue"</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q10 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q10Text">Quel événement est déclenché quand on clique sur un élément HTML ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt1">onchange</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt2">onmouseclick</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q10Opt3">onclick</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "JavaScript Quiz",
+        pageDesc: "Test your knowledge of the Web language. Are you ready?",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        q1Text: "Inside which HTML element do we put the JavaScript?",
+        q1Opt1: "<js>", q1Opt2: "<script>", q1Opt3: "<javascript>",
+        q2Text: "What is the correct syntax for referring to an external script called 'xxx.js'?",
+        q2Opt1: "<script src=\"xxx.js\">", q2Opt2: "<script href=\"xxx.js\">", q2Opt3: "<script name=\"xxx.js\">",
+        q3Text: "How do you write 'Hello World' in an alert box?",
+        q3Opt1: "msg('Hello World');", q3Opt2: "alert('Hello World');", q3Opt3: "msgBox('Hello World');",
+        q4Text: "How do you create a function in JavaScript?",
+        q4Opt1: "function myFunction()", q4Opt2: "function:myFunction()", q4Opt3: "function = myFunction()",
+        q5Text: "How do you call a function named 'myFunction'?",
+        q5Opt1: "call function myFunction()", q5Opt2: "myFunction()", q5Opt3: "call myFunction()",
+        q6Text: "How to write an IF statement in JavaScript?",
+        q6Opt1: "if (i == 5)", q6Opt2: "if i = 5 then", q6Opt3: "if i == 5 then",
+        q7Text: "How does a FOR loop start?",
+        q7Opt1: "for (i <= 5; i++)", q7Opt2: "for (i = 0; i <= 5; i++)", q7Opt3: "for i = 1 to 5",
+        q8Text: "How can you add a comment in a JavaScript?",
+        q8Opt1: "' This is a comment", q8Opt2: "// This is a comment", q8Opt3: "<!-- This is a comment -->",
+        q9Text: "What is the correct way to write a JavaScript array?",
+        q9Opt1: "var colors = [\"red\", \"green\", \"blue\"]", q9Opt2: "var colors = (1:\"red\", 2:\"green\", 3:\"blue\")", q9Opt3: "var colors = \"red\", \"green\", \"blue\"",
+        q10Text: "Which event occurs when the user clicks on an HTML element?",
+        q10Opt1: "onchange", q10Opt2: "onmouseclick", q10Opt3: "onclick",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Quiz JavaScript",
+        pageDesc: "Testez vos connaissances sur le langage du Web. Êtes-vous prêt ?",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        q1Text: "Dans quel élément HTML place-t-on le JavaScript ?",
+        q1Opt1: "<js>", q1Opt2: "<script>", q1Opt3: "<javascript>",
+        q2Text: "Quelle est la syntaxe correcte pour faire référence à un script externe \"xxx.js\" ?",
+        q2Opt1: "<script src=\"xxx.js\">", q2Opt2: "<script href=\"xxx.js\">", q2Opt3: "<script name=\"xxx.js\">",
+        q3Text: "Comment écrire \"Hello World\" dans une boîte d'alerte ?",
+        q3Opt1: "msg(\"Hello World\");", q3Opt2: "alert(\"Hello World\");", q3Opt3: "msgBox(\"Hello World\");",
+        q4Text: "Comment créer une fonction en JavaScript ?",
+        q4Opt1: "function myFunction()", q4Opt2: "function:myFunction()", q4Opt3: "function = myFunction()",
+        q5Text: "Comment appeler une fonction nommée \"myFunction\" ?",
+        q5Opt1: "call function myFunction()", q5Opt2: "myFunction()", q5Opt3: "call myFunction()",
+        q6Text: "Comment écrire une condition IF en JavaScript ?",
+        q6Opt1: "if (i == 5)", q6Opt2: "if i = 5 then", q6Opt3: "if i == 5 then",
+        q7Text: "Comment écrire une boucle FOR ?",
+        q7Opt1: "for (i <= 5; i++)", q7Opt2: "for (i = 0; i <= 5; i++)", q7Opt3: "for i = 1 to 5",
+        q8Text: "Comment ajouter un commentaire sur une ligne ?",
+        q8Opt1: "' Ceci est un commentaire", q8Opt2: "// Ceci est un commentaire", q8Opt3: "<!-- Ceci est un commentaire -->",
+        q9Text: "Quel est la bonne façon de déclarer un tableau (array) ?",
+        q9Opt1: "var colors = [\"red\", \"green\", \"blue\"]", q9Opt2: "var colors = (1:\"red\", 2:\"green\", 3:\"blue\")", q9Opt3: "var colors = \"red\", \"green\", \"blue\"",
+        q10Text: "Quel événement est déclenché quand on clique sur un élément HTML ?",
+        q10Opt1: "onchange", q10Opt2: "onmouseclick", q10Opt3: "onclick",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+        // Disable other buttons in the same question
+        parent.querySelectorAll('.quiz-opt').forEach(opt => {
+            if (opt !== btn) opt.disabled = true;
+        });
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => {
+            btn.classList.remove('wrong');
+            feedback.textContent = '';
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>

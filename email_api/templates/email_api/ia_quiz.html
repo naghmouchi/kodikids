@@ -1,0 +1,234 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz IA & ML — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #306998; background: #f7faff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Quiz IA & Machine Learning</h1>
+      <p class="lead" data-lang-key="pageDesc">Testez vos connaissances sur l'intelligence artificielle et le machine learning.</p>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="quiz-container">
+        <!-- Question 1 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q1Text">Que signifie IA ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">Internet Artificiel</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">Intelligence Artificielle</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">Information Automatique</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 2 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q2Text">Quel domaine est un sous-ensemble de l'IA ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt1">Web Design</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt2">Machine Learning</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Blockchain</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 3 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q3Text">De quoi s'inspire un réseau de neurones artificiel ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt1">Le système solaire</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q3Opt2">Le cerveau humain</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt3">Un arbre binaire</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 4 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q4Text">Quel langage est le plus populaire pour l'IA ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt1">HTML</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q4Opt2">Python</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt3">SQL</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 5 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q5Text">Qu'est-ce que le "Training" (entraînement) ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q5Opt1">Apprendre au modèle avec des données</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt2">Réparer un robot</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt3">Écrire du code HTML</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 6 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q6Text">Qu'est-ce que la Vision par Ordinateur ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt1">Un écran haute définition</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q6Opt2">Permettre aux machines de "voir" et analyser des images</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt3">Des lunettes de réalité virtuelle</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 7 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q7Text">Que signifie NLP ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q7Opt1">Natural Language Processing</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt2">New Learning Protocol</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt3">Network Level Programming</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 8 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q8Text">Qu'est-ce qu'un "Chatbot" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt1">Un robot chat</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q8Opt2">Un programme qui simule une conversation</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt3">Un virus informatique</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 9 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q9Text">Quel test évalue si une machine peut penser comme un humain ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt1">Le test de vitesse</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q9Opt2">Le test de Turing</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt3">Le test de QI</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Question 10 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q10Text">Qu'est-ce qu'un algorithme de recommandation ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt1">Il corrige les fautes d'orthographe</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q10Opt2">Il suggère du contenu selon vos goûts</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt3">Il accélère la connexion internet</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "AI & Machine Learning Quiz",
+        pageDesc: "Test your knowledge of artificial intelligence and machine learning.",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        q1Text: "What does AI stand for?",
+        q1Opt1: "Artificial Internet", q1Opt2: "Artificial Intelligence", q1Opt3: "Automatic Information",
+        q2Text: "Which field is a subset of AI?",
+        q2Opt1: "Web Design", q2Opt2: "Machine Learning", q2Opt3: "Blockchain",
+        q3Text: "What is a neural network inspired by?",
+        q3Opt1: "The solar system", q3Opt2: "The human brain", q3Opt3: "A binary tree",
+        q4Text: "Which language is most popular for AI?",
+        q4Opt1: "HTML", q4Opt2: "Python", q4Opt3: "SQL",
+        q5Text: "What is 'Training' in ML?",
+        q5Opt1: "Teaching the model with data", q5Opt2: "Fixing a robot", q5Opt3: "Writing HTML code",
+        q6Text: "What is Computer Vision?",
+        q6Opt1: "A high definition screen", q6Opt2: "Enabling machines to 'see' and analyze images", q6Opt3: "VR glasses",
+        q7Text: "What does NLP stand for?",
+        q7Opt1: "Natural Language Processing", q7Opt2: "New Learning Protocol", q7Opt3: "Network Level Programming",
+        q8Text: "What is a 'Chatbot'?",
+        q8Opt1: "A robot cat", q8Opt2: "A program simulating conversation", q8Opt3: "A computer virus",
+        q9Text: "Which test evaluates if a machine can think like a human?",
+        q9Opt1: "Speed test", q9Opt2: "The Turing Test", q9Opt3: "IQ test",
+        q10Text: "What is a recommendation algorithm?",
+        q10Opt1: "It corrects spelling mistakes", q10Opt2: "It suggests content based on your tastes", q10Opt3: "It speeds up internet connection",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Quiz IA & Machine Learning",
+        pageDesc: "Testez vos connaissances sur l'intelligence artificielle et le machine learning.",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        q1Text: "Que signifie IA ?",
+        q1Opt1: "Internet Artificiel", q1Opt2: "Intelligence Artificielle", q1Opt3: "Information Automatique",
+        q2Text: "Quel domaine est un sous-ensemble de l'IA ?",
+        q2Opt1: "Web Design", q2Opt2: "Machine Learning", q2Opt3: "Blockchain",
+        q3Text: "De quoi s'inspire un réseau de neurones artificiel ?",
+        q3Opt1: "Le système solaire", q3Opt2: "Le cerveau humain", q3Opt3: "Un arbre binaire",
+        q4Text: "Quel langage est le plus populaire pour l'IA ?",
+        q4Opt1: "HTML", q4Opt2: "Python", q4Opt3: "SQL",
+        q5Text: "Qu'est-ce que le \"Training\" (entraînement) ?",
+        q5Opt1: "Apprendre au modèle avec des données", q5Opt2: "Réparer un robot", q5Opt3: "Écrire du code HTML",
+        q6Text: "Qu'est-ce que la Vision par Ordinateur ?",
+        q6Opt1: "Un écran haute définition", q6Opt2: "Permettre aux machines de \"voir\" et analyser des images", q6Opt3: "Des lunettes de réalité virtuelle",
+        q7Text: "Que signifie NLP ?",
+        q7Opt1: "Natural Language Processing", q7Opt2: "New Learning Protocol", q7Opt3: "Network Level Programming",
+        q8Text: "Qu'est-ce qu'un \"Chatbot\" ?",
+        q8Opt1: "Un robot chat", q8Opt2: "Un programme qui simule une conversation", q8Opt3: "Un virus informatique",
+        q9Text: "Quel test évalue si une machine peut penser comme un humain ?",
+        q9Opt1: "Le test de vitesse", q9Opt2: "Le test de Turing", q9Opt3: "Le test de QI",
+        q10Text: "Qu'est-ce qu'un algorithme de recommandation ?",
+        q10Opt1: "Il corrige les fautes d'orthographe", q10Opt2: "Il suggère du contenu selon vos goûts", q10Opt3: "Il accélère la connexion internet",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+        // Disable other buttons in the same question
+        parent.querySelectorAll('.quiz-opt').forEach(opt => {
+            if (opt !== btn) opt.disabled = true;
+        });
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => {
+            btn.classList.remove('wrong');
+            feedback.textContent = '';
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>

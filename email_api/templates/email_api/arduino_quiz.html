@@ -1,0 +1,233 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz Arduino — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #00979d; background: #f0fbfb; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Quiz Arduino</h1>
+      <p class="lead" data-lang-key="pageDesc">Testez vos connaissances sur la plateforme Arduino. Attention au court-circuit !</p>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q1Text">Quelle fonction s'exécute une seule fois au démarrage ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">loop()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">setup()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">start()</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q2 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q2Text">Quelle fonction s'exécute en boucle à l'infini ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt1">repeat()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt2">loop()</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">run()</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q3 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q3Text">Comment allumer une LED sur la broche 13 ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q3Opt1">digitalWrite(13, HIGH);</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt2">setPin(13, ON);</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt3">pin(13) = HIGH;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q4 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q4Text">Que fait `delay(1000);` ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt1">Une pause de 1000 secondes</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q4Opt2">Une pause de 1 seconde</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt3">Supprime 1000 lignes de code</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q5 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q5Text">À quoi sert une "breadboard" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt1">À couper du pain</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q5Opt2">À prototyper des circuits sans soudure</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt3">À stocker le code</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q6 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q6Text">Quel composant protège une LED d'un courant trop fort ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt1">Un condensateur</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q6Opt2">Une résistance</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt3">Un fil</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q7 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q7Text">Que fait `pinMode(13, OUTPUT);` ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q7Opt1">Configure la broche 13 comme une sortie</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt2">Lit la valeur de la broche 13</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt3">Change la couleur de la broche 13</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q8 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q8Text">Quelle est la tension d'un signal HIGH sur un Arduino Uno ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt1">3.3V</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q8Opt2">5V</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt3">12V</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q9 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q9Text">Quel est le nom du logiciel pour programmer un Arduino ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt1">Visual Studio Code</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q9Opt2">Arduino IDE</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt3">Scratch</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q10 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q10Text">Que signifie GND ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt1">General Network Device</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q10Opt2">Ground (Masse)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt3">Green Neon Diode</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Arduino Quiz",
+        pageDesc: "Test your knowledge of the Arduino platform. Watch out for short circuits!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        q1Text: "Which function runs only once at startup?",
+        q1Opt1: "loop()", q1Opt2: "setup()", q1Opt3: "start()",
+        q2Text: "Which function runs in an infinite loop?",
+        q2Opt1: "repeat()", q2Opt2: "loop()", q2Opt3: "run()",
+        q3Text: "How do you turn on an LED on pin 13?",
+        q3Opt1: "digitalWrite(13, HIGH);", q3Opt2: "setPin(13, ON);", q3Opt3: "pin(13) = HIGH;",
+        q4Text: "What does `delay(1000);` do?",
+        q4Opt1: "Pauses for 1000 seconds", q4Opt2: "Pauses for 1 second", q4Opt3: "Deletes 1000 lines of code",
+        q5Text: "What is a 'breadboard' used for?",
+        q5Opt1: "To cut bread", q5Opt2: "To prototype circuits without soldering", q5Opt3: "To store code",
+        q6Text: "Which component protects an LED from too much current?",
+        q6Opt1: "A capacitor", q6Opt2: "A resistor", q6Opt3: "A wire",
+        q7Text: "What does `pinMode(13, OUTPUT);` do?",
+        q7Opt1: "Configures pin 13 as an output", q7Opt2: "Reads the value of pin 13", q7Opt3: "Changes the color of pin 13",
+        q8Text: "What is the voltage of a HIGH signal on an Arduino Uno?",
+        q8Opt1: "3.3V", q8Opt2: "5V", q8Opt3: "12V",
+        q9Text: "What is the name of the software used to program an Arduino?",
+        q9Opt1: "Visual Studio Code", q9Opt2: "Arduino IDE", q9Opt3: "Scratch",
+        q10Text: "What does GND stand for?",
+        q10Opt1: "General Network Device", q10Opt2: "Ground", q10Opt3: "Green Neon Diode",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Quiz Arduino",
+        pageDesc: "Testez vos connaissances sur la plateforme Arduino. Attention au court-circuit !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        q1Text: "Quelle fonction s'exécute une seule fois au démarrage ?",
+        q1Opt1: "loop()", q1Opt2: "setup()", q1Opt3: "start()",
+        q2Text: "Quelle fonction s'exécute en boucle à l'infini ?",
+        q2Opt1: "repeat()", q2Opt2: "loop()", q2Opt3: "run()",
+        q3Text: "Comment allumer une LED sur la broche 13 ?",
+        q3Opt1: "digitalWrite(13, HIGH);", q3Opt2: "setPin(13, ON);", q3Opt3: "pin(13) = HIGH;",
+        q4Text: "Que fait `delay(1000);` ?",
+        q4Opt1: "Une pause de 1000 secondes", q4Opt2: "Une pause de 1 seconde", q4Opt3: "Supprime 1000 lignes de code",
+        q5Text: "À quoi sert une 'breadboard' ?",
+        q5Opt1: "À couper du pain", q5Opt2: "À prototyper des circuits sans soudure", q5Opt3: "À stocker le code",
+        q6Text: "Quel composant protège une LED d'un courant trop fort ?",
+        q6Opt1: "Un condensateur", q6Opt2: "Une résistance", q6Opt3: "Un fil",
+        q7Text: "Que fait `pinMode(13, OUTPUT);` ?",
+        q7Opt1: "Configure la broche 13 comme une sortie", q7Opt2: "Lit la valeur de la broche 13", q7Opt3: "Change la couleur de la broche 13",
+        q8Text: "Quelle est la tension d'un signal HIGH sur un Arduino Uno ?",
+        q8Opt1: "3.3V", q8Opt2: "5V", q8Opt3: "12V",
+        q9Text: "Quel est le nom du logiciel pour programmer un Arduino ?",
+        q9Opt1: "Visual Studio Code", q9Opt2: "Arduino IDE", q9Opt3: "Scratch",
+        q10Text: "Que signifie GND ?",
+        q10Opt1: "General Network Device", q10Opt2: "Ground (Masse)", q10Opt3: "Green Neon Diode",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+        parent.querySelectorAll('.quiz-opt').forEach(opt => {
+            if (opt !== btn) opt.disabled = true;
+        });
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => {
+            btn.classList.remove('wrong');
+            feedback.textContent = '';
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>

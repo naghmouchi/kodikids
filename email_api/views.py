@@ -135,3 +135,55 @@ def game_hub(request):
 
 def robotic_hub(request):
     return render(request, 'email_api/robotic_hub.html')
+
+def math_code_niv1(request):
+    return render(request, 'email_api/math_code_niv1.html')
+
+def math_code_niv2(request):
+    return render(request, 'email_api/math_code_niv2.html')
+
+def math_code_niv3(request):
+    return render(request, 'email_api/math_code_niv3.html')
+
+def math_code_niv4(request):
+    return render(request, 'email_api/math_code_niv4.html')
+
+def deviner_lettre(request):
+    return render(request, 'email_api/deviner_lettre.html')
+
+def python_quiz(request):
+    return render(request, 'email_api/python_quiz.html')
+
+def ia_quiz(request):
+    return render(request, 'email_api/ia_quiz.html')
+
+def javascript_quiz(request):
+    return render(request, 'email_api/javascript_quiz.html')
+
+def scratch_quiz(request):
+    return render(request, 'email_api/scratch_quiz.html')
+
+def arduino_quiz(request):
+    return render(request, 'email_api/arduino_quiz.html')
+
+def iot_quiz(request):
+    return render(request, 'email_api/iot_quiz.html')
+
+def raspberry_pi_quiz(request):
+    return render(request, 'email_api/raspberry_pi_quiz.html')
+
+def mbot_quiz(request):
+    return render(request, 'email_api/mbot_quiz.html')
+
+def web_basics_quiz(request):
+    return render(request, 'email_api/web_basics_quiz.html')
+
+def microbit_quiz(request):
+    return render(request, 'email_api/microbit_quiz.html')
+
+def roblox_tutorial(request):
+    return render(request, 'email_api/roblox_tutoriel.html')
+
+def roblox_quiz(request):
+    return render(request, 'email_api/roblox_quiz.html')
+

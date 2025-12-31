@@ -1,0 +1,234 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz Scratch — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😺</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #306998; background: #f7faff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Quiz Scratch</h1>
+      <p class="lead" data-lang-key="pageDesc">Testez vos connaissances sur la programmation par blocs. Êtes-vous un expert Scratch ?</p>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q1Text">Quelle est la couleur des blocs de "Mouvement" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt1">Bleu</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt2">Violet</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">Orange</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q2 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q2Text">Quel bloc est souvent utilisé pour démarrer un programme ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt1">Quand espace est pressé</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt2">Quand le drapeau vert est cliqué</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Attendre 1 seconde</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q3 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q3Text">Qu'est-ce qu'un "Lutin" (Sprite) ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt1">Un bug dans le code</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q3Opt2">Un personnage ou objet</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt3">L'arrière-plan</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q4 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q4Text">Dans quelle catégorie trouve-t-on le bloc "Répéter indéfiniment" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt1">Événements</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q4Opt2">Contrôle</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt3">Capteurs</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q5 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q5Text">Quelles sont les coordonnées du centre de la scène ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt1">x: 100, y: 100</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q5Opt2">x: 0, y: 0</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt3">x: 50, y: 50</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q6 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q6Text">Quel bloc permet de faire parler un personnage ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q6Opt1">Dire "Bonjour" pendant 2 secondes</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt2">Jouer le son "Meow"</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt3">Envoyer à tous "Message1"</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q7 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q7Text">À quoi sert une "Variable" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt1">À changer la couleur du chat</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q7Opt2">À stocker une information (comme le score)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt3">À arrêter le programme</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q8 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q8Text">Comment détecter si le lutin touche une couleur spécifique ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt1">Avec un bloc Apparence</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q8Opt2">Avec un bloc Capteurs</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt3">Avec un bloc Opérateurs</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q9 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q9Text">Quel bloc permet de faire une pause dans le script ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt1">Stop tout</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q9Opt2">Attendre 1 seconde</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt3">Répéter jusqu'à</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q10 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q10Text">Quelle extension faut-il ajouter pour dessiner avec le lutin ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt1">Musique</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt2">Détection vidéo</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q10Opt3">Stylo</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Scratch Quiz",
+        pageDesc: "Test your knowledge of block-based programming. Are you a Scratch expert?",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        q1Text: "What is the color of 'Motion' blocks?",
+        q1Opt1: "Blue", q1Opt2: "Purple", q1Opt3: "Orange",
+        q2Text: "Which block is often used to start a program?",
+        q2Opt1: "When space key pressed", q2Opt2: "When green flag clicked", q2Opt3: "Wait 1 second",
+        q3Text: "What is a 'Sprite'?",
+        q3Opt1: "A bug in the code", q3Opt2: "A character or object", q3Opt3: "The background",
+        q4Text: "In which category do you find the 'Forever' block?",
+        q4Opt1: "Events", q4Opt2: "Control", q4Opt3: "Sensing",
+        q5Text: "What are the coordinates of the center of the stage?",
+        q5Opt1: "x: 100, y: 100", q5Opt2: "x: 0, y: 0", q5Opt3: "x: 50, y: 50",
+        q6Text: "Which block makes a character speak?",
+        q6Opt1: "Say 'Hello' for 2 seconds", q6Opt2: "Play sound 'Meow'", q6Opt3: "Broadcast 'Message1'",
+        q7Text: "What is a 'Variable' used for?",
+        q7Opt1: "To change the cat's color", q7Opt2: "To store information (like score)", q7Opt3: "To stop the program",
+        q8Text: "How to detect if the sprite is touching a specific color?",
+        q8Opt1: "With a Looks block", q8Opt2: "With a Sensing block", q8Opt3: "With an Operator block",
+        q9Text: "Which block pauses the script?",
+        q9Opt1: "Stop all", q9Opt2: "Wait 1 second", q9Opt3: "Repeat until",
+        q10Text: "Which extension is needed to draw with the sprite?",
+        q10Opt1: "Music", q10Opt2: "Video Sensing", q10Opt3: "Pen",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Quiz Scratch",
+        pageDesc: "Testez vos connaissances sur la programmation par blocs. Êtes-vous un expert Scratch ?",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        q1Text: "Quelle est la couleur des blocs de \"Mouvement\" ?",
+        q1Opt1: "Bleu", q1Opt2: "Violet", q1Opt3: "Orange",
+        q2Text: "Quel bloc est souvent utilisé pour démarrer un programme ?",
+        q2Opt1: "Quand espace est pressé", q2Opt2: "Quand le drapeau vert est cliqué", q2Opt3: "Attendre 1 seconde",
+        q3Text: "Qu'est-ce qu'un \"Lutin\" (Sprite) ?",
+        q3Opt1: "Un bug dans le code", q3Opt2: "Un personnage ou objet", q3Opt3: "L'arrière-plan",
+        q4Text: "Dans quelle catégorie trouve-t-on le bloc \"Répéter indéfiniment\" ?",
+        q4Opt1: "Événements", q4Opt2: "Contrôle", q4Opt3: "Capteurs",
+        q5Text: "Quelles sont les coordonnées du centre de la scène ?",
+        q5Opt1: "x: 100, y: 100", q5Opt2: "x: 0, y: 0", q5Opt3: "x: 50, y: 50",
+        q6Text: "Quel bloc permet de faire parler un personnage ?",
+        q6Opt1: "Dire \"Bonjour\" pendant 2 secondes", q6Opt2: "Jouer le son \"Meow\"", q6Opt3: "Envoyer à tous \"Message1\"",
+        q7Text: "À quoi sert une \"Variable\" ?",
+        q7Opt1: "À changer la couleur du chat", q7Opt2: "À stocker une information (comme le score)", q7Opt3: "À arrêter le programme",
+        q8Text: "Comment détecter si le lutin touche une couleur spécifique ?",
+        q8Opt1: "Avec un bloc Apparence", q8Opt2: "Avec un bloc Capteurs", q8Opt3: "Avec un bloc Opérateurs",
+        q9Text: "Quel bloc permet de faire une pause dans le script ?",
+        q9Opt1: "Stop tout", q9Opt2: "Attendre 1 seconde", q9Opt3: "Répéter jusqu'à",
+        q10Text: "Quelle extension faut-il ajouter pour dessiner avec le lutin ?",
+        q10Opt1: "Musique", q10Opt2: "Détection vidéo", q10Opt3: "Stylo",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+        // Disable other buttons in the same question
+        parent.querySelectorAll('.quiz-opt').forEach(opt => {
+            if (opt !== btn) opt.disabled = true;
+        });
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => {
+            btn.classList.remove('wrong');
+            feedback.textContent = '';
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jeu: Math & Code (Niv 3) — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚛️</text></svg>">
+  <style>
+    /* Game Styles */
+    .game-wrapper {
+        max-width: 900px;
+        margin: 40px auto;
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+    }
+    .game-area {
+        height: 500px;
+        background: #87CEEB; /* Sky blue */
+        border: 3px solid #333;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+    }
+    #equation {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255,255,255,0.8);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .balloon {
+        position: absolute;
+        width: 60px;
+        height: 75px;
+        background: #ff5e57;
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        font-size: 1.2rem;
+    }
+    .balloon::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 10px;
+        background: #333;
+    }
+    #basket {
+        position: absolute;
+        bottom: 10px;
+        width: 70px;
+        height: 50px;
+        background: #8B4513; /* SaddleBrown */
+        border: 5px solid #A0522D; /* Sienna */
+        border-bottom: none;
+        border-radius: 10px 10px 0 0;
+        transition: left 0.3s ease-out;
+    }
+    .controls-wrapper {
+        background: #f0f4f8;
+        padding: 20px;
+        border-radius: 12px;
+    }
+    #code-editor {
+        width: 100%;
+        height: 200px;
+        background: #2d3436;
+        color: #0f0;
+        font-family: 'Courier New', monospace;
+        border: 2px solid #555;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 1rem;
+        resize: vertical;
+    }
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .run-btn, .pause-btn {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s;
+    }
+    .run-btn {
+        background: #27ae60;
+        color: white;
+    }
+    .run-btn:hover:not(:disabled) { background: #2ecc71; }
+    .pause-btn {
+        background: #f39c12;
+        color: white;
+    }
+    .pause-btn:hover:not(:disabled) { background: #e67e22; }
+    .run-btn:disabled, .pause-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+    }
+    .instructions {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+    }
+    .instructions h4 { margin-top: 0; }
+    .instructions code { background: #eee; padding: 2px 5px; border-radius: 3px; }
+    #score {
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .win-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.9);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: bold; color: #00b894;
+      z-index: 20;
+    }
+    .game-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-align: center;
+        z-index: 25;
+        display: none; /* Initially hidden */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container">
+    <section class="tutorial-section text-center">
+      <h1 style="font-size: 2.5rem; font-weight: 800;">Jeu : Math & Code (Niveau 3)</h1>
+      <p class="lead">Résous l'équation du second degré, puis écris du code pour attraper la bonne réponse !</p>
+    </section>
+
+    <div class="game-wrapper">
+        <div class="game-area" id="game-area">
+            <div id="equation">x² - 7x + 10 = 0</div>
+            <div id="basket"></div>
+            <div class="win-overlay" id="win-overlay">
+                🎉 Bravo ! 🎉
+                <p style="font-size: 1rem; color: #555;">Nouvelle équation...</p>
+            </div>
+            <div id="game-message" class="game-message"></div>
+        </div>
+        <div class="controls-wrapper">
+            <div id="score">Score: 0</div>
+            <label for="code-editor" style="font-weight: bold;">Éditeur de code :</label>
+            <textarea id="code-editor" placeholder="Écris ton code ici..."></textarea>
+            <div class="button-group">
+                <button id="run-code" class="run-btn">▶️ Exécuter le code</button>
+                <button id="pause-game" class="pause-btn" disabled>⏸️ Pause</button>
+            </div>
+             <div class="instructions">
+                <h4>Commandes disponibles :</h4>
+                <ul>
+                    <li><code>right();</code> - Déplace le panier vers la droite.</li>
+                    <li><code>left();</code> - Déplace le panier vers la gauche.</li>
+                    <li>Utilise des boucles pour te déplacer plusieurs fois !<br><code>for (let i = 0; i < 3; i++) { right(); }</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span>© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    // Game Elements
+    const gameArea = document.getElementById('game-area');
+    const equationEl = document.getElementById('equation');
+    const basketEl = document.getElementById('basket');
+    const codeEditor = document.getElementById('code-editor');
+    const runBtn = document.getElementById('run-code');
+    const scoreEl = document.getElementById('score');
+    const winOverlay = document.getElementById('win-overlay');
+    const pauseBtn = document.getElementById('pause-game');
+    const gameMessageEl = document.getElementById('game-message');
+
+    // Game State
+    let score = 0;
+    let basketPos = 0;
+    let balloons = [];
+    let gameInterval;
+    let isPaused = false;
+    let gameHasStarted = false;
+    let problem = {};
+    const basketStep = 50; // pixels
+
+    // --- UI Functions ---
+    function showMessage(text, duration = 2000) {
+        gameMessageEl.textContent = text;
+        gameMessageEl.style.display = 'block';
+        setTimeout(() => {
+            gameMessageEl.style.display = 'none';
+        }, duration);
+    }
+
+    // --- User-callable functions ---
+    function right() {
+        const gameAreaWidth = gameArea.offsetWidth;
+        const basketWidth = basketEl.offsetWidth;
+        basketPos = Math.min(basketPos + basketStep, gameAreaWidth - basketWidth);
+        basketEl.style.left = basketPos + 'px';
+    }
+
+    function left() {
+        basketPos = Math.max(basketPos - basketStep, 0);
+        basketEl.style.left = basketPos + 'px';
+    }
+
+    // --- Game Logic ---
+    function generateProblem() {
+        // Generate two distinct integer roots to ensure the discriminant is a perfect square
+        const r1 = Math.floor(Math.random() * 8) + 2; // Answer: 2 to 9
+        let r2;
+        do {
+            r2 = Math.floor(Math.random() * 10) - 5; // Other root: -5 to 4
+        } while (r1 === r2);
+
+        // From (x - r1)(x - r2) = 0 => x^2 - (r1+r2)x + r1*r2 = 0
+        const b = -(r1 + r2);
+        const c = r1 * r2;
+
+        // Build the equation string with nice formatting
+        let equationText = 'x²';
+        if (b !== 0) {
+            if (b > 0) {
+                equationText += ` + ${b === 1 ? '' : b}x`;
+            } else {
+                equationText += ` - ${b === -1 ? '' : -b}x`;
+            }
+        }
+        if (c !== 0) {
+            if (c > 0) {
+                equationText += ` + ${c}`;
+            } else {
+                equationText += ` - ${-c}`;
+            }
+        }
+        equationText += ' = 0';
+        
+        // The student needs to find one of the roots. We'll use r1 as the target.
+        problem = { text: `Trouve une solution pour x: ${equationText}`, answer: r1 };
+        equationEl.textContent = problem.text;
+    }
+
+    function createBalloons() {
+        balloons.forEach(b => b.el.remove());
+        balloons = [];
+        const answers = [problem.answer];
+        while (answers.length < 3) {
+            const wrongAnswer = problem.answer + (Math.floor(Math.random() * 10) - 5);
+            if (!answers.includes(wrongAnswer) && wrongAnswer !== problem.answer) { answers.push(wrongAnswer); }
+        }
+        answers.sort(() => Math.random() - 0.5);
+
+        const colors = ['#ff5e57', '#ff9f43', '#00d2d3'];
+        answers.forEach((ans, i) => {
+            const balloonEl = document.createElement('div');
+            balloonEl.className = 'balloon';
+            balloonEl.textContent = ans;
+            balloonEl.style.background = colors[i % colors.length];
+            const balloon = { el: balloonEl, x: Math.random() * (gameArea.offsetWidth - 60), y: -75, speed: Math.random() * 0.5 + 0.5, value: ans };
+            balloonEl.style.left = balloon.x + 'px';
+            balloonEl.style.top = balloon.y + 'px';
+            balloons.push(balloon);
+            gameArea.appendChild(balloonEl);
+        });
+    }
+
+    function updateGame() {
+        if (isPaused) return;
+
+        const basketRect = basketEl.getBoundingClientRect();
+        balloons.forEach((balloon, index) => {
+            balloon.y += balloon.speed;
+            balloon.el.style.top = balloon.y + 'px';
+            const balloonRect = balloon.el.getBoundingClientRect();
+            if (basketRect.left < balloonRect.right && basketRect.right > balloonRect.left && basketRect.top < balloonRect.bottom && basketRect.bottom > balloonRect.top) { handleCatch(balloon); }
+            if (balloon.y > gameArea.offsetHeight) {
+                balloon.el.remove();
+                balloons.splice(index, 1);
+                if (balloons.length === 0) { 
+                    clearInterval(gameInterval);
+                    showMessage('Dommage ! Le bon ballon a été manqué.', 2500);
+                    setTimeout(startNewRound, 2500);
+                }
+            }
+        });
+    }
+
+    function handleCatch(caughtBalloon) {
+        clearInterval(gameInterval);
+        if (caughtBalloon.value === problem.answer) {
+            score++;
+            scoreEl.textContent = `Score: ${score}`;
+            winOverlay.style.display = 'flex';
+            setTimeout(() => { 
+                winOverlay.style.display = 'none'; 
+                startNewRound(); 
+            }, 2000);
+        } else {
+            showMessage(`Oups ! C'était ${caughtBalloon.value}. La bonne réponse était ${problem.answer}.`, 3000);
+            score = 0;
+            scoreEl.textContent = `Score: ${score}`;
+            setTimeout(startNewRound, 3000);
+        }
+    }
+
+    function runUserCode() {
+        const userCode = codeEditor.value;
+        if (!userCode.trim()) {
+            showMessage("L'éditeur de code est vide !", 1500);
+            return;
+        }
+        try {
+            // Cette partie s'exécute toujours pour positionner le panier
+            const userFunction = new Function('right', 'left', userCode);
+            userFunction(right, left);
+
+            // Cette partie ne s'exécute que la première fois pour lancer le jeu
+            if (!gameHasStarted) {
+                gameInterval = setInterval(updateGame, 1000 / 60);
+                gameHasStarted = true;
+                pauseBtn.disabled = false;
+                runBtn.disabled = true;
+                codeEditor.disabled = true;
+            }
+        } catch (e) {
+            showMessage("Erreur dans ton code :\n" + e.message, 3000);
+        }
+    }
+
+    function startNewRound() {
+        clearInterval(gameInterval);
+        gameHasStarted = false;
+        gameMessageEl.style.display = 'none';
+        runBtn.disabled = false;
+        codeEditor.disabled = false;
+        pauseBtn.disabled = true;
+        pauseBtn.textContent = '⏸️ Pause';
+        isPaused = false;
+        codeEditor.value = '';
+        basketPos = (gameArea.offsetWidth - basketEl.offsetWidth) / 2;
+        basketEl.style.left = basketPos + 'px';
+        generateProblem();
+        createBalloons();
+    }
+
+    pauseBtn.addEventListener('click', () => {
+        isPaused = !isPaused;
+        pauseBtn.textContent = isPaused ? '▶️ Reprendre' : '⏸️ Pause';
+        codeEditor.disabled = !isPaused; // Active l'éditeur en pause
+        runBtn.disabled = !isPaused; // Active le bouton Exécuter en pause
+    });
+
+    runBtn.addEventListener('click', runUserCode);
+    window.addEventListener('load', startNewRound);
+    window.addEventListener('resize', startNewRound);
+  </script>
+</body>
+</html>

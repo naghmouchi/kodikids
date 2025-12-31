@@ -1,0 +1,233 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz IoT — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #306998; background: #f7faff; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Quiz IoT</h1>
+      <p class="lead" data-lang-key="pageDesc">Testez vos connaissances sur l'Internet des Objets. Êtes-vous prêt à connecter le monde ?</p>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q1Text">Que signifie "IoT" ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt1">Internet of Things (Internet des Objets)</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt2">Internal Object Tracking</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">Internet of Telephones</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q2 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q2Text">Quel est l'objectif principal de l'IoT ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt1">Rendre internet plus rapide</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt2">Connecter des objets physiques à internet pour collecter des données</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Créer des jeux vidéo</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q3 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q3Text">Quel composant est souvent appelé le "cerveau" d'un objet IoT ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt1">La batterie</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q3Opt2">Le microcontrôleur</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt3">L'antenne</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q4 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q4Text">Lequel de ces éléments est un capteur ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt1">Une LED</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q4Opt2">Un capteur de température</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt3">Un moteur</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q5 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q5Text">Lequel de ces éléments est un actionneur ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt1">Un capteur de lumière</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q5Opt2">Un moteur qui ouvre une porte</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt3">Un microphone</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q6 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q6Text">Quel protocole de communication est très léger et populaire en IoT ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt1">HTTP</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q6Opt2">MQTT</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt3">FTP</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q7 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q7Text">Quel est un exemple de microcontrôleur populaire avec Wi-Fi intégré pour l'IoT ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt1">Arduino Uno</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q7Opt2">ESP32</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt3">Raspberry Pi 4</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q8 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q8Text">Qu'est-ce qu'une "maison intelligente" (smart home) ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt1">Une maison construite par des robots</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q8Opt2">Une maison avec des appareils IoT connectés et automatisés</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt3">Une maison avec beaucoup d'ordinateurs</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q9 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q9Text">À quoi sert une plateforme cloud IoT (comme AWS IoT) ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q9Opt1">Collecter, stocker et analyser les données des capteurs</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt2">Uniquement à stocker des photos</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt3">À jouer à des jeux en ligne</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q10 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q10Text">Quel est un défi majeur de l'IoT ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt1">Le manque de couleurs pour les objets</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q10Opt2">La sécurité et la confidentialité des données</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt3">La vitesse de la lumière</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "IoT Quiz",
+        pageDesc: "Test your knowledge of the Internet of Things. Are you ready to connect the world?",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        q1Text: "What does 'IoT' stand for?",
+        q1Opt1: "Internet of Things", q1Opt2: "Internal Object Tracking", q1Opt3: "Internet of Telephones",
+        q2Text: "What is the main goal of IoT?",
+        q2Opt1: "To make the internet faster", q2Opt2: "To connect physical objects to the internet to collect data", q2Opt3: "To create video games",
+        q3Text: "Which component is often called the 'brain' of an IoT device?",
+        q3Opt1: "The battery", q3Opt2: "The microcontroller", q3Opt3: "The antenna",
+        q4Text: "Which of these is a sensor?",
+        q4Opt1: "An LED", q4Opt2: "A temperature sensor", q4Opt3: "A motor",
+        q5Text: "Which of these is an actuator?",
+        q5Opt1: "A light sensor", q5Opt2: "A motor that opens a door", q5Opt3: "A microphone",
+        q6Text: "Which communication protocol is very lightweight and popular in IoT?",
+        q6Opt1: "HTTP", q6Opt2: "MQTT", q6Opt3: "FTP",
+        q7Text: "What is an example of a popular microcontroller with built-in Wi-Fi for IoT?",
+        q7Opt1: "Arduino Uno", q7Opt2: "ESP32", q7Opt3: "Raspberry Pi 4",
+        q8Text: "What is a 'smart home'?",
+        q8Opt1: "A house built by robots", q8Opt2: "A house with connected and automated IoT devices", q8Opt3: "A house with many computers",
+        q9Text: "What is an IoT cloud platform (like AWS IoT) used for?",
+        q9Opt1: "To collect, store, and analyze sensor data", q9Opt2: "Only for storing photos", q9Opt3: "To play online games",
+        q10Text: "What is a major challenge for IoT?",
+        q10Opt1: "The lack of colors for objects", q10Opt2: "Security and data privacy", q10Opt3: "The speed of light",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Quiz IoT",
+        pageDesc: "Testez vos connaissances sur l'Internet des Objets. Êtes-vous prêt à connecter le monde ?",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        q1Text: "Que signifie \"IoT\" ?",
+        q1Opt1: "Internet of Things (Internet des Objets)", q1Opt2: "Internal Object Tracking", q1Opt3: "Internet of Telephones",
+        q2Text: "Quel est l'objectif principal de l'IoT ?",
+        q2Opt1: "Rendre internet plus rapide", q2Opt2: "Connecter des objets physiques à internet pour collecter des données", q2Opt3: "Créer des jeux vidéo",
+        q3Text: "Quel composant est souvent appelé le \"cerveau\" d'un objet IoT ?",
+        q3Opt1: "La batterie", q3Opt2: "Le microcontrôleur", q3Opt3: "L'antenne",
+        q4Text: "Lequel de ces éléments est un capteur ?",
+        q4Opt1: "Une LED", q4Opt2: "Un capteur de température", q4Opt3: "Un moteur",
+        q5Text: "Lequel de ces éléments est un actionneur ?",
+        q5Opt1: "Un capteur de lumière", q5Opt2: "Un moteur qui ouvre une porte", q5Opt3: "Un microphone",
+        q6Text: "Quel protocole de communication est très léger et populaire en IoT ?",
+        q6Opt1: "HTTP", q6Opt2: "MQTT", q6Opt3: "FTP",
+        q7Text: "Quel est un exemple de microcontrôleur populaire avec Wi-Fi intégré pour l'IoT ?",
+        q7Opt1: "Arduino Uno", q7Opt2: "ESP32", q7Opt3: "Raspberry Pi 4",
+        q8Text: "Qu'est-ce qu'une \"maison intelligente\" (smart home) ?",
+        q8Opt1: "Une maison construite par des robots", q8Opt2: "Une maison avec des appareils IoT connectés et automatisés", q8Opt3: "Une maison avec beaucoup d'ordinateurs",
+        q9Text: "À quoi sert une plateforme cloud IoT (comme AWS IoT) ?",
+        q9Opt1: "Collecter, stocker et analyser les données des capteurs", q9Opt2: "Uniquement à stocker des photos", q9Opt3: "À jouer à des jeux en ligne",
+        q10Text: "Quel est un défi majeur de l'IoT ?",
+        q10Opt1: "Le manque de couleurs pour les objets", q10Opt2: "La sécurité et la confidentialité des données", q10Opt3: "La vitesse de la lumière",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+        parent.querySelectorAll('.quiz-opt').forEach(opt => {
+            if (opt !== btn) opt.disabled = true;
+        });
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => {
+            btn.classList.remove('wrong');
+            feedback.textContent = '';
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>

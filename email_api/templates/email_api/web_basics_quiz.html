@@ -1,0 +1,233 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz Bases du Web — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #e67e22; background: #fff8f0; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Quiz Bases du Web</h1>
+      <p class="lead" data-lang-key="pageDesc">Testez vos connaissances en HTML et CSS. Connaissez-vous les fondations du web ?</p>
+    </section>
+
+    <section class="tutorial-section">
+      <div class="quiz-container">
+        <!-- Q1 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q1Text">Que signifie HTML ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt1">Hyper Text Markup Language</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt2">Hyperlinks and Text Markup Language</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">Home Tool Markup Language</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q2 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q2Text">Que signifie CSS ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt1">Creative Style Sheets</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt2">Cascading Style Sheets</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Computer Style Sheets</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q3 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q3Text">Quelle balise HTML est utilisée pour définir une feuille de style interne ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt1">&lt;css&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q3Opt2">&lt;style&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q3Opt3">&lt;script&gt;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q4 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q4Text">Quel attribut HTML est utilisé pour définir des styles en ligne ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt1">class</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q4Opt2">style</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q4Opt3">font</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q5 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q5Text">Quelle est la syntaxe CSS correcte ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q5Opt1">body {color: black;}</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt2">{body;color:black;}</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q5Opt3">body:color=black;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q6 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q6Text">Quelle balise HTML est utilisée pour le plus grand titre ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt1">&lt;h6&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q6Opt2">&lt;h1&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q6Opt3">&lt;heading&gt;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q7 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q7Text">Quel est le code HTML correct pour créer un lien hypertexte ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt1">&lt;a url="http://..."&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q7Opt2">&lt;a href="http://..."&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q7Opt3">&lt;link&gt;http://...&lt;/link&gt;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q8 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q8Text">Comment insérer un commentaire dans un fichier CSS ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt1">// ceci est un commentaire</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q8Opt2">/* ceci est un commentaire */</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q8Opt3">&lt;!-- ceci est un commentaire --&gt;</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q9 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q9Text">Quelle propriété est utilisée pour changer la couleur de fond ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt1">color</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q9Opt2">background-color</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q9Opt3">bgcolor</button>
+          <p class="feedback"></p>
+        </div>
+        <!-- Q10 -->
+        <div class="quiz-question">
+          <p class="question-text" data-lang-key="q10Text">Quel élément HTML est utilisé pour spécifier un pied de page ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt1">&lt;bottom&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q10Opt2">&lt;footer&gt;</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q10Opt3">&lt;section&gt;</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Web Basics Quiz",
+        pageDesc: "Test your knowledge of HTML and CSS. Do you know the foundations of the web?",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        q1Text: "What does HTML stand for?",
+        q1Opt1: "Hyper Text Markup Language", q1Opt2: "Hyperlinks and Text Markup Language", q1Opt3: "Home Tool Markup Language",
+        q2Text: "What does CSS stand for?",
+        q2Opt1: "Creative Style Sheets", q2Opt2: "Cascading Style Sheets", q2Opt3: "Computer Style Sheets",
+        q3Text: "Which HTML tag is used to define an internal style sheet?",
+        q3Opt1: "<css>", q3Opt2: "<style>", q3Opt3: "<script>",
+        q4Text: "Which HTML attribute is used to define inline styles?",
+        q4Opt1: "class", q4Opt2: "style", q4Opt3: "font",
+        q5Text: "Which is the correct CSS syntax?",
+        q5Opt1: "body {color: black;}", q5Opt2: "{body;color:black;}", q5Opt3: "body:color=black;",
+        q6Text: "Which HTML tag is used for the largest heading?",
+        q6Opt1: "<h6>", q6Opt2: "<h1>", q6Opt3: "<heading>",
+        q7Text: "What is the correct HTML for creating a hyperlink?",
+        q7Opt1: "<a url=\"http://...\">", q7Opt2: "<a href=\"http://...\">", q7Opt3: "<link>http://...</link>",
+        q8Text: "How do you insert a comment in a CSS file?",
+        q8Opt1: "// this is a comment", q8Opt2: "/* this is a comment */", q8Opt3: "<!-- this is a comment -->",
+        q9Text: "Which property is used to change the background color?",
+        q9Opt1: "color", q9Opt2: "background-color", q9Opt3: "bgcolor",
+        q10Text: "Which HTML element is used to specify a footer?",
+        q10Opt1: "<bottom>", q10Opt2: "<footer>", q10Opt3: "<section>",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Quiz Bases du Web",
+        pageDesc: "Testez vos connaissances en HTML et CSS. Connaissez-vous les fondations du web ?",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        q1Text: "Que signifie HTML ?",
+        q1Opt1: "Hyper Text Markup Language", q1Opt2: "Hyperlinks and Text Markup Language", q1Opt3: "Home Tool Markup Language",
+        q2Text: "Que signifie CSS ?",
+        q2Opt1: "Creative Style Sheets", q2Opt2: "Cascading Style Sheets", q2Opt3: "Computer Style Sheets",
+        q3Text: "Quelle balise HTML est utilisée pour définir une feuille de style interne ?",
+        q3Opt1: "<css>", q3Opt2: "<style>", q3Opt3: "<script>",
+        q4Text: "Quel attribut HTML est utilisé pour définir des styles en ligne ?",
+        q4Opt1: "class", q4Opt2: "style", q4Opt3: "font",
+        q5Text: "Quelle est la syntaxe CSS correcte ?",
+        q5Opt1: "body {color: black;}", q5Opt2: "{body;color:black;}", q5Opt3: "body:color=black;",
+        q6Text: "Quelle balise HTML est utilisée pour le plus grand titre ?",
+        q6Opt1: "<h6>", q6Opt2: "<h1>", q6Opt3: "<heading>",
+        q7Text: "Quel est le code HTML correct pour créer un lien hypertexte ?",
+        q7Opt1: "<a url=\"http://...\">", q7Opt2: "<a href=\"http://...\">", q7Opt3: "<link>http://...</link>",
+        q8Text: "Comment insérer un commentaire dans un fichier CSS ?",
+        q8Opt1: "// ceci est un commentaire", q8Opt2: "/* ceci est un commentaire */", q8Opt3: "<!-- ceci est un commentaire -->",
+        q9Text: "Quelle propriété est utilisée pour changer la couleur de fond ?",
+        q9Opt1: "color", q9Opt2: "background-color", q9Opt3: "bgcolor",
+        q10Text: "Quel élément HTML est utilisé pour spécifier un pied de page ?",
+        q10Opt1: "<bottom>", q10Opt2: "<footer>", q10Opt3: "<section>",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+        parent.querySelectorAll('.quiz-opt').forEach(opt => {
+            if (opt !== btn) opt.disabled = true;
+        });
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => {
+            btn.classList.remove('wrong');
+            feedback.textContent = '';
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>

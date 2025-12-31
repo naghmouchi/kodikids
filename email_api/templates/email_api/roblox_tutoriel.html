@@ -1,0 +1,474 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutoriel Roblox Studio — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧱</text></svg>">
+  <style>
+    .tutorial-section { margin-bottom: 4rem; padding: 20px 0; }
+    .tutorial-section h1, .tutorial-section h2 { color: #0b1724; margin-bottom: 1rem; }
+    .lead { font-size: 1.2rem; color: #555; max-width: 800px; }
+    
+    /* Components Grid */
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 30px; }
+    .component-card { 
+      background: white; padding: 24px; border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; 
+      cursor: pointer; border: 2px solid transparent; text-align: center;
+    }
+    .component-card:hover { transform: translateY(-5px); border-color: #d63031; box-shadow: 0 8px 20px rgba(214, 48, 49, 0.15); }
+    .component-icon { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+    .component-card h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #333; }
+
+    /* Detail Box */
+    #comp-detail { 
+      margin-top: 30px; padding: 30px; background: #ffecec; 
+      border-radius: 16px; border-left: 5px solid #d63031; 
+      display: none; animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Coding Playground */
+    .code-playground { 
+      background: #2d3436; padding: 20px; border-radius: 16px; 
+      margin-top: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .block-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .block-btn { 
+      border: none; padding: 12px 24px; border-radius: 30px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem; color: white;
+      transition: transform 0.1s, filter 0.2s; box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    }
+    .block-btn:active { transform: translateY(2px); box-shadow: none; }
+    .block-btn:hover { filter: brightness(1.1); }
+    
+    .btn-roblox { background-color: #d63031; }
+    .btn-reset { background-color: #636e72; margin-left: auto; }
+
+    /* Simulation Area */
+    .simulation-area { 
+      background: #f0f4f8; height: 380px; border-radius: 16px; 
+      position: relative; overflow: hidden; border: 2px solid #e0e0e0; 
+      margin-top: 24px; display: flex;
+    }
+    
+    .explorer-panel {
+        flex: 0 0 180px; background: #dfe6e9; padding: 10px;
+        font-family: sans-serif; font-size: 12px; border-right: 2px solid #b2bec3;
+    }
+    .explorer-panel h4 { margin: 0 0 10px; font-size: 14px; color: #2d3436; }
+    .explorer-item { padding: 4px 8px; cursor: pointer; border-radius: 4px; }
+    .explorer-item:hover { background: #b2bec3; }
+    .explorer-item.selected { background: #0984e3; color: white; }
+
+    .viewport-panel {
+        flex: 1; position: relative; perspective: 800px;
+        background-image: linear-gradient(#e1e8ed 1px, transparent 1px), linear-gradient(90deg, #e1e8ed 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+    .roblox-part {
+        width: 100px; height: 40px; background: #a29bfe;
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%) rotateX(60deg) rotateZ(-45deg);
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+        transition: all 0.3s;
+    }
+    .roblox-part.anchored { border: 3px solid #00cec9; }
+
+    .properties-panel {
+        flex: 0 0 200px; background: #dfe6e9; padding: 10px;
+        font-family: sans-serif; font-size: 12px; border-left: 2px solid #b2bec3;
+    }
+    .prop-item { margin-bottom: 8px; }
+    .prop-item label { display: block; font-weight: bold; color: #2d3436; }
+    .prop-item span { color: #636e72; }
+
+    /* Quiz Styles */
+    .quiz-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px; }
+    .quiz-question { margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .quiz-question:last-child { border-bottom: none; padding-bottom: 0; }
+    .question-text { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: #2d3436; }
+    .quiz-opt { 
+      display: block; width: 100%; text-align: left; padding: 12px 15px; 
+      margin-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; 
+      background: white; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+    }
+    .quiz-opt:hover { border-color: #d63031; background: #ffecec; }
+    .quiz-opt.correct { border-color: #00b894; background: #e6fffa; color: #006652; pointer-events: none; }
+    .quiz-opt.wrong { border-color: #d63031; background: #ffecec; color: #d63031; }
+    .feedback { font-size: 0.95rem; margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" id="main">
+    
+    <!-- Hero Section -->
+    <section class="tutorial-section">
+      <h1 data-lang-key="pageTitle" style="font-size: 2.5rem; font-weight: 800;">Découvrir Roblox Studio</h1>
+      <p class="lead" data-lang-key="pageDesc">L'outil puissant pour créer tes propres jeux sur la plateforme Roblox. Apprends à construire des mondes, à scripter en Lua et à publier tes créations.</p>
+    </section>
+
+    <!-- Components Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="compTitle">L'interface de Studio</h2>
+      <p data-lang-key="compDesc">Cliquez sur un élément pour comprendre son rôle.</p>
+      
+      <div class="component-grid">
+        <div class="component-card" onclick="showDetail('explorer')">
+          <span class="component-icon">🗂️</span>
+          <h3 data-lang-key="compExplorer">Explorateur</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('part')">
+          <span class="component-icon">🧱</span>
+          <h3 data-lang-key="compPart">Parts</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('properties')">
+          <span class="component-icon">🎨</span>
+          <h3 data-lang-key="compProps">Propriétés</h3>
+        </div>
+        <div class="component-card" onclick="showDetail('script')">
+          <span class="component-icon">📜</span>
+          <h3 data-lang-key="compScript">Scripts (Lua)</h3>
+        </div>
+      </div>
+
+      <div id="comp-detail">
+        <h3 id="detail-title" style="margin-top:0; font-size: 1.5rem;"></h3>
+        <p id="detail-desc" style="margin-bottom:15px; line-height: 1.6;"></p>
+        
+        <div style="margin-bottom: 15px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e0e0e0;">
+            <strong data-lang-key="usageTitle" style="color: #d63031; display:block; margin-bottom:5px;">Comment l'utiliser ?</strong>
+            <p id="detail-usage" style="margin:0; color: #333;"></p>
+        </div>
+
+        <div style="padding-top: 15px; border-top: 2px dashed #cbd5e0;">
+            <strong data-lang-key="realLifeTitle" style="color: #d63031; display:block; margin-bottom:5px;">Dans la vraie vie :</strong>
+            <p id="detail-real-life" style="margin:0; color: #555; font-style: italic;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Coding Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="codeTitle">Construire et Coder</h2>
+      <p data-lang-key="codeDesc">Essaie les commandes ci-dessous pour manipuler une "Part" dans notre mini-studio.</p>
+
+      <div class="code-playground">
+        <div class="block-container">
+          <button class="block-btn btn-roblox" onclick="runCommand('add')" data-lang-key="btnAdd">Ajouter une Part</button>
+          <button class="block-btn btn-roblox" onclick="runCommand('color')" data-lang-key="btnColor">Changer Couleur</button>
+          <button class="block-btn btn-roblox" onclick="runCommand('anchor')" data-lang-key="btnAnchor">Ancrer la Part</button>
+          <button class="block-btn btn-roblox" onclick="runCommand('script')" data-lang-key="btnScript">Ajouter un Script</button>
+          <button class="block-btn btn-reset" onclick="runCommand('reset')" data-lang-key="btnReset">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="simulation-area">
+        <div class="explorer-panel" id="explorer">
+            <h4>Explorer</h4>
+            <div class="explorer-item">▼ Workspace</div>
+            <div id="explorer-part" class="explorer-item" style="margin-left: 15px; display: none;">Part</div>
+        </div>
+        <div class="viewport-panel">
+            <div id="sim-part" class="roblox-part" style="display: none;"></div>
+        </div>
+        <div class="properties-panel" id="properties">
+            <h4>Properties</h4>
+            <div id="prop-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Project Ideas Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="projectTitle">Idées de projets</h2>
+      <p data-lang-key="projectDesc">Les possibilités sont infinies !</p>
+      
+      <div class="component-grid">
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🚩</span>
+          <h3 data-lang-key="projObbyTitle">Obby (Parcours d'obstacles)</h3>
+          <p data-lang-key="projObbyDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Crée un parcours avec des sauts, des pièges et des plateformes mobiles.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">🏠</span>
+          <h3 data-lang-key="projHouseTitle">Maison Personnalisée</h3>
+          <p data-lang-key="projHouseDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Construis et décore la maison de tes rêves, puis invite tes amis.</p>
+        </div>
+        <div class="component-card" style="cursor: default;">
+          <span class="component-icon">💰</span>
+          <h3 data-lang-key="projTycoonTitle">Jeu de Tycoon</h3>
+          <p data-lang-key="projTycoonDesc" style="font-size: 0.9rem; color: #666; margin-top: 10px;">Crée un jeu où les joueurs construisent une usine ou un magasin pour gagner de l'argent.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="tutorial-section">
+      <h2 data-lang-key="quizTitle">Quiz : Développeur Roblox ?</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" id="q1">
+          <p class="question-text" data-lang-key="q1Text">Quel langage est utilisé dans Roblox Studio ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt1">Python</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q1Opt2">Lua</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q1Opt3">JavaScript</button>
+          <p class="feedback"></p>
+        </div>
+        <div class="quiz-question" id="q2">
+          <p class="question-text" data-lang-key="q2Text">Comment s'appelle une brique de base dans Roblox ?</p>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt1">Block</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, true)" data-lang-key="q2Opt2">Part</button>
+          <button class="quiz-opt" onclick="checkAnswer(this, false)" data-lang-key="q2Opt3">Object</button>
+          <p class="feedback"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Discover Roblox Studio",
+        pageDesc: "The powerful tool to create your own games on the Roblox platform. Learn to build worlds, script in Lua, and publish your creations.",
+        compTitle: "Studio Interface",
+        compDesc: "Click on an item to understand its role.",
+        compExplorer: "Explorer",
+        compPart: "Parts",
+        compProps: "Properties",
+        compScript: "Scripts (Lua)",
+        codeTitle: "Build & Code",
+        codeDesc: "Try the commands below to manipulate a 'Part' in our mini-studio.",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI",
+        realLifeTitle: "In Real Life:",
+        usageTitle: "How to use it?",
+        detailExplorerTitle: "Explorer",
+        detailExplorerDesc: "The list of all objects in your game (parts, scripts, players). It's like your world's inventory.",
+        detailExplorerUsage: "Find an object by clicking its name. Organize your game into folders.",
+        detailExplorerReal: "The file explorer on your computer (Windows Explorer or Finder).",
+        detailPartTitle: "Parts",
+        detailPartDesc: "The basic building blocks of any Roblox game (blocks, spheres, cylinders).",
+        detailPartUsage: "Insert a Part to create a floor, a wall, or an obstacle.",
+        detailPartReal: "Virtual LEGO bricks.",
+        detailPropsTitle: "Properties",
+        detailPropsDesc: "The characteristics of an object (color, size, transparency, whether you can walk through it...).",
+        detailPropsUsage: "Select a Part and change its color in the properties window.",
+        detailPropsReal: "Your hair color, your height, your eye color.",
+        detailScriptTitle: "Scripts (in Lua)",
+        detailScriptDesc: "The instructions that bring your game to life. The language used is Lua.",
+        detailScriptUsage: "Write a script to make a Part disappear when touched.",
+        detailScriptReal: "The recipe that explains how to bake a cake.",
+        projectTitle: "Project Ideas",
+        projectDesc: "The possibilities are endless!",
+        projObbyTitle: "Obby (Obstacle Course)",
+        projObbyDesc: "Create a course with moving platforms and traps.",
+        projHouseTitle: "Custom House",
+        projHouseDesc: "Build and decorate your dream house, then invite your friends.",
+        projTycoonTitle: "Tycoon Game",
+        projTycoonDesc: "Create a game where players build a factory or a store to earn money.",
+        btnAdd: "Add Part",
+        btnColor: "Change Color",
+        btnAnchor: "Anchor Part",
+        btnScript: "Add Script",
+        btnReset: "Reset",
+        quizTitle: "Quiz: Roblox Developer?",
+        q1Text: "What language is used in Roblox Studio?",
+        q1Opt1: "Python", q1Opt2: "Lua", q1Opt3: "JavaScript",
+        q2Text: "What is a basic building block called in Roblox?",
+        q2Opt1: "Block", q2Opt2: "Part", q2Opt3: "Object",
+        quizCorrect: "Correct! 🎉",
+        quizWrong: "Try again! ❌"
+      },
+      fr: {
+        pageTitle: "Découvrir Roblox Studio",
+        pageDesc: "L'outil puissant pour créer tes propres jeux sur la plateforme Roblox. Apprends à construire des mondes, à scripter en Lua et à publier tes créations.",
+        compTitle: "L'interface de Studio",
+        compDesc: "Cliquez sur un élément pour comprendre son rôle.",
+        compExplorer: "Explorateur",
+        compPart: "Parts",
+        compProps: "Propriétés",
+        compScript: "Scripts (Lua)",
+        codeTitle: "Construire et Coder",
+        codeDesc: "Essaie les commandes ci-dessous pour manipuler une 'Part' dans notre mini-studio.",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
+        realLifeTitle: "Dans la vraie vie :",
+        usageTitle: "Comment l'utiliser ?",
+        detailExplorerTitle: "L'Explorateur",
+        detailExplorerDesc: "La liste de tous les objets de ton jeu (parts, scripts, joueurs). C'est comme l'inventaire de ton monde.",
+        detailExplorerUsage: "Trouve un objet en cliquant sur son nom. Organise ton jeu en dossiers.",
+        detailExplorerReal: "L'explorateur de fichiers sur ton ordinateur (Windows Explorer ou Finder).",
+        detailPartTitle: "Les Parts",
+        detailPartDesc: "Les briques de construction de base de tout jeu Roblox (blocs, sphères, cylindres).",
+        detailPartUsage: "Insère une Part pour créer un sol, un mur ou un obstacle.",
+        detailPartReal: "Des briques LEGO virtuelles.",
+        detailPropsTitle: "Les Propriétés",
+        detailPropsDesc: "Les caractéristiques d'un objet (couleur, taille, transparence, si on peut le traverser...).",
+        detailPropsUsage: "Sélectionne une Part et change sa couleur dans la fenêtre des propriétés.",
+        detailPropsReal: "La couleur de tes cheveux, ta taille, la couleur de tes yeux.",
+        detailScriptTitle: "Les Scripts (en Lua)",
+        detailScriptDesc: "Les instructions qui donnent vie à ton jeu. Le langage utilisé est le Lua.",
+        detailScriptUsage: "Écris un script pour faire disparaître une Part quand on la touche.",
+        detailScriptReal: "La recette de cuisine qui explique comment faire un gâteau.",
+        projectTitle: "Idées de projets",
+        projectDesc: "Les possibilités sont infinies !",
+        projObbyTitle: "Obby (Parcours d'obstacles)",
+        projObbyDesc: "Crée un parcours avec des sauts, des pièges et des plateformes mobiles.",
+        projHouseTitle: "Maison Personnalisée",
+        projHouseDesc: "Construis et décore la maison de tes rêves, puis invite tes amis.",
+        projTycoonTitle: "Jeu de Tycoon",
+        projTycoonDesc: "Crée un jeu où les joueurs construisent une usine ou un magasin pour gagner de l'argent.",
+        btnAdd: "Ajouter une Part",
+        btnColor: "Changer Couleur",
+        btnAnchor: "Ancrer la Part",
+        btnScript: "Ajouter un Script",
+        btnReset: "Réinitialiser",
+        quizTitle: "Quiz : Développeur Roblox ?",
+        q1Text: "Quel langage est utilisé dans Roblox Studio ?",
+        q1Opt1: "Python", q1Opt2: "Lua", q1Opt3: "JavaScript",
+        q2Text: "Comment s'appelle une brique de base dans Roblox ?",
+        q2Opt1: "Block", q2Opt2: "Part", q2Opt3: "Object",
+        quizCorrect: "Correct ! 🎉",
+        quizWrong: "Essaie encore ! ❌"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      
+      const detailBox = document.getElementById('comp-detail');
+      if(detailBox.style.display === 'block') {
+         const titleEl = document.getElementById('detail-title');
+         const descEl = document.getElementById('detail-desc');
+         const usageEl = document.getElementById('detail-usage');
+         const realEl = document.getElementById('detail-real-life');
+         if(titleEl.dataset.langKey) titleEl.textContent = trans[titleEl.dataset.langKey];
+         if(descEl.dataset.langKey) descEl.textContent = trans[descEl.dataset.langKey];
+         if(usageEl.dataset.langKey) usageEl.textContent = trans[usageEl.dataset.langKey];
+         if(realEl.dataset.langKey) realEl.textContent = trans[realEl.dataset.langKey];
+      }
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    function showDetail(type) {
+      const detailBox = document.getElementById('comp-detail');
+      const titleEl = document.getElementById('detail-title');
+      const descEl = document.getElementById('detail-desc');
+      const usageEl = document.getElementById('detail-usage');
+      const realEl = document.getElementById('detail-real-life');
+      
+      let tKeyTitle = '', tKeyDesc = '', tKeyUsage = '', tKeyReal = '';
+      if(type === 'explorer') { tKeyTitle = 'detailExplorerTitle'; tKeyDesc = 'detailExplorerDesc'; tKeyUsage = 'detailExplorerUsage'; tKeyReal = 'detailExplorerReal'; }
+      if(type === 'part') { tKeyTitle = 'detailPartTitle'; tKeyDesc = 'detailPartDesc'; tKeyUsage = 'detailPartUsage'; tKeyReal = 'detailPartReal'; }
+      if(type === 'properties') { tKeyTitle = 'detailPropsTitle'; tKeyDesc = 'detailPropsDesc'; tKeyUsage = 'detailPropsUsage'; tKeyReal = 'detailPropsReal'; }
+      if(type === 'script') { tKeyTitle = 'detailScriptTitle'; tKeyDesc = 'detailScriptDesc'; tKeyUsage = 'detailScriptUsage'; tKeyReal = 'detailScriptReal'; }
+
+      titleEl.setAttribute('data-lang-key', tKeyTitle);
+      descEl.setAttribute('data-lang-key', tKeyDesc);
+      usageEl.setAttribute('data-lang-key', tKeyUsage);
+      realEl.setAttribute('data-lang-key', tKeyReal);
+      
+      titleEl.textContent = translations[currentLang][tKeyTitle];
+      descEl.textContent = translations[currentLang][tKeyDesc];
+      usageEl.textContent = translations[currentLang][tKeyUsage];
+      realEl.textContent = translations[currentLang][tKeyReal];
+
+      detailBox.style.display = 'block';
+    }
+
+    // Simulation Logic
+    const simPart = document.getElementById('sim-part');
+    const explorerPart = document.getElementById('explorer-part');
+    const propList = document.getElementById('prop-list');
+    let partExists = false;
+    let partColor = '#a29bfe';
+    let partAnchored = false;
+
+    function updateProperties() {
+        if(!partExists) {
+            propList.innerHTML = '';
+            return;
+        }
+        propList.innerHTML = `
+            <div class="prop-item"><label>Color</label><span style="color:${partColor};">${partColor}</span></div>
+            <div class="prop-item"><label>Anchored</label><span>${partAnchored}</span></div>
+            <div class="prop-item"><label>Transparency</label><span>0</span></div>
+        `;
+    }
+
+    function runCommand(cmd) {
+      if(cmd === 'reset') {
+        partExists = false;
+        partAnchored = false;
+        partColor = '#a29bfe';
+        simPart.style.display = 'none';
+        explorerPart.style.display = 'none';
+        simPart.classList.remove('anchored');
+        simPart.style.background = partColor;
+        updateProperties();
+      } else if(cmd === 'add') {
+        partExists = true;
+        simPart.style.display = 'block';
+        explorerPart.style.display = 'block';
+        updateProperties();
+      } else if(cmd === 'color') {
+        if(!partExists) return;
+        partColor = '#fab1a0';
+        simPart.style.background = partColor;
+        updateProperties();
+      } else if(cmd === 'anchor') {
+        if(!partExists) return;
+        partAnchored = true;
+        simPart.classList.add('anchored');
+        updateProperties();
+      } else if(cmd === 'script') {
+        if(!partExists) return;
+        alert("Script ajouté ! (Simulation)\n\n-- code --\nlocal part = script.Parent\npart.Touched:Connect(function()\n  part.Transparency = 1\nend)");
+      }
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const parent = btn.parentElement;
+      const feedback = parent.querySelector('.feedback');
+      
+      if(isCorrect) {
+        btn.classList.add('correct');
+        feedback.textContent = translations[currentLang].quizCorrect;
+        feedback.style.color = '#00b894';
+      } else {
+        btn.classList.add('wrong');
+        feedback.textContent = translations[currentLang].quizWrong;
+        feedback.style.color = '#d63031';
+        setTimeout(() => btn.classList.remove('wrong'), 1000);
+      }
+    }
+  </script>
+</body>
+</html>
