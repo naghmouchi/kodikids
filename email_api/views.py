@@ -112,6 +112,9 @@ def javascript_tutorial(request):
 def scratch_tutorial(request):
     return render(request, 'email_api/scratch_tutoriel.html')
 
+def quiz_hub(request):
+    return render(request, 'email_api/quiz_hub.html')
+
 def tutorials_hub(request):
     return render(request, 'email_api/tutorials_hub.html')
 
@@ -126,3 +129,9 @@ def courses_page(request):
 
 def playandlearn_page(request):
     return render(request, 'email_api/playandlearn.html')
+
+def game_hub(request):
+    return render(request, 'email_api/game_hub.html')
+
+def robotic_hub(request):
+    return render(request, 'email_api/robotic_hub.html')

@@ -1,0 +1,328 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hub de la Robotique — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦾</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    /* Hub Header */
+    .hub-header { 
+      text-align: center; padding: 60px 20px; 
+      background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%); 
+      color: white; border-radius: 0 0 50px 50px; margin-bottom: 40px; 
+      box-shadow: 0 10px 30px rgba(0, 201, 255, 0.3);
+    }
+    .hub-title { font-size: 3rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -1px; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .hub-subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 30px; }
+    
+    /* Search Box */
+    .search-box { position: relative; max-width: 500px; margin: 0 auto; }
+    .search-input { 
+      width: 100%; padding: 18px 30px; border-radius: 50px; border: none; 
+      font-size: 1.1rem; box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
+      outline: none; transition: transform 0.2s; 
+    }
+    .search-input:focus { transform: scale(1.02); }
+    .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; color: #00C9FF; }
+
+    /* Grid Layout */
+    .tutorials-grid { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 30px; padding: 20px; max-width: 1200px; margin: 0 auto;
+    }
+    
+    /* Card */
+    .tut-card {
+        background: white; border-radius: 24px; overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative; cursor: pointer; border: 3px solid transparent;
+        text-decoration: none; color: inherit; display: flex; flex-direction: column;
+        height: 100%;
+        opacity: 0; 
+    }
+    .tut-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    
+    /* Card Colors */
+    .tut-card[data-color="teal"]:hover { border-color: #00979d; }
+    .tut-card[data-color="pink"]:hover { border-color: #C51A4A; }
+    .tut-card[data-color="blue"]:hover { border-color: #2b7cff; }
+    .tut-card[data-color="red"]:hover { border-color: #e63022; }
+    .tut-card[data-color="green"]:hover { border-color: #27ae60; }
+    .tut-card[data-color="grey"]:hover { border-color: #7f8c8d; }
+    .tut-card[data-color="yellow"]:hover { border-color: #FFD43B; }
+    .tut-card[data-color="js"]:hover { border-color: #f7df1e; }
+    .tut-card[data-color="orange"]:hover { border-color: #ffab19; }
+    .tut-card[data-color="purple"]:hover { border-color: #8e44ad; }
+    .tut-card[data-color="cyan"]:hover { border-color: #3498db; }
+
+    .card-content { padding: 30px; position: relative; z-index: 2; background: transparent; flex: 1; }
+    .card-icon { font-size: 3.5rem; margin-bottom: 20px; display: block; transition: transform 0.3s; }
+    .tut-card:hover .card-icon { transform: scale(1.1) rotate(10deg); }
+    
+    .card-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 10px; color: #2d3436; }
+    .card-desc { font-size: 1rem; color: #636e72; line-height: 1.6; margin: 0; }
+
+    /* No Results */
+    #no-results { text-align: center; padding: 60px; display: none; color: #636e72; }
+
+    /* Animated Background */
+    .anim-bg {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1; overflow: hidden; pointer-events: none;
+    }
+    .anim-shape {
+        position: absolute; border-radius: 50%;
+        opacity: 0.15;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <div class="anim-bg" id="animBg"></div>
+
+  <div class="hub-header">
+    <h1 class="hub-title" data-lang-key="hubTitle">🦾 Hub de la Robotique</h1>
+    <p class="hub-subtitle" data-lang-key="hubSubtitle">Explorez nos exercices et simulateurs pour construire, programmer et contrôler des robots.</p>
+    <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher un exercice..." data-lang-placeholder="searchPlaceholder">
+        <span class="search-icon">🔎</span>
+    </div>
+  </div>
+
+  <main class="container" style="margin-bottom: 80px;">
+    <div class="tutorials-grid" id="grid">
+        
+        <!-- Arduino -->
+        <a href="/api/play/arduino/" class="tut-card" data-color="teal" data-keywords="arduino electronique led circuit c++ simulateur">
+            <div class="card-content">
+                <span class="card-icon">⚡</span>
+                <h3 class="card-title" data-lang-key="cardArduinoTitle">Simulateur Arduino</h3>
+                <p class="card-desc" data-lang-key="cardArduinoDesc">Testez vos circuits et votre code C++ dans notre simulateur avant de construire en vrai.</p>
+            </div>
+        </a>
+
+        <!-- mBot -->
+        <a href="/api/play/mbot/" class="tut-card" data-color="blue" data-keywords="robot mbot scratch block exercice">
+            <div class="card-content">
+                <span class="card-icon">🤖</span>
+                <h3 class="card-title" data-lang-key="cardMbotTitle">Exercices mBot</h3>
+                <p class="card-desc" data-lang-key="cardMbotDesc">Relevez des défis de programmation par blocs pour faire bouger votre mBot.</p>
+            </div>
+        </a>
+
+        <!-- Raspberry Pi -->
+        <a href="/api/play/raspberry/" class="tut-card" data-color="pink" data-keywords="raspberry pi linux python ordinateur">
+            <div class="card-content">
+                <span class="card-icon">🍓</span>
+                <h3 class="card-title" data-lang-key="cardRaspberryTitle">Projets Raspberry Pi</h3>
+                <p class="card-desc" data-lang-key="cardRaspberryDesc">Exercices pour transformer votre mini-ordinateur en serveur web, console de jeu ou plus.</p>
+            </div>
+        </a>
+
+        <!-- Micro:bit -->
+        <a href="/api/play/microbit/" class="tut-card" data-color="red" data-keywords="microbit bbc led capteur">
+            <div class="card-content">
+                <span class="card-icon">👾</span>
+                <h3 class="card-title" data-lang-key="cardMicrobitTitle">Simulateur Micro:bit</h3>
+                <p class="card-desc" data-lang-key="cardMicrobitDesc">Codez avec MakeCode et testez vos créations sur notre simulateur de carte Micro:bit.</p>
+            </div>
+        </a>
+
+        <!-- IoT -->
+        <a href="/api/play/iot/" class="tut-card" data-color="cyan" data-keywords="iot internet objets wifi esp32">
+            <div class="card-content">
+                <span class="card-icon">🌐</span>
+                <h3 class="card-title" data-lang-key="cardIotTitle">Simulateur IoT</h3>
+                <p class="card-desc" data-lang-key="cardIotDesc">Connectez des capteurs virtuels au cloud et visualisez les données sur un dashboard.</p>
+            </div>
+        </a>
+
+        <!-- Python for Robotics -->
+        <a href="/api/play/python/" class="tut-card" data-color="yellow" data-keywords="python robotique script">
+            <div class="card-content">
+                <span class="card-icon">🐍</span>
+                <h3 class="card-title" data-lang-key="cardPythonTitle">Python pour la Robotique</h3>
+                <p class="card-desc" data-lang-key="cardPythonDesc">Exercices de script pour contrôler des bras robotiques ou analyser des données de capteurs.</p>
+            </div>
+        </a>
+
+        <!-- AI for Robotics -->
+        <a href="/api/play/ia/" class="tut-card" data-color="purple" data-keywords="ia intelligence artificielle robot vision">
+            <div class="card-content">
+                <span class="card-icon">🧠</span>
+                <h3 class="card-title" data-lang-key="cardIaTitle">IA pour la Robotique</h3>
+                <p class="card-desc" data-lang-key="cardIaDesc">Entraînez un modèle de vision par ordinateur pour que votre robot reconnaisse des objets.</p>
+            </div>
+        </a>
+
+        <!-- Scratch for Robotics -->
+        <a href="/api/play/scratch/" class="tut-card" data-color="orange" data-keywords="scratch robotique lego wedo ev3">
+            <div class="card-content">
+                <span class="card-icon">😺</span>
+                <h3 class="card-title" data-lang-key="cardScratchTitle">Scratch & Robots</h3>
+                <p class="card-desc" data-lang-key="cardScratchDesc">Connectez Scratch à des kits comme Lego WeDo ou EV3 pour des projets interactifs.</p>
+            </div>
+        </a>
+
+    </div>
+    
+    <div id="no-results">
+        <div style="font-size: 4rem; margin-bottom: 10px;">😕</div>
+        <h3 data-lang-key="noResultsTitle">Aucun exercice trouvé</h3>
+        <p data-lang-key="noResultsDesc">Essaie un autre mot-clé !</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Robotics Hub — Kodikids",
+        hubTitle: "🦾 Robotics Hub",
+        hubSubtitle: "Explore our exercises and simulators to build, program, and control robots.",
+        searchPlaceholder: "🔍 Search for an exercise...",
+        cardArduinoTitle: "Arduino Simulator",
+        cardArduinoDesc: "Test your circuits and C++ code in our simulator before building for real.",
+        cardMbotTitle: "mBot Exercises",
+        cardMbotDesc: "Take on block programming challenges to make your mBot move.",
+        cardRaspberryTitle: "Raspberry Pi Projects",
+        cardRaspberryDesc: "Exercises to turn your mini-computer into a web server, game console, or more.",
+        cardMicrobitTitle: "Micro:bit Simulator",
+        cardMicrobitDesc: "Code with MakeCode and test your creations on our virtual Micro:bit board.",
+        cardIotTitle: "IoT Simulator",
+        cardIotDesc: "Connect virtual sensors to the cloud and visualize data on a dashboard.",
+        cardPythonTitle: "Python for Robotics",
+        cardPythonDesc: "Scripting exercises to control robotic arms or analyze sensor data.",
+        cardIaTitle: "AI for Robotics",
+        cardIaDesc: "Train a computer vision model for your robot to recognize objects.",
+        cardScratchTitle: "Scratch & Robots",
+        cardScratchDesc: "Connect Scratch to kits like Lego WeDo or EV3 for interactive projects.",
+        noResultsTitle: "No exercise found",
+        noResultsDesc: "Try another keyword!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI"
+      },
+      fr: {
+        pageTitle: "Hub de la Robotique — Kodikids",
+        hubTitle: "🦾 Hub de la Robotique",
+        hubSubtitle: "Explorez nos exercices et simulateurs pour construire, programmer et contrôler des robots.",
+        searchPlaceholder: "🔍 Rechercher un exercice...",
+        cardArduinoTitle: "Simulateur Arduino",
+        cardArduinoDesc: "Testez vos circuits et votre code C++ dans notre simulateur avant de construire en vrai.",
+        cardMbotTitle: "Exercices mBot",
+        cardMbotDesc: "Relevez des défis de programmation par blocs pour faire bouger votre mBot.",
+        cardRaspberryTitle: "Projets Raspberry Pi",
+        cardRaspberryDesc: "Exercices pour transformer votre mini-ordinateur en serveur web, console de jeu ou plus.",
+        cardMicrobitTitle: "Simulateur Micro:bit",
+        cardMicrobitDesc: "Codez avec MakeCode et testez vos créations sur notre simulateur de carte Micro:bit.",
+        cardIotTitle: "Simulateur IoT",
+        cardIotDesc: "Connectez des capteurs virtuels au cloud et visualisez les données sur un dashboard.",
+        cardPythonTitle: "Python pour la Robotique",
+        cardPythonDesc: "Exercices de script pour contrôler des bras robotiques ou analyser des données de capteurs.",
+        cardIaTitle: "IA pour la Robotique",
+        cardIaDesc: "Entraînez un modèle de vision par ordinateur pour que votre robot reconnaisse des objets.",
+        cardScratchTitle: "Scratch & Robots",
+        cardScratchDesc: "Connectez Scratch à des kits comme Lego WeDo ou EV3 pour des projets interactifs.",
+        noResultsTitle: "Aucun exercice trouvé",
+        noResultsDesc: "Essaie un autre mot-clé !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+        const key = el.dataset.langPlaceholder;
+        if (trans[key]) el.placeholder = trans[key];
+      });
+      if(trans.pageTitle) document.title = trans.pageTitle;
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.tut-card');
+    const noResults = document.getElementById('no-results');
+
+    searchInput.addEventListener('keyup', (e) => {
+        const term = e.target.value.toLowerCase();
+        let visibleCount = 0;
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const desc = card.querySelector('.card-desc').textContent.toLowerCase();
+            const keys = card.dataset.keywords;
+            if(title.includes(term) || desc.includes(term) || keys.includes(term)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+
+    // Animations
+    document.addEventListener('DOMContentLoaded', () => {
+        anime({
+            targets: '.tut-card',
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100, {start: 200}),
+            easing: 'easeOutExpo',
+            duration: 800
+        });
+
+        const bgContainer = document.getElementById('animBg');
+        const colors = ['#00C9FF', '#92FE9D', '#2b7cff', '#C51A4A'];
+        for(let i=0; i<15; i++) {
+            const el = document.createElement('div');
+            el.classList.add('anim-shape');
+            const size = Math.random() * 100 + 20;
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.background = colors[Math.floor(Math.random() * colors.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.top = Math.random() * 100 + 'vh';
+            bgContainer.appendChild(el);
+
+            anime({
+                targets: el,
+                translateX: () => anime.random(-200, 200),
+                translateY: () => anime.random(-200, 200),
+                scale: () => anime.random(0.5, 1.5),
+                easing: 'easeInOutQuad',
+                duration: () => anime.random(3000, 8000),
+                direction: 'alternate',
+                loop: true
+            });
+        }
+    });
+  </script>
+</body>
+</html>

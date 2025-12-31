@@ -1,0 +1,255 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hub des Jeux — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    /* Hub Header */
+    .hub-header { 
+      text-align: center; padding: 60px 20px; 
+      background: linear-gradient(135deg, #2AF598 0%, #009EFD 100%); 
+      color: white; border-radius: 0 0 50px 50px; margin-bottom: 40px; 
+      box-shadow: 0 10px 30px rgba(0, 158, 253, 0.3);
+    }
+    .hub-title { font-size: 3rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -1px; }
+    .hub-subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 30px; }
+    
+    /* Search Box */
+    .search-box { position: relative; max-width: 500px; margin: 0 auto; }
+    .search-input { 
+      width: 100%; padding: 18px 30px; border-radius: 50px; border: none; 
+      font-size: 1.1rem; box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
+      outline: none; transition: transform 0.2s; 
+    }
+    .search-input:focus { transform: scale(1.02); }
+    .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; color: #009EFD; }
+
+    /* Grid Layout */
+    .tutorials-grid { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 30px; padding: 20px; max-width: 1200px; margin: 0 auto;
+    }
+    
+    /* Game Card */
+    .tut-card {
+        background: white; border-radius: 24px; overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative; cursor: pointer; border: 3px solid transparent;
+        text-decoration: none; color: inherit; display: flex; flex-direction: column;
+        height: 100%;
+        opacity: 0; 
+    }
+    .tut-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    
+    /* Card Colors */
+    .tut-card[data-color="purple"]:hover { border-color: #8e44ad; }
+    .tut-card[data-color="yellow"]:hover { border-color: #f1c40f; }
+    .tut-card[data-color="teal"]:hover { border-color: #00979d; }
+
+    .card-content { padding: 30px; position: relative; z-index: 2; background: transparent; flex: 1; }
+    .card-icon { font-size: 3.5rem; margin-bottom: 20px; display: block; transition: transform 0.3s; }
+    .tut-card:hover .card-icon { transform: scale(1.1) rotate(10deg); }
+    
+    .card-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 10px; color: #2d3436; }
+    .card-desc { font-size: 1rem; color: #636e72; line-height: 1.6; margin: 0; }
+
+    /* No Results */
+    #no-results { text-align: center; padding: 60px; display: none; color: #636e72; }
+
+    /* Animated Background */
+    .anim-bg {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1; overflow: hidden; pointer-events: none;
+    }
+    .anim-shape {
+        position: absolute; border-radius: 50%;
+        opacity: 0.15;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <div class="anim-bg" id="animBg"></div>
+
+  <div class="hub-header">
+    <h1 class="hub-title" data-lang-key="hubTitle">🎮 Hub des Jeux</h1>
+    <p class="hub-subtitle" data-lang-key="hubSubtitle">Apprends en t'amusant avec nos jeux éducatifs sur la logique et les algorithmes.</p>
+    <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher un jeu..." data-lang-placeholder="searchPlaceholder">
+        <span class="search-icon">🔎</span>
+    </div>
+  </div>
+
+  <main class="container" style="margin-bottom: 80px;">
+    <div class="tutorials-grid" id="grid">
+        
+        <!-- Tetris -->
+        <a href="#" class="tut-card" data-color="purple" data-keywords="tetris bloc logique puzzle">
+            <div class="card-content">
+                <span class="card-icon">🧱</span>
+                <h3 class="card-title" data-lang-key="cardTetrisTitle">Code-a-Block (Tetris)</h3>
+                <p class="card-desc" data-lang-key="cardTetrisDesc">Empile les blocs de code pour compléter les lignes et apprendre la logique.</p>
+            </div>
+        </a>
+
+        <!-- Pacman -->
+        <a href="#" class="tut-card" data-color="yellow" data-keywords="pacman pac-man labyrinthe algorithme algo">
+            <div class="card-content">
+                <span class="card-icon">🟡</span>
+                <h3 class="card-title" data-lang-key="cardPacmanTitle">Algo-Man (Pac-Man)</h3>
+                <p class="card-desc" data-lang-key="cardPacmanDesc">Guide notre héros à travers le labyrinthe pour collecter tous les points en évitant les bugs.</p>
+            </div>
+        </a>
+
+        <!-- Labyrinthe -->
+        <a href="#" class="tut-card" data-color="teal" data-keywords="labyrinthe maze robot programmation pathfinding">
+            <div class="card-content">
+                <span class="card-icon">🗺️</span>
+                <h3 class="card-title" data-lang-key="cardMazeTitle">Le Labyrinthe du Robot</h3>
+                <p class="card-desc" data-lang-key="cardMazeDesc">Programme un robot pour trouver la sortie d'un labyrinthe complexe. Pense à tes pas !</p>
+            </div>
+        </a>
+
+    </div>
+    
+    <div id="no-results">
+        <div style="font-size: 4rem; margin-bottom: 10px;">😕</div>
+        <h3 data-lang-key="noResultsTitle">Aucun jeu trouvé</h3>
+        <p data-lang-key="noResultsDesc">Essaie un autre mot-clé !</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        pageTitle: "Games Hub — Kodikids",
+        hubTitle: "🎮 Games Hub",
+        hubSubtitle: "Learn while having fun with our educational games about logic and algorithms.",
+        searchPlaceholder: "🔍 Search for a game...",
+        cardTetrisTitle: "Code-a-Block (Tetris)",
+        cardTetrisDesc: "Stack the code blocks to complete lines and learn logic.",
+        cardPacmanTitle: "Algo-Man (Pac-Man)",
+        cardPacmanDesc: "Guide our hero through the maze to collect all the dots while avoiding bugs.",
+        cardMazeTitle: "The Robot Maze",
+        cardMazeDesc: "Program a robot to find the exit of a complex maze. Think about your steps!",
+        noResultsTitle: "No game found",
+        noResultsDesc: "Try another keyword!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI"
+      },
+      fr: {
+        pageTitle: "Hub des Jeux — Kodikids",
+        hubTitle: "🎮 Hub des Jeux",
+        hubSubtitle: "Apprends en t'amusant avec nos jeux éducatifs sur la logique et les algorithmes.",
+        searchPlaceholder: "🔍 Rechercher un jeu...",
+        cardTetrisTitle: "Code-a-Block (Tetris)",
+        cardTetrisDesc: "Empile les blocs de code pour compléter les lignes et apprendre la logique.",
+        cardPacmanTitle: "Algo-Man (Pac-Man)",
+        cardPacmanDesc: "Guide notre héros à travers le labyrinthe pour collecter tous les points en évitant les bugs.",
+        cardMazeTitle: "Le Labyrinthe du Robot",
+        cardMazeDesc: "Programme un robot pour trouver la sortie d'un labyrinthe complexe. Pense à tes pas !",
+        noResultsTitle: "Aucun jeu trouvé",
+        noResultsDesc: "Essaie un autre mot-clé !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+        const key = el.dataset.langPlaceholder;
+        if (trans[key]) el.placeholder = trans[key];
+      });
+      if(trans.pageTitle) document.title = trans.pageTitle;
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.tut-card');
+    const noResults = document.getElementById('no-results');
+
+    searchInput.addEventListener('keyup', (e) => {
+        const term = e.target.value.toLowerCase();
+        let visibleCount = 0;
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const desc = card.querySelector('.card-desc').textContent.toLowerCase();
+            const keys = card.dataset.keywords;
+            if(title.includes(term) || desc.includes(term) || keys.includes(term)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+
+    // Animations
+    document.addEventListener('DOMContentLoaded', () => {
+        anime({
+            targets: '.tut-card',
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100, {start: 200}),
+            easing: 'easeOutExpo',
+            duration: 800
+        });
+
+        const bgContainer = document.getElementById('animBg');
+        const colors = ['#2AF598', '#009EFD', '#f1c40f', '#8e44ad'];
+        for(let i=0; i<15; i++) {
+            const el = document.createElement('div');
+            el.classList.add('anim-shape');
+            const size = Math.random() * 100 + 20;
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.background = colors[Math.floor(Math.random() * colors.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.top = Math.random() * 100 + 'vh';
+            bgContainer.appendChild(el);
+
+            anime({
+                targets: el,
+                translateX: () => anime.random(-200, 200),
+                translateY: () => anime.random(-200, 200),
+                scale: () => anime.random(0.5, 1.5),
+                easing: 'easeInOutQuad',
+                duration: () => anime.random(3000, 8000),
+                direction: 'alternate',
+                loop: true
+            });
+        }
+    });
+  </script>
+</body>
+</html>

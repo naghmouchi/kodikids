@@ -120,10 +120,10 @@
   <div class="anim-bg" id="animBg"></div>
 
   <div class="hub-header">
-    <h1 class="hub-title">🚀 Hub des Tutoriels</h1>
-    <p class="hub-subtitle">Choisis ton aventure et commence à coder ! Robots, IA, Web ou Python, tout est là.</p>
+    <h1 class="hub-title" data-lang-key="hubTitle">🚀 Hub des Tutoriels</h1>
+    <p class="hub-subtitle" data-lang-key="hubSubtitle">Choisis ton aventure et commence à coder ! Robots, IA, Web ou Python, tout est là.</p>
     <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher un tutoriel (ex: Python, Robot)...">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher un tutoriel (ex: Python, Robot)..." data-lang-placeholder="searchPlaceholder">
         <span class="search-icon">🔎</span>
     </div>
   </div>
@@ -133,58 +133,162 @@
         
         <!-- Cards -->
         <a href="/api/play/mbot/" class="tut-card" data-color="blue" data-keywords="robot mbot scratch block">
-            <div class="card-content"><span class="card-icon">🤖</span><h3 class="card-title">mBot</h3><p class="card-desc">Le robot parfait pour débuter. Apprends à le faire bouger et éviter les obstacles.</p></div>
-            <div class="robot-mascot">🦾</div><div class="robot-speech">Bip Boop!</div>
+            <div class="card-content"><span class="card-icon">🤖</span><h3 class="card-title" data-lang-key="cardMbotTitle">mBot</h3><p class="card-desc" data-lang-key="cardMbotDesc">Le robot parfait pour débuter. Apprends à le faire bouger et éviter les obstacles.</p></div>
+            <div class="robot-mascot">🦾</div><div class="robot-speech" data-lang-key="cardMbotSpeech">Bip Boop!</div>
         </a>
         <a href="/api/play/arduino/" class="tut-card" data-color="teal" data-keywords="arduino electronique led circuit c++">
-            <div class="card-content"><span class="card-icon">⚡</span><h3 class="card-title">Arduino</h3><p class="card-desc">Crée tes propres circuits électroniques et programme des objets interactifs.</p></div>
-            <div class="robot-mascot">🔋</div><div class="robot-speech">Power Up!</div>
+            <div class="card-content"><span class="card-icon">⚡</span><h3 class="card-title" data-lang-key="cardArduinoTitle">Arduino</h3><p class="card-desc" data-lang-key="cardArduinoDesc">Crée tes propres circuits électroniques et programme des objets interactifs.</p></div>
+            <div class="robot-mascot">🔋</div><div class="robot-speech" data-lang-key="cardArduinoSpeech">Power Up!</div>
         </a>
         <a href="/api/play/raspberry/" class="tut-card" data-color="pink" data-keywords="raspberry pi linux python ordinateur">
-            <div class="card-content"><span class="card-icon">🍓</span><h3 class="card-title">Raspberry Pi</h3><p class="card-desc">Un mini-ordinateur puissant pour la domotique, le rétro-gaming et plus encore.</p></div>
-            <div class="robot-mascot">🖥️</div><div class="robot-speech">Linux!</div>
+            <div class="card-content"><span class="card-icon">🍓</span><h3 class="card-title" data-lang-key="cardRaspberryTitle">Raspberry Pi</h3><p class="card-desc" data-lang-key="cardRaspberryDesc">Un mini-ordinateur puissant pour la domotique, le rétro-gaming et plus encore.</p></div>
+            <div class="robot-mascot">🖥️</div><div class="robot-speech" data-lang-key="cardRaspberrySpeech">Linux!</div>
         </a>
         <a href="/api/play/microbit/" class="tut-card" data-color="red" data-keywords="microbit bbc led capteur">
-            <div class="card-content"><span class="card-icon">👾</span><h3 class="card-title">Micro:bit</h3><p class="card-desc">Une petite carte programmable avec écran LED et capteurs intégrés.</p></div>
-            <div class="robot-mascot">🕹️</div><div class="robot-speech">Play!</div>
+            <div class="card-content"><span class="card-icon">👾</span><h3 class="card-title" data-lang-key="cardMicrobitTitle">Micro:bit</h3><p class="card-desc" data-lang-key="cardMicrobitDesc">Une petite carte programmable avec écran LED et capteurs intégrés.</p></div>
+            <div class="robot-mascot">🕹️</div><div class="robot-speech" data-lang-key="cardMicrobitSpeech">Play!</div>
         </a>
         <a href="/api/play/iot/" class="tut-card" data-color="cyan" data-keywords="iot internet objets wifi esp32">
-            <div class="card-content"><span class="card-icon">🌐</span><h3 class="card-title">IoT</h3><p class="card-desc">Connecte des objets à Internet et contrôle-les depuis ton téléphone.</p></div>
-            <div class="robot-mascot">📡</div><div class="robot-speech">Online!</div>
+            <div class="card-content"><span class="card-icon">🌐</span><h3 class="card-title" data-lang-key="cardIotTitle">IoT</h3><p class="card-desc" data-lang-key="cardIotDesc">Connecte des objets à Internet et contrôle-les depuis ton téléphone.</p></div>
+            <div class="robot-mascot">📡</div><div class="robot-speech" data-lang-key="cardIotSpeech">Online!</div>
         </a>
         <a href="/api/play/ia/" class="tut-card" data-color="purple" data-keywords="ia intelligence artificielle ml machine learning">
-            <div class="card-content"><span class="card-icon">🧠</span><h3 class="card-title">IA & ML</h3><p class="card-desc">Découvre comment les ordinateurs apprennent à reconnaître des images.</p></div>
-            <div class="robot-mascot">👁️</div><div class="robot-speech">I see you!</div>
+            <div class="card-content"><span class="card-icon">🧠</span><h3 class="card-title" data-lang-key="cardIaTitle">IA & ML</h3><p class="card-desc" data-lang-key="cardIaDesc">Découvre comment les ordinateurs apprennent à reconnaître des images.</p></div>
+            <div class="robot-mascot">👁️</div><div class="robot-speech" data-lang-key="cardIaSpeech">I see you!</div>
         </a>
         <a href="/api/play/python/" class="tut-card" data-color="yellow" data-keywords="python code script data">
-            <div class="card-content"><span class="card-icon">🐍</span><h3 class="card-title">Python</h3><p class="card-desc">Le langage le plus populaire pour l'IA, la data et le web.</p></div>
-            <div class="robot-mascot">📜</div><div class="robot-speech">Print("Hi")</div>
+            <div class="card-content"><span class="card-icon">🐍</span><h3 class="card-title" data-lang-key="cardPythonTitle">Python</h3><p class="card-desc" data-lang-key="cardPythonDesc">Le langage le plus populaire pour l'IA, la data et le web.</p></div>
+            <div class="robot-mascot">📜</div><div class="robot-speech" data-lang-key="cardPythonSpeech">Print("Hi")</div>
         </a>
         <a href="/api/play/javascript/" class="tut-card" data-color="js" data-keywords="javascript js web site html">
-            <div class="card-content"><span class="card-icon">📜</span><h3 class="card-title">JavaScript</h3><p class="card-desc">Rends les pages web interactives et crée des jeux dans le navigateur.</p></div>
-            <div class="robot-mascot">✨</div><div class="robot-speech">Click me!</div>
+            <div class="card-content"><span class="card-icon">📜</span><h3 class="card-title" data-lang-key="cardJsTitle">JavaScript</h3><p class="card-desc" data-lang-key="cardJsDesc">Rends les pages web interactives et crée des jeux dans le navigateur.</p></div>
+            <div class="robot-mascot">✨</div><div class="robot-speech" data-lang-key="cardJsSpeech">Click me!</div>
         </a>
         <a href="/api/play/scratch/" class="tut-card" data-color="orange" data-keywords="scratch bloc enfant jeu animation">
-            <div class="card-content"><span class="card-icon">😺</span><h3 class="card-title">Scratch</h3><p class="card-desc">Crée des histoires et des jeux en assemblant des blocs colorés.</p></div>
-            <div class="robot-mascot">🧩</div><div class="robot-speech">Meow!</div>
+            <div class="card-content"><span class="card-icon">😺</span><h3 class="card-title" data-lang-key="cardScratchTitle">Scratch</h3><p class="card-desc" data-lang-key="cardScratchDesc">Crée des histoires et des jeux en assemblant des blocs colorés.</p></div>
+            <div class="robot-mascot">🧩</div><div class="robot-speech" data-lang-key="cardScratchSpeech">Meow!</div>
         </a>
 
     </div>
     
     <div id="no-results">
         <div style="font-size: 4rem; margin-bottom: 10px;">😕</div>
-        <h3>Aucun tutoriel trouvé</h3>
-        <p>Essaie un autre mot-clé !</p>
+        <h3 data-lang-key="noResultsTitle">Aucun tutoriel trouvé</h3>
+        <p data-lang-key="noResultsDesc">Essaie un autre mot-clé !</p>
     </div>
   </main>
 
   <footer>
     <div class="container">
-      <span>© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+      <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
     </div>
   </footer>
 
   <script>
+    const translations = {
+      en: {
+        pageTitle: "Tutorials Hub — Kodikids",
+        hubTitle: "🚀 Tutorials Hub",
+        hubSubtitle: "Choose your adventure and start coding! Robots, AI, Web or Python, it's all here.",
+        searchPlaceholder: "🔍 Search for a tutorial (ex: Python, Robot)...",
+        cardMbotTitle: "mBot",
+        cardMbotDesc: "The perfect robot to start. Learn to make it move and avoid obstacles.",
+        cardMbotSpeech: "Beep Boop!",
+        cardArduinoTitle: "Arduino",
+        cardArduinoDesc: "Create your own electronic circuits and program interactive objects.",
+        cardArduinoSpeech: "Power Up!",
+        cardRaspberryTitle: "Raspberry Pi",
+        cardRaspberryDesc: "A powerful mini-computer for home automation, retro-gaming, and more.",
+        cardRaspberrySpeech: "Linux!",
+        cardMicrobitTitle: "Micro:bit",
+        cardMicrobitDesc: "A tiny programmable board with LED screen and built-in sensors.",
+        cardMicrobitSpeech: "Play!",
+        cardIotTitle: "IoT",
+        cardIotDesc: "Connect objects to the Internet and control them from your phone.",
+        cardIotSpeech: "Online!",
+        cardIaTitle: "AI & ML",
+        cardIaDesc: "Discover how computers learn to recognize images.",
+        cardIaSpeech: "I see you!",
+        cardPythonTitle: "Python",
+        cardPythonDesc: "The most popular language for AI, data, and the web.",
+        cardPythonSpeech: "Print(\"Hi\")",
+        cardJsTitle: "JavaScript",
+        cardJsDesc: "Make web pages interactive and create games in the browser.",
+        cardJsSpeech: "Click me!",
+        cardScratchTitle: "Scratch",
+        cardScratchDesc: "Create stories and games by assembling colorful blocks.",
+        cardScratchSpeech: "Meow!",
+        noResultsTitle: "No tutorial found",
+        noResultsDesc: "Try another keyword!",
+        footerText: "© Play & Learn — Teaching programming, robotics, and AI"
+      },
+      fr: {
+        pageTitle: "Hub des Tutoriels — Kodikids",
+        hubTitle: "🚀 Hub des Tutoriels",
+        hubSubtitle: "Choisis ton aventure et commence à coder ! Robots, IA, Web ou Python, tout est là.",
+        searchPlaceholder: "🔍 Rechercher un tutoriel (ex: Python, Robot)...",
+        cardMbotTitle: "mBot",
+        cardMbotDesc: "Le robot parfait pour débuter. Apprends à le faire bouger et éviter les obstacles.",
+        cardMbotSpeech: "Bip Boop!",
+        cardArduinoTitle: "Arduino",
+        cardArduinoDesc: "Crée tes propres circuits électroniques et programme des objets interactifs.",
+        cardArduinoSpeech: "Power Up!",
+        cardRaspberryTitle: "Raspberry Pi",
+        cardRaspberryDesc: "Un mini-ordinateur puissant pour la domotique, le rétro-gaming et plus encore.",
+        cardRaspberrySpeech: "Linux!",
+        cardMicrobitTitle: "Micro:bit",
+        cardMicrobitDesc: "Une petite carte programmable avec écran LED et capteurs intégrés.",
+        cardMicrobitSpeech: "Play!",
+        cardIotTitle: "IoT",
+        cardIotDesc: "Connecte des objets à Internet et contrôle-les depuis ton téléphone.",
+        cardIotSpeech: "Online!",
+        cardIaTitle: "IA & ML",
+        cardIaDesc: "Découvre comment les ordinateurs apprennent à reconnaître des images.",
+        cardIaSpeech: "I see you!",
+        cardPythonTitle: "Python",
+        cardPythonDesc: "Le langage le plus populaire pour l'IA, la data et le web.",
+        cardPythonSpeech: "Print(\"Hi\")",
+        cardJsTitle: "JavaScript",
+        cardJsDesc: "Rends les pages web interactives et crée des jeux dans le navigateur.",
+        cardJsSpeech: "Click me!",
+        cardScratchTitle: "Scratch",
+        cardScratchDesc: "Crée des histoires et des jeux en assemblant des blocs colorés.",
+        cardScratchSpeech: "Meow!",
+        noResultsTitle: "Aucun tutoriel trouvé",
+        noResultsDesc: "Essaie un autre mot-clé !",
+        footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      // Update text content
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      // Update placeholders
+      document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+        const key = el.dataset.langPlaceholder;
+        if (trans[key]) el.placeholder = trans[key];
+      });
+      // Update document title
+      if(trans.pageTitle) document.title = trans.pageTitle;
+
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+
     const searchInput = document.getElementById('searchInput');
     const cards = document.querySelectorAll('.tut-card');
     const noResults = document.getElementById('no-results');
