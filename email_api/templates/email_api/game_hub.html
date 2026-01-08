@@ -51,6 +51,7 @@
     .tut-card[data-color="purple"]:hover { border-color: #8e44ad; }
     .tut-card[data-color="yellow"]:hover { border-color: #f1c40f; }
     .tut-card[data-color="teal"]:hover { border-color: #00979d; }
+    .tut-card[data-color="green"]:hover { border-color: #27ae60; }
 
     .card-content { padding: 30px; position: relative; z-index: 2; background: transparent; flex: 1; }
     .card-icon { font-size: 3.5rem; margin-bottom: 20px; display: block; transition: transform 0.3s; }
@@ -138,7 +139,7 @@
         </a>
 
         <!-- Tetris -->
-        <a href="#" class="tut-card" data-color="purple" data-keywords="tetris bloc logique puzzle">
+        <a href="/api/play/tetris/" class="tut-card" data-color="purple" data-keywords="tetris bloc logique puzzle">
             <div class="card-content">
                 <span class="card-icon">🧱</span>
                 <h3 class="card-title" data-lang-key="cardTetrisTitle">Code-a-Block (Tetris)</h3>
@@ -146,21 +147,21 @@
             </div>
         </a>
 
-        <!-- Pacman -->
-        <a href="#" class="tut-card" data-color="yellow" data-keywords="pacman pac-man labyrinthe algorithme algo">
+        <!-- Block Roblox -->
+        <a href="/api/play/block_roblox/" class="tut-card" data-color="red" data-keywords="roblox block minecraft jeu construction">
             <div class="card-content">
-                <span class="card-icon">🟡</span>
-                <h3 class="card-title" data-lang-key="cardPacmanTitle">Algo-Man (Pac-Man)</h3>
-                <p class="card-desc" data-lang-key="cardPacmanDesc">Guide notre héros à travers le labyrinthe pour collecter tous les points en évitant les bugs.</p>
+                <span class="card-icon">🧱</span>
+                <h3 class="card-title" data-lang-key="cardBlockTitle">Block World</h3>
+                <p class="card-desc" data-lang-key="cardBlockDesc">Un jeu de style Roblox/Minecraft. Collecte les pièces avec ton avatar en blocs !</p>
             </div>
         </a>
 
-        <!-- Labyrinthe -->
-        <a href="#" class="tut-card" data-color="teal" data-keywords="labyrinthe maze robot programmation pathfinding">
+        <!-- Soccer Block -->
+        <a href="/api/play/soccer_block/" class="tut-card" data-color="green" data-keywords="soccer foot football blockly code jeu">
             <div class="card-content">
-                <span class="card-icon">🗺️</span>
-                <h3 class="card-title" data-lang-key="cardMazeTitle">Le Labyrinthe du Robot</h3>
-                <p class="card-desc" data-lang-key="cardMazeDesc">Programme un robot pour trouver la sortie d'un labyrinthe complexe. Pense à tes pas !</p>
+                <span class="card-icon">⚽</span>
+                <h3 class="card-title" data-lang-key="cardSoccerTitle">Soccer Block</h3>
+                <p class="card-desc" data-lang-key="cardSoccerDesc">Programme les actions de ton ballon pour marquer un but en évitant les obstacles.</p>
             </div>
         </a>
 
@@ -198,6 +199,12 @@
         cardPacmanDesc: "Guide our hero through the maze to collect all the dots while avoiding bugs.",
         cardMazeTitle: "The Robot Maze",
         cardMazeDesc: "Program a robot to find the exit of a complex maze. Think about your steps!",
+        cardSoccerTitle: "Soccer Block",
+        cardSoccerDesc: "Program your ball's actions to score a goal while avoiding obstacles.",
+        cardArduinoSimTitle: "Arduino Simulator",
+        cardArduinoSimDesc: "Learn to wire a traffic light on an Arduino board and test your code.",
+        cardBlockTitle: "Block World",
+        cardBlockDesc: "A Roblox/Minecraft style game. Collect coins with your blocky avatar!",
         noResultsTitle: "No game found",
         noResultsDesc: "Try another keyword!",
         footerText: "© Play & Learn — Teaching programming, robotics, and AI"
@@ -219,6 +226,12 @@
         cardPacmanDesc: "Guide notre héros à travers le labyrinthe pour collecter tous les points en évitant les bugs.",
         cardMazeTitle: "Le Labyrinthe du Robot",
         cardMazeDesc: "Programme un robot pour trouver la sortie d'un labyrinthe complexe. Pense à tes pas !",
+        cardSoccerTitle: "Soccer Block",
+        cardSoccerDesc: "Programme les actions de ton ballon pour marquer un but en évitant les obstacles.",
+        cardArduinoSimTitle: "Simulateur Arduino",
+        cardArduinoSimDesc: "Apprends à câbler un feu tricolore sur une carte Arduino et teste ton code.",
+        cardBlockTitle: "Block World",
+        cardBlockDesc: "Un jeu de style Roblox/Minecraft. Collecte les pièces avec ton avatar en blocs !",
         noResultsTitle: "Aucun jeu trouvé",
         noResultsDesc: "Essaie un autre mot-clé !",
         footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA"

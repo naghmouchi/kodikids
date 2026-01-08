@@ -1,0 +1,283 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Robotique Blockly</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    
+    <!-- Blockly Scripts -->
+    <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+    <script src="https://unpkg.com/blockly/msg/fr.js"></script>
+
+    <style>
+        :root {
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--dark-bg); color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sim-container {
+            display: flex; gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+            height: calc(100vh - 100px);
+        }
+
+        /* --- Left: Simulation --- */
+        .sim-area {
+            flex: 1; background: #fff; border-radius: 10px;
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        
+        #canvas-container {
+            flex-grow: 1; position: relative; background-color: #f0f0f0;
+            background-image: radial-gradient(#ccc 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #robot {
+            width: 40px; height: 40px;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px; line-height: 40px; text-align: center;
+            transition: transform 0.1s linear, top 0.1s linear, left 0.1s linear;
+            z-index: 10;
+        }
+        
+        .controls {
+            padding: 10px; background: #e1e1e1; border-top: 1px solid #ccc;
+            display: flex; gap: 10px; justify-content: center;
+        }
+
+        /* --- Right: Blockly --- */
+        .blockly-area {
+            flex: 1; background: #fff; border-radius: 10px;
+            overflow: hidden; position: relative;
+        }
+        #blocklyDiv { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
+            font-weight: bold; color: white; font-size: 1rem;
+        }
+        .btn-run { background: #27ae60; }
+        .btn-run:hover { background: #2ecc71; }
+        .btn-reset { background: #e74c3c; }
+        .btn-reset:hover { background: #ff7675; }
+
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="sim-container">
+        <!-- Zone de Simulation -->
+        <div class="sim-area">
+            <div id="canvas-container">
+                <canvas id="trail-canvas"></canvas>
+                <div id="robot">🤖</div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-run" onclick="runCode()">▶ Lancer le programme</button>
+                <button class="btn btn-reset" onclick="resetSim()">↺ Réinitialiser</button>
+            </div>
+        </div>
+
+        <!-- Zone Blockly -->
+        <div class="blockly-area">
+            <div id="blocklyDiv"></div>
+        </div>
+    </div>
+
+    <!-- Toolbox XML -->
+    <xml id="toolbox" style="display: none">
+        <category name="Mouvement" colour="210">
+            <block type="move_forward"></block>
+            <block type="move_backward"></block>
+            <block type="turn_left"></block>
+            <block type="turn_right"></block>
+        </category>
+        <category name="Contrôle" colour="120">
+            <block type="controls_repeat_ext">
+                <value name="TIMES">
+                    <shadow type="math_number">
+                        <field name="NUM">4</field>
+                    </shadow>
+                </value>
+            </block>
+        </category>
+        <category name="Couleur" colour="20">
+            <block type="set_color"></block>
+        </category>
+    </xml>
+
+    <script>
+        // --- 1. Configuration Blockly ---
+        
+        // Définition des blocs personnalisés
+        Blockly.defineBlocksWithJsonArray([
+            {
+                "type": "move_forward",
+                "message0": "Avancer ⬆️ de %1",
+                "args0": [{ "type": "field_number", "name": "STEPS", "value": 50 }],
+                "previousStatement": null, "nextStatement": null, "colour": 210
+            },
+            {
+                "type": "move_backward",
+                "message0": "Reculer ⬇️ de %1",
+                "args0": [{ "type": "field_number", "name": "STEPS", "value": 50 }],
+                "previousStatement": null, "nextStatement": null, "colour": 210
+            },
+            {
+                "type": "turn_left",
+                "message0": "Tourner gauche ↺ de %1 °",
+                "args0": [{ "type": "field_number", "name": "DEG", "value": 90 }],
+                "previousStatement": null, "nextStatement": null, "colour": 210
+            },
+            {
+                "type": "turn_right",
+                "message0": "Tourner droite ↻ de %1 °",
+                "args0": [{ "type": "field_number", "name": "DEG", "value": 90 }],
+                "previousStatement": null, "nextStatement": null, "colour": 210
+            },
+            {
+                "type": "set_color",
+                "message0": "Changer couleur aléatoire 🎨",
+                "previousStatement": null, "nextStatement": null, "colour": 20
+            }
+        ]);
+
+        // Générateurs de code JavaScript
+        javascript.javascriptGenerator.forBlock['move_forward'] = function(block) {
+            return `await move(${block.getFieldValue('STEPS')});\n`;
+        };
+        javascript.javascriptGenerator.forBlock['move_backward'] = function(block) {
+            return `await move(-${block.getFieldValue('STEPS')});\n`;
+        };
+        javascript.javascriptGenerator.forBlock['turn_left'] = function(block) {
+            return `await turn(-${block.getFieldValue('DEG')});\n`;
+        };
+        javascript.javascriptGenerator.forBlock['turn_right'] = function(block) {
+            return `await turn(${block.getFieldValue('DEG')});\n`;
+        };
+        javascript.javascriptGenerator.forBlock['set_color'] = function(block) {
+            return `setColor(getRandomColor());\n`;
+        };
+
+        // Initialisation de l'espace de travail
+        const workspace = Blockly.inject('blocklyDiv', {
+            toolbox: document.getElementById('toolbox'),
+            scrollbars: true,
+            trashcan: true
+        });
+
+        // --- 2. Moteur de Simulation ---
+        const robot = document.getElementById('robot');
+        const canvas = document.getElementById('trail-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+
+        let x, y, angle, penColor;
+        let isRunning = false;
+
+        function initCanvas() {
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            resetSim();
+        }
+        window.addEventListener('resize', initCanvas);
+
+        function resetSim() {
+            x = canvas.width / 2;
+            y = canvas.height / 2;
+            angle = 0; // 0 = Haut (dans notre logique visuelle, mais mathématiquement 0 est droite, on ajustera)
+            penColor = '#ff0000';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updateRobotVisual();
+            isRunning = false;
+        }
+
+        function updateRobotVisual() {
+            robot.style.left = x + 'px';
+            robot.style.top = y + 'px';
+            robot.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        }
+
+        const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+        async function move(steps) {
+            if (!isRunning) return;
+            const rad = (angle - 90) * (Math.PI / 180); // -90 pour que 0 soit vers le haut
+            const newX = x + Math.cos(rad) * steps;
+            const newY = y + Math.sin(rad) * steps;
+
+            // Dessiner
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(newX, newY);
+            ctx.strokeStyle = penColor;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            x = newX; y = newY;
+            updateRobotVisual();
+            await wait(500);
+        }
+
+        async function turn(deg) {
+            if (!isRunning) return;
+            angle += deg;
+            updateRobotVisual();
+            await wait(400);
+        }
+
+        function setColor(c) { penColor = c; }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        async function runCode() {
+            if (isRunning) return;
+            isRunning = true;
+            
+            // Générer le code
+            const code = javascript.javascriptGenerator.workspaceToCode(workspace);
+            
+            try {
+                // Exécuter dans une fonction async
+                const runFn = new Function('move', 'turn', 'setColor', 'wait', 'getRandomColor', `return async function() { ${code} }`);
+                await runFn(move, turn, setColor, wait, getRandomColor)();
+            } catch (e) {
+                console.error(e);
+                alert("Erreur dans le code : " + e.message);
+            }
+            isRunning = false;
+        }
+
+        // Démarrage
+        setTimeout(initCanvas, 100);
+    </script>
+</body>
+</html>

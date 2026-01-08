@@ -1,0 +1,234 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Bras Robotique</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        :root {
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+            --robot-metal: #95a5a6;
+            --robot-joint: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--dark-bg); color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sim-container {
+            display: flex; gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 240px; background: var(--panel-bg); padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .sidebar code { background: #e1e1e1; padding: 2px 4px; border-radius: 3px; font-family: monospace; color: #e67e22; }
+
+        /* --- Main Area --- */
+        .main-area {
+            flex-grow: 1; background: #fff; border-radius: 10px; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; perspective: 800px;
+        }
+
+        /* --- Code Panel --- */
+        .code-panel {
+            width: 400px; background: #1e1e1e; color: #fff; padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column;
+        }
+
+        /* --- Robotic Hand CSS --- */
+        .robot-hand {
+            position: relative; width: 200px; height: 200px;
+            background: var(--robot-joint); border-radius: 20px 20px 60px 60px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-top: 100px;
+            display: flex; justify-content: center;
+        }
+        
+        .finger {
+            position: absolute; bottom: 100%;
+            width: 30px; background: var(--robot-metal);
+            border: 2px solid var(--robot-joint); border-radius: 10px 10px 0 0;
+            transform-origin: bottom center;
+            transition: transform 0.5s ease, height 0.5s ease, background-color 0.5s;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+        }
+        
+        /* Joints visual */
+        .finger::after { content: ''; width: 100%; height: 2px; background: var(--robot-joint); position: absolute; top: 33%; }
+        .finger::before { content: ''; width: 100%; height: 2px; background: var(--robot-joint); position: absolute; top: 66%; }
+
+        /* Finger Positions */
+        #f-thumb { 
+            height: 90px; left: -20px; bottom: 40%; 
+            transform-origin: bottom right; transform: rotate(-60deg);
+        }
+        #f-index { height: 120px; left: 20px; }
+        #f-middle { height: 130px; left: 60px; }
+        #f-ring { height: 115px; left: 100px; }
+        #f-pinky { height: 90px; left: 140px; }
+
+        /* Closed State Classes (simulated by scaling/bending) */
+        .finger.closed {
+            transform: scaleY(0.4); /* Raccourcit pour simuler le pliage vers l'écran */
+            background-color: #7f8c8d;
+        }
+        #f-thumb.closed {
+            transform: rotate(-20deg) scaleX(0.5); /* Le pouce se replie vers la paume */
+        }
+
+        /* Editor */
+        textarea {
+            width: 100%; height: 300px; background: #2b2b2b; color: #f8f8f2;
+            border: 1px solid #444; font-family: 'Courier New', monospace;
+            padding: 10px; resize: none; font-size: 0.9rem; outline: none;
+            margin-bottom: 10px;
+        }
+        .btn {
+            width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; color: white;
+            font-size: 1rem;
+        }
+        .btn-run { background: #e67e22; }
+        .btn-run:hover { background: #d35400; }
+        
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="sim-container">
+        <div class="sidebar">
+            <h2>Documentation Bras</h2>
+            <div style="font-size: 0.9rem; color: #555;">
+                <p><strong>Commandes Python (Simulées) :</strong></p>
+                <ul style="padding-left: 20px; line-height: 1.6;">
+                    <li><code>arm.close(doigt)</code><br><small>Ferme un doigt (0=Pouce, 1=Index, etc.).</small></li>
+                    <li><code>arm.open(doigt)</code><br><small>Ouvre un doigt.</small></li>
+                    <li><code>arm.grip()</code><br><small>Ferme tous les doigts (saisir).</small></li>
+                    <li><code>arm.release()</code><br><small>Ouvre tous les doigts (lâcher).</small></li>
+                    <li><code>arm.sleep(secondes)</code><br><small>Pause.</small></li>
+                </ul>
+                <hr>
+                <p><strong>Index des doigts :</strong><br>
+                0: Pouce, 1: Index, 2: Majeur, 3: Annulaire, 4: Auriculaire</p>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div class="robot-hand">
+                <div class="finger" id="f-thumb"></div>
+                <div class="finger" id="f-index"></div>
+                <div class="finger" id="f-middle"></div>
+                <div class="finger" id="f-ring"></div>
+                <div class="finger" id="f-pinky"></div>
+                <div style="position:absolute; bottom:10px; color:rgba(255,255,255,0.5); font-size:0.8rem;">KodiArm V1</div>
+            </div>
+        </div>
+
+        <div class="code-panel">
+            <h2>Éditeur Python</h2>
+            <textarea id="code-editor" spellcheck="false">
+import arm
+
+# Compte à rebours avec les doigts
+arm.grip() # Poing fermé
+arm.sleep(1)
+
+# Ouvre un par un
+arm.open(0) # Pouce
+arm.sleep(0.5)
+arm.open(1) # Index
+arm.sleep(0.5)
+arm.open(2) # Majeur
+arm.sleep(0.5)
+arm.open(3) # Annulaire
+arm.sleep(0.5)
+arm.open(4) # Auriculaire
+
+arm.sleep(1)
+arm.grip() # Saisir !
+</textarea>
+            <button id="btn-run" class="btn btn-run" onclick="runCode()">▶ Exécuter le script</button>
+            <div id="console-output" style="margin-top:10px; color:#aaa; font-family:monospace; font-size:0.8rem;"></div>
+        </div>
+    </div>
+
+    <script>
+        const fingers = [
+            document.getElementById('f-thumb'),
+            document.getElementById('f-index'),
+            document.getElementById('f-middle'),
+            document.getElementById('f-ring'),
+            document.getElementById('f-pinky')
+        ];
+        const consoleOut = document.getElementById('console-output');
+        let isRunning = false;
+
+        const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+        async function runCode() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('btn-run').disabled = true;
+            consoleOut.textContent = "Démarrage du bras...";
+            
+            const lines = document.getElementById('code-editor').value.split('\n');
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line || line.startsWith('#') || line.startsWith('import')) continue;
+                
+                try {
+                    if (line.includes('arm.grip')) {
+                        fingers.forEach(f => f.classList.add('closed'));
+                        consoleOut.textContent = "> Saisie (Grip)";
+                    }
+                    else if (line.includes('arm.release')) {
+                        fingers.forEach(f => f.classList.remove('closed'));
+                        consoleOut.textContent = "> Relâchement";
+                    }
+                    else if (line.includes('arm.close')) {
+                        const idx = parseInt(line.match(/\((.*)\)/)[1]);
+                        if(fingers[idx]) fingers[idx].classList.add('closed');
+                    }
+                    else if (line.includes('arm.open')) {
+                        const idx = parseInt(line.match(/\((.*)\)/)[1]);
+                        if(fingers[idx]) fingers[idx].classList.remove('closed');
+                    }
+                    else if (line.includes('arm.sleep')) {
+                        const sec = parseFloat(line.match(/\((.*)\)/)[1]);
+                        await wait(sec * 1000);
+                    }
+                    
+                    // Petit délai par défaut pour l'animation si pas de sleep
+                    if (!line.includes('sleep')) await wait(300);
+
+                } catch (e) {
+                    console.error(e);
+                    consoleOut.textContent = "Erreur ligne : " + line;
+                }
+            }
+            
+            isRunning = false;
+            document.getElementById('btn-run').disabled = false;
+            consoleOut.textContent = "Terminé.";
+        }
+    </script>
+</body>
+</html>

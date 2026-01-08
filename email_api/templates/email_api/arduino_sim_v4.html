@@ -1,0 +1,300 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Niveau 3 : Radar de Recul (Éducatif)</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        /* Base Styles */
+        :root { --arduino-teal: #00979C; --dark-bg: #2c3e50; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark-bg); color: #333; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        .sim-container { display: flex; gap: 20px; padding: 20px; flex: 1; }
+        
+        .sidebar { width: 190px; background: #ecf0f1; padding: 15px; border-radius: 10px; }
+        .main-area { flex-grow: 1; background: #fff; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .code-panel { width: 380px; background: #1e1e1e; color: #fff; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; }
+        
+        /* Composants */
+        .component { background: #fff; border: 2px solid #bdc3c7; padding: 10px; margin-bottom: 10px; border-radius: 5px; cursor: grab; display: flex; gap: 10px; align-items: center; user-select: none; }
+        
+        /* Arduino Board */
+        .arduino-board { width: 500px; height: 350px; background: var(--arduino-teal); position: relative; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); color: white; }
+        .pin-zone { width: 32px; height: 32px; background: rgba(0,0,0,0.2); border: 2px dashed rgba(255,255,255,0.6); position: absolute; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; z-index: 10; }
+        .pin-zone.correct { background: lime; border-color: lime; opacity: 0.5; }
+
+        /* Capteur Ultrason Visuel */
+        #sim-sensor { 
+            width: 80px; height: 40px; background: #ccc; position: absolute; top: 20px; left: 40%; 
+            border-radius: 5px; display: flex; justify-content: space-around; align-items: center;
+            border: 2px solid #555; z-index: 5;
+        }
+        .sensor-eye { width: 30px; height: 30px; background: #222; border-radius: 50%; border: 2px solid #999; }
+        
+        /* Buzzer Visuel */
+        #sim-buzzer {
+            width: 40px; height: 40px; background: #111; border-radius: 50%; position: absolute; bottom: 80px; left: 45%;
+            border: 3px solid #555; display: flex; justify-content: center; align-items: center; color: white; font-size: 0.7rem;
+            z-index: 5;
+        }
+        #sim-buzzer.beep { background: #e74c3c; animation: shake 0.1s infinite; box-shadow: 0 0 15px red; }
+        
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 100% { transform: translate(-1px, -1px); } }
+
+        /* Outil de simulation de distance */
+        .simulation-controls {
+            position: absolute; bottom: 20px; right: 20px; background: #eee; padding: 10px; border-radius: 5px; border: 1px solid #999;
+            display: none; 
+            z-index: 20;
+        }
+
+        .robot-msg { background: #34495e; color: #fff; padding: 12px; border-radius: 0 15px 15px 15px; max-width: 300px; margin-left: 10px; border-left: 5px solid var(--arduino-teal); }
+        textarea { width: 100%; height: 280px; background: #2b2b2b; color: #f1c40f; border: none; padding: 10px; font-family: monospace; resize: none; margin-top: 10px;}
+        
+        /* Positions Pins */
+        #pin-trig { top: 10px; right: 140px; } /* Pin 6 */
+        #pin-echo { top: 10px; right: 100px; } /* Pin 7 */
+        #pin-buz { top: 10px; right: 40px; } /* Pin 3 */
+        
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+{% include "email_api/_header.html" %}
+
+<div class="sim-container">
+<div class="sidebar">
+    <h2>Niveau 3 : Radar</h2>
+    <div class="component" draggable="true" id="comp-sensor">👀 Capteur Ultrason</div>
+    <div class="component" draggable="true" id="comp-buzzer">🔊 Buzzer Piezo</div>
+    <div class="component" draggable="true" id="comp-wires">➰ Câbles (GND/VCC)</div>
+    <hr>
+    <p style="font-size:0.8rem;">
+        ⚠️ **Règles de connexion** : ⚠️<br>
+        1. Glisser le Capteur sur **Pin 6 (Trig)**.<br>
+        2. Glisser le Capteur sur **Pin 7 (Echo)**.<br>
+        3. Glisser le Buzzer sur **Pin 3**.<br>
+    </p>
+</div>
+
+<div class="main-area">
+    <div class="arduino-board">
+        <span style="position: absolute; top:10px; left:10px; font-size:0.8rem;">Arduino UNO - Parking System</span>
+        
+        <div id="sim-sensor" title="HC-SR04"><div class="sensor-eye"></div><div class="sensor-eye"></div></div>
+        <div id="sim-buzzer" title="Buzzer">BEEP</div>
+
+        <div class="pin-zone" id="pin-trig" data-role="sensor-trig">6</div>
+        <div class="pin-zone" id="pin-echo" data-role="sensor-echo">7</div>
+        <div class="pin-zone" id="pin-buz" data-role="buzzer">3</div>
+    </div>
+
+    <div class="simulation-controls" id="sim-tools">
+        <label>Distance Obstacle (cm): <span id="dist-val">100</span></label><br>
+        <input type="range" id="dist-slider" min="5" max="200" value="100" style="width:200px;">
+    </div>
+
+    <div style="position: absolute; bottom: 20px; left: 20px; display:flex; align-items:flex-end;">
+        <div style="font-size: 3rem;">🤖</div>
+        <div class="robot-msg" id="robot-text">Place le Capteur (6 & 7) et le Buzzer (3) pour activer le radar.</div>
+    </div>
+</div>
+
+<div class="code-panel">
+    <h3>Code Radar</h3>
+    <textarea id="code-editor" spellcheck="false">
+void setup() {
+  pinMode(3, OUTPUT); // Buzzer
+  pinMode(6, OUTPUT); // Trig
+  pinMode(7, INPUT);  // Echo
+}
+
+void loop() {
+  // Lit la distance (commande spéciale simu)
+  int distance = readDistance(6, 7);
+
+  // Si obstacle TRES proche (moins de 30cm)
+  if (distance < 30) {
+    digitalWrite(3, HIGH); // Sonne RAPIDE
+    delay(50);
+    digitalWrite(3, LOW);
+    delay(50); 
+  } 
+  // Si obstacle proche (entre 30 et 100cm)
+  else if (distance < 100) {
+    digitalWrite(3, HIGH); // Sonne LENT
+    delay(200);
+    digitalWrite(3, LOW);
+    delay(200);
+  } else {
+    digitalWrite(3, LOW); // Silencieux
+  }
+}</textarea>
+    <button style="background:var(--arduino-teal); color:white; padding:10px; border:none; border-radius:5px; margin-top:10px; cursor:pointer;" onclick="runCode()">▶ Démarrer le Système</button>
+</div>
+</div>
+
+<script>
+    const state = { sensorTrigOk: false, sensorEchoOk: false, buzzerOk: false, running: false };
+    
+    // --- AUDIO (BEEP) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let osc = null;
+
+    function startBeep() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (osc) return; // Déjà en train de sonner
+        osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'square';
+        osc.frequency.value = 800; // Fréquence du bip
+        gain.gain.value = 0.1; // Volume
+        osc.start();
+    }
+
+    function stopBeep() {
+        if (osc) { osc.stop(); osc.disconnect(); osc = null; }
+    }
+
+    const slider = document.getElementById('dist-slider');
+    const distDisplay = document.getElementById('dist-val');
+    slider.addEventListener('input', () => distDisplay.textContent = slider.value);
+
+    // --- DRAG & DROP STABLE + ÉDUCATION ---
+    document.querySelectorAll('.component').forEach(c => {
+        c.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('id', e.target.id); // Enregistre l'ID
+            e.target.classList.add('dragging');
+        });
+        c.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
+    });
+
+    document.querySelectorAll('.pin-zone').forEach(z => {
+        z.addEventListener('dragover', e => e.preventDefault());
+        z.addEventListener('drop', e => {
+            e.preventDefault();
+            
+            const id = e.dataTransfer.getData('id'); 
+            const role = z.dataset.role;
+            const pinNumber = z.textContent;
+
+            let componentPlaced = false;
+
+            // LOGIQUE DE MONTAGE et MESSAGES ÉDUCATIFS
+            if (id === 'comp-sensor') {
+                if (role === 'sensor-trig') { 
+                    state.sensorTrigOk = true; 
+                    componentPlaced = true;
+                    updateRobot(`✅ Capteur connecté sur Pin ${pinNumber} (Trig) : Cette broche en **OUTPUT** envoie l'onde sonore.`, "lime");
+                }
+                if (role === 'sensor-echo') { 
+                    state.sensorEchoOk = true; 
+                    componentPlaced = true;
+                    updateRobot(`✅ Capteur connecté sur Pin ${pinNumber} (Echo) : Cette broche en **INPUT** mesure le temps de retour de l'onde.`, "lime");
+                }
+            } else if (id === 'comp-buzzer' && role === 'buzzer') {
+                state.buzzerOk = true;
+                componentPlaced = true;
+                updateRobot(`✅ Buzzer connecté sur Pin ${pinNumber} : C'est une **OUTPUT** simple qui génère le son pour avertir le conducteur.`, "lime");
+            } else if (id === 'comp-wires') {
+                // Ignore les fils pour l'état de simulation, mais laisse le CSS marcher
+                componentPlaced = true;
+            }
+            
+            // Marque la broche comme connectée si un composant valide y est déposé
+            if (componentPlaced) z.classList.add('correct');
+            checkReady(); 
+        });
+    });
+
+    function checkReady() {
+        if(state.sensorTrigOk && state.sensorEchoOk && state.buzzerOk) {
+            updateRobot("🎉 Montage OK ! Toutes les broches sont connectées. Lance le code et joue avec le curseur de distance.", "orange");
+        }
+    }
+
+    function updateRobot(txt, color) {
+        const r = document.getElementById('robot-text');
+        r.textContent = txt;
+        r.style.borderLeftColor = color;
+    }
+
+    // --- INTERPRETEUR STABLE DU NIVEAU 3 ---
+    async function runCode() {
+        // 1. Vérification du montage (critique)
+        if(!state.sensorTrigOk || !state.sensorEchoOk || !state.buzzerOk) { 
+            updateRobot("Erreur : Il faut connecter Trig (6), Echo (7) et Buzzer (3).", "red"); 
+            return;
+        }
+        
+        // Définition des constantes ARDUINO en JavaScript
+        const HIGH = 'HIGH'; 
+        const LOW = 'LOW';
+        
+        state.running = true;
+        document.getElementById('sim-tools').style.display = 'block';
+        updateRobot("Radar actif ! Bouge le curseur 'Distance' pour tester.", "#3498db");
+
+        const rawCode = document.getElementById('code-editor').value;
+        let loopBody = rawCode.match(/void\s+loop\s*\(\)\s*\{([\s\S]*)\}/)[1];
+
+        // Transpilation C++ vers JS
+        loopBody = loopBody
+            .replace(/int\s+/g, 'let ')
+            .replace(/readDistance\((\d+),\s*(\d+)\)/g, 'getDist()') 
+            .replace(/digitalRead\((\d+)\)/g, 'getPin($1)')
+            .replace(/digitalWrite\((\d+),\s*(\w+)\)/g, 'setPin($1, $2)') 
+            .replace(/delay\((\d+)\)/g, 'await wait($1)');
+
+        // Construction de la fonction
+        const loopFn = new Function('getDist', 'setPin', 'getPin', 'wait', 'HIGH', 'LOW', `
+            return async function() {
+                ${loopBody}
+            }
+        `);
+
+        // Mapping des fonctions système
+        const getDist = () => parseInt(slider.value); // Lit la valeur du slider
+        const getPin = (p) => { return LOW; }; 
+        const setPin = (p, v) => {
+            if(p == 3) { // Buzzer Pin
+                const buz = document.getElementById('sim-buzzer');
+                if(v === HIGH) {
+                    buz.classList.add('beep');
+                    startBeep();
+                } else {
+                    buz.classList.remove('beep');
+                    stopBeep();
+                }
+            }
+        };
+        const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+        // Appel de la fonction avec les constantes
+        const runLoop = loopFn(getDist, setPin, getPin, wait, HIGH, LOW); 
+        
+        async function cycle() {
+            if(!state.running) return;
+            try {
+                 await runLoop();
+            } catch (e) {
+                updateRobot("Erreur d'exécution du code. Veuillez vérifier votre syntaxe.", "red");
+                console.error("Erreur d'exécution du code transpilé:", e);
+                // Arrêter la simulation en cas d'erreur critique
+                state.running = false; 
+                stopBeep();
+                document.getElementById('sim-tools').style.display = 'none';
+                return;
+            }
+            if(state.running) setTimeout(cycle, 10);
+        }
+        cycle();
+    }
+</script>
+</body>
+</html>

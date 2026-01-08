@@ -1,0 +1,454 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Arduino - Feu Tricolore</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        :root {
+            --arduino-teal: #00979C;
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+            /* Couleurs des feux */
+            --traffic-red-off: #550000;
+            --traffic-red-on: #ff0000;
+            --traffic-orange-off: #664400;
+            --traffic-orange-on: #ffaa00;
+            --traffic-green-off: #004400;
+            --traffic-green-on: #00ff00;
+        }
+
+        .simulator-wrapper {
+            display: flex;
+            gap: 20px;
+            background-color: var(--dark-bg);
+            color: #333;
+            padding: 20px;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* --- Layout --- */
+        .sidebar {
+            flex: 1; min-width: 240px;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .main-area {
+            flex: 3; min-width: 520px;
+            background: #fff;
+            border-radius: 10px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .code-panel {
+            flex: 2; min-width: 320px;
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 { margin-top: 0; font-size: 1.2rem; }
+
+        /* --- Composants Draggables --- */
+        .component {
+            background: #fff;
+            border: 2px solid #ccc;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+        .component:active { cursor: grabbing; }
+        
+        /* Icones */
+        .icon-led { width: 15px; height: 15px; border-radius: 50%; display: inline-block; border: 1px solid #333; }
+        .i-red { background: red; }
+        .i-orange { background: orange; }
+        .i-green { background: lime; }
+        .icon-res { width: 25px; height: 8px; background: gold; border: 2px solid brown; display: inline-block; }
+
+        /* --- Zone Arduino --- */
+        .arduino-board {
+            width: 500px;
+            height: 350px;
+            background: var(--arduino-teal);
+            position: relative;
+            border-radius: 5px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Pins Drop Zones */
+        .pin-zone {
+            width: 35px;
+            height: 35px;
+            background: rgba(0,0,0,0.3);
+            border: 2px dashed rgba(255,255,255,0.5);
+            position: absolute;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 0.7rem;
+            transition: 0.3s;
+        }
+        .pin-zone.highlight { background: rgba(255, 255, 0, 0.4); border-color: yellow; }
+        .pin-zone.correct { background: rgba(0, 255, 0, 0.4); border-color: lime; }
+
+        /* Positions des Pins */
+        #pin-gnd { bottom: 10px; left: 180px; }
+        #pin-13 { top: 10px; right: 120px; } /* Rouge */
+        #pin-12 { top: 10px; right: 80px; }  /* Orange */
+        #pin-11 { top: 10px; right: 40px; }  /* Vert */
+
+        /* --- Visualisation Traffic Light sur la board --- */
+        .traffic-light-container {
+            position: absolute;
+            top: 50%; left: 40%;
+            transform: translate(-50%, -50%);
+            background: #222;
+            padding: 10px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .sim-led {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: #444; /* Placeholder si pas connecté */
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+            transition: background-color 0.3s, box-shadow 0.3s;
+            border: 2px solid #111;
+        }
+
+        /* États des LEDs connectées (éteintes) */
+        .sim-led.red-connected { background: var(--traffic-red-off); }
+        .sim-led.orange-connected { background: var(--traffic-orange-off); }
+        .sim-led.green-connected { background: var(--traffic-green-off); }
+
+        /* États des LEDs allumées (Simulation) */
+        .sim-led.red-on { background: var(--traffic-red-on); box-shadow: 0 0 25px var(--traffic-red-on); }
+        .sim-led.orange-on { background: var(--traffic-orange-on); box-shadow: 0 0 25px var(--traffic-orange-on); }
+        .sim-led.green-on { background: var(--traffic-green-on); box-shadow: 0 0 25px var(--traffic-green-on); }
+
+
+        /* --- Robot AI --- */
+        .robot-assistant {
+            /* Déplacé de la zone principale vers la barre latérale */
+            margin-top: auto; /* Pousse le robot en bas de la colonne */
+            padding-top: 15px;
+            display: flex; align-items: flex-end; gap: 10px; width: 100%;
+        }
+        .robot-avatar { font-size: 3rem; animation: bounce 2s infinite; }
+        .robot-msg {
+            background: #333; color: #fff; padding: 10px 15px;
+            border-radius: 15px 15px 15px 0; font-size: 0.9rem; max-width: 300px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-left: 5px solid var(--arduino-teal);
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* --- Code Editor --- */
+        textarea {
+            width: 100%; height: 280px; background: #2b2b2b; color: #a9b7c6;
+            border: 1px solid #444; font-family: 'Courier New', monospace;
+            padding: 10px; resize: none; font-size: 0.9rem;
+        }
+        .btn-run {
+            margin-top: 10px; padding: 12px; background: var(--arduino-teal);
+            color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 5px;
+        }
+        .btn-run:hover { background: #007f83; }
+        .btn-stop { background: #c0392b; display: none; } /* Bouton stop caché par défaut */
+
+    </style>
+</head>
+<body>
+    <header>
+        {% include "email_api/_header.html" %}
+    </header>
+
+    <main class="container">
+        <section class="tutorial-section text-center">
+          <h1 style="font-size: 2.5rem; font-weight: 800;">Simulateur : Feu Tricolore Arduino</h1>
+          <p class="lead">Apprenez à câbler un circuit simple en glissant les composants sur la carte, puis testez le code généré.</p>
+        </section>
+
+        <div class="simulator-wrapper">
+            <div class="sidebar">
+                <h2>Composants</h2>
+                <div class="component" draggable="true" id="comp-led-red">
+                    <span class="icon-led i-red"></span> LED Rouge
+                </div>
+                <div class="component" draggable="true" id="comp-led-orange">
+                    <span class="icon-led i-orange"></span> LED Orange
+                </div>
+                <div class="component" draggable="true" id="comp-led-green">
+                    <span class="icon-led i-green"></span> LED Verte
+                </div>
+                <div class="component" draggable="true" id="comp-res">
+                    <span class="icon-res"></span> Résistance Commune (GND)
+                </div>
+                <div style="font-size: 0.8rem; color: #666; margin-top: 20px;">
+                    <p><strong>Mission Feu Rouge :</strong></p>
+                    <ol>
+                        <li>Connecte la Résistance au GND.</li>
+                        <li>LED Rouge -> Pin 13</li>
+                        <li>LED Orange -> Pin 12</li>
+                        <li>LED Verte -> Pin 11</li>
+                        <li>Teste la séquence !</li>
+                    </ol>
+                </div>
+                <div class="robot-assistant">
+                    <div class="robot-avatar">🚦</div>
+                    <div class="robot-msg" id="robot-text">
+                        Salut ! Prêt à réguler la circulation ? Place les 3 LEDs et la résistance de masse (GND) pour commencer.
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-area">
+                <div class="arduino-board">
+                    <span style="position: absolute; top: 10px; left: 10px;">Arduino UNO - Traffic Controller</span>
+                    
+                    <div class="traffic-light-container">
+                        <div id="sim-led-red" class="sim-led"></div>
+                        <div id="sim-led-orange" class="sim-led"></div>
+                        <div id="sim-led-green" class="sim-led"></div>
+                    </div>
+
+                    <div class="pin-zone" id="pin-13" data-role="red">Pin 13</div>
+                    <div class="pin-zone" id="pin-12" data-role="orange">Pin 12</div>
+                    <div class="pin-zone" id="pin-11" data-role="green">Pin 11</div>
+                    <div class="pin-zone" id="pin-gnd" data-role="gnd">GND</div>
+                </div>
+
+            </div>
+
+            <div class="code-panel">
+                <h2>Code Arduino</h2>
+                <textarea id="code-editor" readonly>// Le code apparaîtra ici une fois le montage terminé...</textarea>
+                <button id="btn-start" class="btn-run" onclick="runSimulation()">▶ Charger & Tester</button>
+                <button id="btn-stop" class="btn-run btn-stop" onclick="stopSimulation()">⏹ Arrêter</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+          <span>© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+        </div>
+    </footer>
+    <script>
+        // --- ÉTATS DU MONTAGE ---
+        const montageState = {
+            redOk: false,
+            orangeOk: false,
+            greenOk: false,
+            gndOk: false
+        };
+
+        let simulationInterval = null; // Pour stocker le timer de la simulation
+
+        // --- DRAG & DROP STANDARD ---
+        const draggables = document.querySelectorAll('.component');
+        const dropZones = document.querySelectorAll('.pin-zone');
+        const robotText = document.getElementById('robot-text');
+        
+        // Éléments visuels LED
+        const visualLeds = {
+            red: document.getElementById('sim-led-red'),
+            orange: document.getElementById('sim-led-orange'),
+            green: document.getElementById('sim-led-green')
+        };
+
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => draggable.classList.add('dragging'));
+            draggable.addEventListener('dragend', () => draggable.classList.remove('dragging'));
+        });
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('highlight');
+            });
+            zone.addEventListener('dragleave', () => zone.classList.remove('highlight'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('highlight');
+                const draggedId = document.querySelector('.dragging').id;
+                handleDrop(draggedId, zone);
+            });
+        });
+
+        // --- LOGIQUE MÉTIER / IA ---
+        function handleDrop(componentId, zoneElement) {
+            const zoneRole = zoneElement.getAttribute('data-role');
+
+            // Vérification Résistance (GND commun)
+            if (componentId === 'comp-res' && zoneRole === 'gnd') {
+                montageState.gndOk = true;
+                zoneElement.classList.add('correct');
+                updateRobot("Parfait ! La masse commune est connectée. Maintenant, place les LEDs de couleur sur les bonnes pins.", "success");
+                checkComplete();
+                return;
+            }
+
+            // Vérification LEDs couleurs
+            const ledMapping = {
+                'comp-led-red': { role: 'red', pinMsg: '13' },
+                'comp-led-orange': { role: 'orange', pinMsg: '12' },
+                'comp-led-green': { role: 'green', pinMsg: '11' }
+            };
+
+            if (ledMapping[componentId]) {
+                const target = ledMapping[componentId];
+                if (zoneRole === target.role) {
+                    // C'est la bonne couleur sur la bonne pin
+                    montageState[`${target.role}Ok`] = true;
+                    zoneElement.classList.add('correct');
+                    // Activer visuellement la LED (état éteint mais connecté)
+                    visualLeds[target.role].classList.add(`${target.role}-connected`);
+                    updateRobot(`Super ! La LED ${target.role.toUpperCase()} est connectée sur la Pin ${target.pinMsg}.`, "neutral");
+                    checkComplete();
+                } else if (zoneRole === 'gnd') {
+                     updateRobot("Attention ! Le côté long de la LED (+) doit aller sur une Pin numérotée, pas sur le GND direct.", "error");
+                } else {
+                    updateRobot(`Mauvaise pin ! Essaie de mettre la LED ${target.role.toUpperCase()} sur sa pin dédiée (regarde les instructions à gauche).`, "error");
+                }
+            }
+        }
+
+        function updateRobot(message, type) {
+            robotText.textContent = message;
+            robotText.style.borderLeftColor = type === 'error' ? "red" : (type === 'success' ? "lime" : "#00979C");
+        }
+
+        // --- VÉRIFICATION GLOBALE ---
+        function checkComplete() {
+            if (montageState.redOk && montageState.orangeOk && montageState.greenOk && montageState.gndOk) {
+                updateRobot("Montage complet ! Le feu tricolore est prêt. Regarde le code généré et lance le test.", "success");
+                generateTrafficCode();
+            }
+        }
+
+        // --- GÉNÉRATION DE CODE FEU TRICOLORE ---
+        function generateTrafficCode() {
+            const code = `
+// Définition des pins
+const int redPin = 13;
+const int orangePin = 12;
+const int greenPin = 11;
+
+void setup() {
+  // Initialiser les pins en sortie
+  pinMode(redPin, OUTPUT);
+  pinMode(orangePin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+}
+
+void loop() {
+  // --- Séquence Feu Rouge ---
+  
+  // 1. ROUGE (Arrêt) - 3 secondes
+  digitalWrite(redPin, HIGH);
+  digitalWrite(orangePin, LOW);
+  digitalWrite(greenPin, LOW);
+  delay(3000); 
+  
+  // 2. VERT (Partez) - 3 secondes
+  digitalWrite(redPin, LOW);
+  digitalWrite(orangePin, LOW);
+  digitalWrite(greenPin, HIGH);
+  delay(3000);
+
+  // 3. ORANGE (Attention) - 1 seconde
+  digitalWrite(redPin, LOW);
+  digitalWrite(orangePin, HIGH);
+  digitalWrite(greenPin, LOW);
+  delay(1000);
+  
+  // La boucle recommence au ROUGE...
+}`;
+            document.getElementById('code-editor').value = code;
+        }
+
+        // --- SIMULATION JAVASCRIPT ---
+        function runSimulation() {
+             if (!montageState.redOk || !montageState.orangeOk || !montageState.greenOk || !montageState.gndOk) {
+                updateRobot("Attends ! Le montage n'est pas fini. Place toutes les LEDs et la résistance.", "error");
+                return;
+            }
+
+            updateRobot("Simulation démarrée ! Observe la séquence : Rouge -> Vert -> Orange.", "success");
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'inline-block';
+
+            let step = 0;
+
+            // Fonction qui exécute une étape de la séquence
+            function trafficSequence() {
+                // Reset tout
+                visualLeds.red.classList.remove('red-on');
+                visualLeds.orange.classList.remove('orange-on');
+                visualLeds.green.classList.remove('green-on');
+
+                if (step === 0) {
+                    // Étape Rouge
+                    visualLeds.red.classList.add('red-on');
+                    step = 1;
+                    simulationInterval = setTimeout(trafficSequence, 3000); // Attend 3s
+                } else if (step === 1) {
+                    // Étape Vert
+                    visualLeds.green.classList.add('green-on');
+                    step = 2;
+                    simulationInterval = setTimeout(trafficSequence, 3000); // Attend 3s
+                } else if (step === 2) {
+                    // Étape Orange
+                    visualLeds.orange.classList.add('orange-on');
+                    step = 0; // Retour au début
+                    simulationInterval = setTimeout(trafficSequence, 1000); // Attend 1s
+                }
+            }
+
+            // Lancer la première étape
+            trafficSequence();
+        }
+
+        function stopSimulation() {
+            clearTimeout(simulationInterval); // Arrête le timer
+            // Reset visuel
+            visualLeds.red.classList.remove('red-on');
+            visualLeds.orange.classList.remove('orange-on');
+            visualLeds.green.classList.remove('green-on');
+            
+            document.getElementById('btn-start').style.display = 'inline-block';
+            document.getElementById('btn-stop').style.display = 'none';
+            updateRobot("Simulation arrêtée.", "neutral");
+        }
+
+    </script>
+</body>
+</html>

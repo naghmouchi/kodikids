@@ -151,6 +151,9 @@ def math_code_niv4(request):
 def deviner_lettre(request):
     return render(request, 'email_api/deviner_lettre.html')
 
+def block_roblox(request):
+    return render(request, 'email_api/block_roblox.html')
+
 def python_quiz(request):
     return render(request, 'email_api/python_quiz.html')
 
@@ -187,3 +190,44 @@ def roblox_tutorial(request):
 def roblox_quiz(request):
     return render(request, 'email_api/roblox_quiz.html')
 
+def arduino_simulator(request):
+    return render(request, 'email_api/arduino_sim_v1.html')
+
+def soccer_block(request):
+    return render(request, 'email_api/soccer_block.html')
+
+def tetris_game(request):
+    return render(request, 'email_api/tetris_game.html')
+
+def arduino_simulator_v2(request):
+    return render(request, 'email_api/arduino_sim_v2.html')
+
+def arduino_simulator_v3(request):
+    return render(request, 'email_api/arduino_sim_v3.html')
+
+def arduino_simulator_v4(request):
+    return render(request, 'email_api/arduino_sim_v4.html')
+
+def arduino_simulator_v5(request):
+    return render(request, 'email_api/arduino_sim_v5.html')
+
+def microbit_simulator(request):
+    return render(request, 'email_api/microbit_sim.html')
+
+def raspberry_simulator(request):
+    return render(request, 'email_api/raspberry_sim.html')
+
+def mbot_simulator(request):
+    return render(request, 'email_api/mbot_sim.html')
+
+def iot_simulator(request):
+    return render(request, 'email_api/iot_sim.html')
+
+def ia_robot_simulator(request):
+    return render(request, 'email_api/ia_robot_sim.html')
+
+def robotic_arm_simulator(request):
+    return render(request, 'email_api/robotic_arm_sim.html')
+
+def blockly_robot_simulator(request):
+    return render(request, 'email_api/blockly_robot_sim.html')

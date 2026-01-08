@@ -1,0 +1,516 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jeu: Block World — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧱</text></svg>">
+  <style>
+    /* Game Styles */
+    .game-layout {
+        max-width: 1100px; margin: 20px auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    @media (min-width: 992px) {
+        .game-layout { grid-template-columns: 1fr 400px; }
+    }
+    .game-area { 
+        width: 100%; max-width: 600px; height: 400px; 
+        background: #87CEEB; border: 4px solid #333; border-radius: 12px; 
+        position: relative; overflow: hidden; perspective: 600px;
+        background-image: linear-gradient(#87CEEB 50%, #4CAF50 50%);
+    }
+
+    .game-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    /* Blocky Avatar (CSS) */
+    .avatar {
+        position: absolute; width: 50px; height: 80px;
+        left: 50px; bottom: 50px; transition: left 0.1s linear, bottom 0.1s linear;
+        z-index: 10;
+    }
+    .head { 
+        width: 30px; height: 30px; background: #FFC107; border: 2px solid #333; 
+        position: absolute; top: 0; left: 10px; /* Centered on the body */
+        border-radius: 4px; 
+    }
+    .body { 
+        width: 50px; height: 30px; background: #2196F3; border: 2px solid #333; 
+        position: absolute; top: 30px; left: 0; 
+    }
+    .legs { 
+        display: flex; width: 50px; height: 20px; 
+        position: absolute; top: 60px; left: 0; 
+    }
+    .leg { width: 50%; height: 100%; background: #555; border: 2px solid #333; }
+    
+    .coin {
+        position: absolute; width: 30px; height: 30px;
+        background: #FFD700; border: 2px solid #DAA520; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: bold; color: #B8860B; font-size: 1.2rem;
+        animation: spin 1s infinite alternate;
+    }
+    .bomb {
+        position: absolute; width: 30px; height: 30px;
+        font-size: 1.8rem;
+        display: flex; align-items: center; justify-content: center;
+        animation: shake 0.5s infinite alternate;
+    }
+    .explosion {
+        position: absolute;
+        width: 10px; height: 10px;
+        background: #ff5e57;
+        border-radius: 50%;
+        transform: scale(0);
+        animation: explode 0.5s ease-out forwards;
+        z-index: 30;
+    }
+    .monster {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        font-size: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 15;
+        transition: left 0.2s linear, bottom 0.2s linear;
+    }
+    @keyframes spin { from { transform: scale(1); } to { transform: scale(1.1); } }
+    @keyframes shake { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+    @keyframes explode {
+        to { transform: scale(20); opacity: 0; }
+    }
+    .controls-wrapper { 
+        background: #f0f4f8; padding: 20px; border-radius: 12px; 
+        width: 100%; max-width: 600px; text-align: center;
+        display: none;
+    }
+    @media (max-width: 1024px) {
+        .controls-wrapper { display: block; }
+        .game-area { height: 60vh; max-height: 400px; }
+    }
+    .button-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+    .ctrl-btn { 
+        padding: 15px 20px; border: none; border-radius: 8px; font-size: 1.5rem; 
+        font-weight: bold; cursor: pointer; background: #fff; box-shadow: 0 4px 0 #ccc;
+        transition: transform 0.1s;
+        user-select: none; -webkit-user-select: none;
+    }
+    .ctrl-btn:active { transform: translateY(4px); box-shadow: none; }
+
+    .win-overlay { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.8); display: none; flex-direction: column; 
+        align-items: center; justify-content: center; color: white; z-index: 20; 
+    }
+    #score-board { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
+
+    /* Code Mode Styles */
+    .mode-selection { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+    .mode-btn {
+        padding: 12px 25px; border: 2px solid #ccc; border-radius: 30px;
+        font-size: 1rem; font-weight: bold; cursor: pointer;
+        background: #f0f4f8; transition: all 0.2s;
+    }
+    .mode-btn.active { background: #2196F3; color: white; border-color: #2196F3; }
+
+    .code-wrapper {
+        background: #f0f4f8; padding: 20px; border-radius: 12px;
+        display: flex; flex-direction: column; gap: 15px;
+    }
+    #code-editor {
+        width: 100%; background: #2d3436; color: #0f0;
+        font-family: 'Courier New', monospace; border: 2px solid #555;
+        border-radius: 8px; padding: 10px; font-size: 1rem;
+        resize: vertical;
+    }
+    .run-btn {
+        padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem;
+        font-weight: bold; cursor: pointer; background: #27ae60; color: white;
+        transition: background-color 0.2s;
+    }
+    .run-btn:hover:not(:disabled) { background: #2ecc71; }
+    .run-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+    .instructions {
+        font-size: 0.9rem; background: white; padding: 15px;
+        border-radius: 8px; border: 1px solid #ddd;
+    }
+    .instructions h4 { margin-top: 0; }
+    .instructions code { background: #eee; padding: 2px 5px; border-radius: 3px; }
+    .instructions pre { background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 5px; white-space: pre-wrap; }
+
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container">
+    <section class="tutorial-section text-center">
+      <h1 style="font-size: 2.5rem; font-weight: 800;">Jeu : Block World</h1>
+      <p class="lead">Choisis ton mode de contrôle, collecte les pièces et fuis le monstre !</p>
+    </section>
+
+    <div class="mode-selection">
+        <button class="mode-btn" id="manual-mode-btn">🕹️ Contrôle Manuel</button>
+        <button class="mode-btn" id="code-mode-btn">👨‍💻 Contrôle par Code</button>
+    </div>
+
+    <div class="game-layout">
+        <div class="game-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px;">
+                <div id="score-board">Pièces : <span id="score">0</span> / 5</div>
+                <button id="pause-btn" class="ctrl-btn" style="padding: 10px 15px; font-size: 1.2rem;">⏸️</button>
+            </div>
+            
+            <div class="game-area" id="game-area">
+                <div class="avatar" id="player">
+                <div class="head"></div>
+                <div class="body"></div>
+                <div class="legs">
+                    <div class="leg"></div>
+                    <div class="leg"></div>
+                </div>
+            </div>
+
+                <div class="monster" id="monster">👹</div>
+                
+                <div class="win-overlay" id="win-overlay">
+                    <h2 style="font-size: 3rem;">🎉 GAGNÉ ! 🎉</h2>
+                    <button class="ctrl-btn" onclick="location.reload()">Rejouer</button>
+                </div>
+
+                <div class="win-overlay" id="game-over-overlay" style="color: #ff5e57;">
+                    <h2 style="font-size: 3rem;">💥 GAME OVER 💥</h2>
+                    <button class="ctrl-btn" onclick="location.reload()">Rejouer</button>
+                </div>
+            </div>
+
+            <div class="controls-wrapper">
+                <div class="button-group">
+                    <button class="ctrl-btn" onclick="manualMove('up')">⬆️</button>
+                </div>
+                <div class="button-group">
+                    <button class="ctrl-btn" onclick="manualMove('left')">⬅️</button>
+                    <button class="ctrl-btn" onclick="manualMove('down')">⬇️</button>
+                    <button class="ctrl-btn" onclick="manualMove('right')">➡️</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="code-wrapper" style="display: none;">
+            <h3 style="margin-top: 0;">Éditeur de Code</h3>
+            <textarea id="code-editor" rows="10" placeholder="Écris ton code ici..."></textarea>
+            <button id="run-code-btn" class="run-btn">▶️ Exécuter</button>
+            <div class="instructions">
+                <h4>Commandes disponibles :</h4>
+                <ul>
+                    <li><code>up();</code>, <code>down();</code>, <code>left();</code>, <code>right();</code></li>
+                </ul>
+                <h4>Exemples :</h4>
+                <pre><code>// Aller à droite 3 fois
+right();
+right();
+right();</code></pre>
+                <pre><code>// Utiliser une boucle
+for (let i = 0; i < 5; i++) {
+  down();
+}</code></pre>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span>© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    const player = document.getElementById('player');
+    const gameArea = document.getElementById('game-area');
+    const scoreEl = document.getElementById('score');
+    const winOverlay = document.getElementById('win-overlay');
+    const gameOverOverlay = document.getElementById('game-over-overlay');
+    const monster = document.getElementById('monster');
+    const pauseBtn = document.getElementById('pause-btn');
+
+    // --- Code Mode Elements ---
+    const codeEditor = document.getElementById('code-editor');
+    const runCodeBtn = document.getElementById('run-code-btn');
+    const manualModeBtn = document.getElementById('manual-mode-btn');
+    const codeModeBtn = document.getElementById('code-mode-btn');
+    const codeWrapper = document.querySelector('.code-wrapper');
+    const manualControls = document.querySelector('.controls-wrapper');
+
+    let posX = 50;
+    let posY = 50;
+    const step = 20;
+    let score = 0;
+    const totalCoins = 5;
+    const totalBombs = 3;
+    let coins = [];
+    let bombs = [];
+    let monsterX = 400;
+    let monsterY = 300;
+    const monsterSpeed = 0.8;
+    let isGameOver = false;
+    let isPaused = false;
+    let monsterInterval;
+    const avatarWidth = 50;
+    const avatarHeight = 80;
+
+    // --- Code Control State ---
+    let controlMode = 'manual'; // 'manual' or 'code'
+    let commandQueue = [];
+    let isExecutingCode = false;
+    let queueInterval;
+
+    // --- User-facing functions for the code editor ---
+    function right() { if(controlMode === 'code') commandQueue.push('right'); }
+    function left() { if(controlMode === 'code') commandQueue.push('left'); }
+    function up() { if(controlMode === 'code') commandQueue.push('up'); }
+    function down() { if(controlMode === 'code') commandQueue.push('down'); }
+
+    function getSafeSpawnPosition(itemSize) {
+        const playerInitialRect = { left: posX, right: posX + avatarWidth, bottom: posY, top: posY + avatarHeight };
+        let x, bottomY, isColliding;
+        let attempts = 0; // Safety break to avoid infinite loops
+        do {
+            x = Math.random() * (gameArea.offsetWidth - 60) + 30;
+            bottomY = Math.random() * (gameArea.offsetHeight - 120);
+            const itemRect = { left: x, right: x + itemSize, bottom: bottomY, top: bottomY + itemSize };
+            isColliding = playerInitialRect.left < itemRect.right && playerInitialRect.right > itemRect.left &&
+                          playerInitialRect.bottom < itemRect.top && playerInitialRect.top > itemRect.bottom;
+            attempts++;
+        } while (isColliding && attempts < 100);
+        return { x, y: bottomY };
+    }
+
+    function spawnItems() {
+        const itemSize = 30; // Coins and bombs are 30x30
+
+        // Spawn Coins
+        for(let i=0; i<totalCoins; i++) {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.textContent = '$';
+            const pos = getSafeSpawnPosition(itemSize);
+            coin.style.left = pos.x + 'px';
+            coin.style.bottom = pos.y + 'px';
+            gameArea.appendChild(coin);
+            coins.push({el: coin, x: pos.x, y: pos.y});
+        }
+
+        // Spawn Bombs
+        for(let i=0; i<totalBombs; i++) {
+            const bomb = document.createElement('div');
+            bomb.className = 'bomb';
+            bomb.textContent = '💣';
+            const pos = getSafeSpawnPosition(itemSize);
+            bomb.style.left = pos.x + 'px';
+            bomb.style.bottom = pos.y + 'px';
+            gameArea.appendChild(bomb);
+            bombs.push({el: bomb, x: pos.x, y: pos.y});
+        }
+
+        spawnMonster();
+    }
+
+    function spawnMonster() {
+        // Place le monstre dans le coin opposé au joueur
+        monsterX = gameArea.offsetWidth - 80;
+        monsterY = gameArea.offsetHeight - 80;
+        monster.style.left = monsterX + 'px';
+        monster.style.bottom = monsterY + 'px';
+    }
+
+    function moveMonster() {
+        if (isPaused || isGameOver) return;
+
+        // IA simple : se déplace vers le joueur
+        const dx = posX - monsterX;
+        const dy = posY - monsterY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > 1) {
+            monsterX += (dx / distance) * monsterSpeed;
+            monsterY += (dy / distance) * monsterSpeed;
+        }
+
+        monster.style.left = monsterX + 'px';
+        monster.style.bottom = monsterY + 'px';
+        checkCollisions();
+    }
+
+    function move(dir) {
+        if(isGameOver || isPaused) return;
+
+        if(dir === 'left') posX = Math.max(0, posX - step);
+        if(dir === 'right') posX = Math.min(gameArea.offsetWidth - avatarWidth, posX + step);
+        if(dir === 'up') posY = Math.min(gameArea.offsetHeight - avatarHeight, posY + step);
+        if(dir === 'down') posY = Math.max(0, posY - step);
+
+        player.style.left = posX + 'px';
+        player.style.bottom = posY + 'px';
+        
+        checkCollisions();
+    }
+
+    function manualMove(dir) {
+        if (controlMode !== 'manual') return;
+        move(dir);
+    }
+
+    function createExplosion(x, y) {
+        const explosion = document.createElement('div');
+        explosion.className = 'explosion';
+        explosion.style.left = (x + 10) + 'px';
+        explosion.style.bottom = (y + 10) + 'px';
+        gameArea.appendChild(explosion);
+        setTimeout(() => explosion.remove(), 500);
+    }
+
+    function checkCollisions() {
+        if (isGameOver) return;
+        const pRect = { left: posX, right: posX + avatarWidth, bottom: posY, top: posY + avatarHeight };
+
+        coins.forEach((coin, index) => {
+            if(!coin.collected) {
+                const cRect = { left: coin.x, right: coin.x + 30, bottom: coin.y, top: coin.y + 30 };
+
+                if (pRect.left < cRect.right && pRect.right > cRect.left &&
+                    pRect.bottom < cRect.top && pRect.top > cRect.bottom) {
+                    
+                    coin.el.remove();
+                    coin.collected = true;
+                    score++;
+                    scoreEl.textContent = score;
+                    
+                    if(score === totalCoins) {
+                        winOverlay.style.display = 'flex';
+                        isGameOver = true;
+                    }
+                }
+            }
+        });
+
+        bombs.forEach((bomb) => {
+            const bRect = { left: bomb.x, right: bomb.x + 30, bottom: bomb.y, top: bomb.y + 30 };
+
+            if (pRect.left < bRect.right && pRect.right > bRect.left &&
+                pRect.bottom < bRect.top && pRect.top > bRect.bottom) {
+                
+                isGameOver = true;
+                player.style.display = 'none'; // Hide player
+                bomb.el.remove();
+                createExplosion(bomb.x + 15, bomb.y + 15); // Centre de la bombe (30x30)
+                gameOverOverlay.style.display = 'flex';
+            }
+        });
+
+        // Collision avec le monstre
+        const mRect = { left: monsterX, right: monsterX + 40, bottom: monsterY, top: monsterY + 40 };
+        if (pRect.left < mRect.right && pRect.right > mRect.left &&
+            pRect.bottom < mRect.top && pRect.top > mRect.bottom) {
+            
+            isGameOver = true;
+            player.style.display = 'none';
+            createExplosion(posX + avatarWidth / 2, posY + avatarHeight / 2); // Explosion au centre du joueur
+            gameOverOverlay.style.display = 'flex';
+        }
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
+        if (controlMode === 'code') {
+            runCodeBtn.disabled = isPaused;
+        }
+    }
+
+    // --- Code Mode Logic ---
+    function setControlMode(mode) {
+        controlMode = mode;
+        if (mode === 'code') {
+            codeWrapper.style.display = 'flex';
+            manualControls.style.display = 'none';
+            manualModeBtn.classList.remove('active');
+            codeModeBtn.classList.add('active');
+        } else { // manual
+            codeWrapper.style.display = 'none';
+            // Let CSS media query handle display of manual controls
+            if (window.innerWidth <= 1024) {
+                manualControls.style.display = 'block';
+            }
+            manualModeBtn.classList.add('active');
+            codeModeBtn.classList.remove('active');
+        }
+    }
+
+    function processQueue() {
+        if (commandQueue.length > 0 && !isPaused) {
+            const command = commandQueue.shift();
+            move(command);
+        } else if (commandQueue.length === 0) {
+            clearInterval(queueInterval);
+            isExecutingCode = false;
+            runCodeBtn.disabled = false;
+        }
+    }
+
+    function runUserCode() {
+        if (isExecutingCode || isPaused) return;
+
+        const userCode = codeEditor.value;
+        commandQueue = [];
+        isExecutingCode = true;
+        runCodeBtn.disabled = true;
+
+        try {
+            const userFunction = new Function('up', 'down', 'left', 'right', userCode);
+            userFunction(up, down, left, right);
+            
+            if (commandQueue.length > 0) {
+                queueInterval = setInterval(processQueue, 200); // 200ms between moves
+            } else {
+                isExecutingCode = false;
+                runCodeBtn.disabled = false;
+            }
+        } catch (e) {
+            alert("Erreur dans votre code:\n" + e.message);
+            isExecutingCode = false;
+            runCodeBtn.disabled = false;
+        }
+    }
+
+    // --- Event Listeners ---
+    document.addEventListener('keydown', (e) => {
+        if (isGameOver || isPaused || controlMode !== 'manual') return;
+
+        if(e.key === 'ArrowLeft') move('left');
+        if(e.key === 'ArrowRight') move('right');
+        if(e.key === 'ArrowUp') move('up');
+        if(e.key === 'ArrowDown') move('down');
+    });
+
+    pauseBtn.addEventListener('click', togglePause);
+    manualModeBtn.addEventListener('click', () => setControlMode('manual'));
+    codeModeBtn.addEventListener('click', () => setControlMode('code'));
+    runCodeBtn.addEventListener('click', runUserCode);
+
+    // --- Game Init ---
+    spawnItems();
+    monsterInterval = setInterval(moveMonster, 50); // Le monstre bouge toutes les 50ms
+    setControlMode('manual'); // Set initial state
+  </script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Raspberry Pi</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        :root {
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+            --pi-green: #4caf50;
+            --pi-red: #C51A4A;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--dark-bg); color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sim-container {
+            display: flex; gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 240px; background: var(--panel-bg); padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .sidebar code { background: #e1e1e1; padding: 2px 4px; border-radius: 3px; font-family: monospace; color: #C51A4A; }
+
+        /* --- Main Area --- */
+        .main-area {
+            flex-grow: 1; background: #fff; border-radius: 10px; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        /* --- Code Panel --- */
+        .code-panel {
+            width: 400px; background: #1e1e1e; color: #fff; padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column;
+        }
+
+        /* --- Virtual Raspberry Pi --- */
+        .virtual-pi {
+            width: 320px; height: 210px; background: var(--pi-green); border-radius: 8px;
+            position: relative; box-shadow: 0 15px 35px rgba(0,0,0, 0.4);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .virtual-pi::before { content: 'Raspberry Pi'; position: absolute; bottom: 10px; left: 15px; font-weight: bold; color: white; font-size: 14px; }
+        
+        .pi-chip { width: 70px; height: 70px; background: #333; border-radius: 4px; }
+        .pi-usb { width: 40px; height: 60px; background: #bdc3c7; position: absolute; right: -5px; top: 30px; border-radius: 2px; border-left: 2px solid #999; }
+        .pi-eth { width: 40px; height: 40px; background: #bdc3c7; position: absolute; right: -5px; bottom: 30px; border-radius: 2px; border-left: 2px solid #999; }
+
+        /* GPIO Header */
+        .gpio-header {
+            position: absolute; top: 10px; left: 10px;
+            display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px;
+            width: 280px; height: 30px;
+        }
+        .pin { width: 8px; height: 8px; background: gold; border-radius: 50%; border: 1px solid #b8860b; }
+        
+        /* LED Circuit */
+        .breadboard-area {
+            position: absolute; top: 50px; left: 20px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .wire { height: 2px; background: #333; width: 40px; transform-origin: left center; position: absolute; }
+        
+        .led-component {
+            width: 30px; height: 30px; background: #550000; border-radius: 50%;
+            position: absolute; top: -50px; left: 50px; /* Position relative to GPIO 18 approx */
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            transition: background 0.1s;
+            z-index: 10;
+        }
+        .led-component::after { content: 'GPIO 18'; position: absolute; top: -20px; left: -10px; font-size: 10px; color: #333; font-weight: bold; white-space: nowrap; }
+        .led-component.on { background: #ff0000; box-shadow: 0 0 25px #ff0000; }
+
+        /* Button Component */
+        .btn-component {
+            width: 30px; height: 30px; background: #222; border-radius: 50%;
+            position: absolute; bottom: 20px; left: 80px; /* Position relative */
+            box-shadow: 0 4px 0 #000; border: 2px solid #555; cursor: pointer; z-index: 10;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .btn-component:active { transform: translateY(4px); box-shadow: 0 0 0 #000; background: #444; }
+        .btn-component::after { content: 'GPIO 24'; position: absolute; bottom: -20px; font-size: 10px; color: #333; font-weight: bold; white-space: nowrap; }
+
+        /* Terminal */
+        .terminal {
+            width: 90%; height: 120px; background: #111; color: #0f0;
+            font-family: 'Courier New', monospace; font-size: 0.9rem;
+            padding: 10px; border-radius: 5px; margin-top: 30px;
+            overflow-y: auto; border: 2px solid #444;
+        }
+
+        /* Editor */
+        textarea {
+            width: 100%; height: 300px; background: #2b2b2b; color: #f8f8f2;
+            border: 1px solid #444; font-family: 'Courier New', monospace;
+            padding: 10px; resize: none; font-size: 0.9rem; outline: none;
+            margin-bottom: 10px;
+        }
+        .btn {
+            width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; color: white;
+            font-size: 1rem;
+        }
+        .btn-run { background: var(--pi-red); }
+        .btn-run:hover { background: #a3163d; }
+        .btn-stop { background: #636e72; display: none; }
+        
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="sim-container">
+        <div class="sidebar">
+            <h2>Documentation Python</h2>
+            <div style="font-size: 0.9rem; color: #555;">
+                <p><strong>Bibliothèque RPi.GPIO :</strong></p>
+                <ul style="padding-left: 20px; line-height: 1.6;">
+                    <li><code>GPIO.setmode(GPIO.BCM)</code><br><small>Configure la numérotation.</small></li>
+                    <li><code>GPIO.setup(18, GPIO.OUT)</code><br><small>Prépare la broche 18 en sortie.</small></li>
+                    <li><code>GPIO.setup(24, GPIO.IN)</code><br><small>Prépare la broche 24 en entrée.</small></li>
+                    <li><code>GPIO.output(18, GPIO.HIGH)</code><br><small>Allume (3.3V).</small></li>
+                    <li><code>GPIO.output(18, GPIO.LOW)</code><br><small>Éteint (0V).</small></li>
+                    <li><code>GPIO.input(24)</code><br><small>Lit l'état du bouton (True/False).</small></li>
+                    <li><code>time.sleep(1)</code><br><small>Pause de 1 seconde.</small></li>
+                    <li><code>print("Texte")</code><br><small>Affiche dans le terminal.</small></li>
+                </ul>
+                <hr>
+                <p>LED: <strong>GPIO 18</strong> | Bouton: <strong>GPIO 24</strong></p>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div class="virtual-pi">
+                <div class="gpio-header">
+                    <!-- Visual pins -->
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                    <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+                </div>
+                <div class="pi-chip"></div>
+                <div class="pi-usb"></div>
+                <div class="pi-eth"></div>
+                
+                <!-- Connected LED -->
+                <div class="led-component" id="sim-led"></div>
+                <div class="wire" style="top: 25px; left: 60px; width: 50px; transform: rotate(-45deg);"></div>
+
+                <!-- Connected Button -->
+                <div class="btn-component" id="sim-btn"></div>
+                <div class="wire" style="bottom: 35px; left: 80px; width: 40px; transform: rotate(45deg);"></div>
+            </div>
+
+            <div class="terminal" id="terminal-output">
+                pi@raspberrypi:~$ python3 script.py<br>
+            </div>
+        </div>
+
+        <div class="code-panel">
+            <h2>Éditeur Python</h2>
+            <textarea id="code-editor" spellcheck="false">
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(18, GPIO.OUT)
+GPIO.setup(24, GPIO.IN)
+
+print("Démarrage du script...")
+
+while True:
+    # Copie l'état du bouton (24) sur la LED (18)
+    GPIO.output(18, GPIO.input(24))
+    time.sleep(0.1)
+</textarea>
+            <button id="btn-run" class="btn btn-run" onclick="runCode()">▶ Exécuter le script</button>
+            <button id="btn-stop" class="btn btn-stop" onclick="stopCode()">⏹ Arrêter (Ctrl+C)</button>
+        </div>
+    </div>
+
+    <script>
+        const led = document.getElementById('sim-led');
+        const btn = document.getElementById('sim-btn');
+        const terminal = document.getElementById('terminal-output');
+        let isRunning = false;
+        let buttonState = false;
+
+        // --- Gestion du Bouton ---
+        btn.addEventListener('mousedown', () => buttonState = true);
+        btn.addEventListener('mouseup', () => buttonState = false);
+        btn.addEventListener('mouseleave', () => buttonState = false);
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); buttonState = true; });
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); buttonState = false; });
+
+        // --- Fonctions Système Simulées ---
+        const log = (msg) => {
+            terminal.innerHTML += msg + "<br>";
+            terminal.scrollTop = terminal.scrollHeight;
+        };
+
+        const setPin = (pin, state) => {
+            if (pin == 18) {
+                if (state) led.classList.add('on');
+                else led.classList.remove('on');
+            }
+        };
+
+        const getPin = (pin) => {
+            if (pin == 24) return buttonState;
+            return false;
+        };
+
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // --- Moteur d'exécution (Transpilateur Python -> JS simplifié) ---
+        async function runCode() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('btn-run').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'inline-block';
+            terminal.innerHTML = "pi@raspberrypi:~$ python3 script.py<br>";
+
+            const rawCode = document.getElementById('code-editor').value;
+            
+            // 1. Nettoyage et préparation
+            // On extrait le corps du 'while True:' s'il existe pour créer une boucle infinie JS
+            let loopBody = "";
+            let setupBody = rawCode;
+
+            if (rawCode.includes("while True:")) {
+                const parts = rawCode.split("while True:");
+                setupBody = parts[0];
+                loopBody = parts[1];
+            }
+
+            // 2. Fonction de transpilation simple
+            const transpile = (code) => {
+                return code
+                    .replace(/import .*/g, "") // Ignorer les imports
+                    .replace(/GPIO\.setmode.*/g, "")
+                    .replace(/GPIO\.setup.*/g, "")
+                    .replace(/print\((.*)\)/g, "log($1);")
+                    .replace(/GPIO\.input\((\d+)\)/g, "getPin($1)")
+                    .replace(/GPIO\.output\((\d+),\s*GPIO\.HIGH\)/g, "setPin($1, true);")
+                    .replace(/GPIO\.output\((\d+),\s*GPIO\.LOW\)/g, "setPin($1, false);")
+                    .replace(/GPIO\.output\((\d+),\s*(.+)\)/g, "setPin($1, $2);")
+                    .replace(/GPIO\.HIGH/g, "true")
+                    .replace(/GPIO\.LOW/g, "false")
+                    .replace(/time\.sleep\((.*)\)/g, "await wait($1 * 1000);")
+                    .replace(/#.*/g, ""); // Enlever commentaires
+            };
+
+            const jsSetup = transpile(setupBody);
+            const jsLoop = transpile(loopBody);
+
+            // 3. Exécution
+            try {
+                // Exécuter le setup
+                const setupFn = new Function('log', 'setPin', 'getPin', 'wait', `return async function() { ${jsSetup} }`);
+                await setupFn(log, setPin, getPin, wait)();
+
+                // Exécuter la boucle
+                if (jsLoop.trim().length > 0) {
+                    const loopFn = new Function('log', 'setPin', 'getPin', 'wait', `return async function() { ${jsLoop} }`);
+                    const loopAsync = loopFn(log, setPin, getPin, wait);
+                    
+                    while (isRunning) {
+                        await loopAsync();
+                        await wait(10); // Anti-freeze
+                    }
+                }
+            } catch (e) {
+                log(`<span style="color:red">Erreur: ${e.message}</span>`);
+                stopCode();
+            }
+            
+            stopCode(); // Fin naturelle si pas de boucle
+        }
+
+        function stopCode() {
+            isRunning = false;
+            document.getElementById('btn-run').style.display = 'inline-block';
+            document.getElementById('btn-stop').style.display = 'none';
+            led.classList.remove('on');
+        }
+    </script>
+</body>
+</html>

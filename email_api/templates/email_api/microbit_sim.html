@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Micro:bit</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        :root {
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+            --mb-red: #e63022;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--dark-bg); color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sim-container {
+            display: flex; gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 220px; background: var(--panel-bg); padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column; gap: 10px;
+        }
+
+        /* --- Main Area (Board) --- */
+        .main-area {
+            flex-grow: 1; background: #fff; border-radius: 10px; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* --- Code Panel --- */
+        .code-panel {
+            width: 380px; background: #1e1e1e; color: #fff; padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column;
+        }
+
+        /* --- Virtual Micro:bit CSS --- */
+        .virtual-microbit {
+            width: 280px; height: 220px; background: #333; border-radius: 25px;
+            position: relative; box-shadow: 0 15px 35px rgba(0,0,0, 0.4);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-bottom: 8px solid #222;
+        }
+        .virtual-microbit::before { content: 'micro:bit'; position: absolute; top: 15px; left: 20px; font-family: sans-serif; font-weight: bold; color: white; font-size: 16px; }
+        .logo-face { position: absolute; top: 12px; left: 100px; font-size: 24px; }
+        
+        .led-matrix {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+            margin-top: 20px;
+        }
+        .led {
+            width: 16px; height: 16px; background: #550000; border-radius: 3px;
+            box-shadow: inset 0 0 2px rgba(0,0,0,0.5);
+            transition: background 0.1s;
+        }
+        .led.on { background: #ff0000; box-shadow: 0 0 15px #ff0000; }
+
+        .buttons-row {
+            display: flex; justify-content: space-between; width: 100%; padding: 0 25px;
+            position: absolute; top: 50%; transform: translateY(-50%); pointer-events: none;
+        }
+        .mb-btn {
+            width: 35px; height: 35px; background: #000; border: 2px solid #555; border-radius: 50%;
+            cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;
+            color: #777; font-size: 12px; font-weight: bold;
+        }
+        .mb-btn:active { background: #222; transform: scale(0.95); }
+
+        .pins-strip {
+            position: absolute; bottom: 0; width: 100%; height: 30px;
+            background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 12px, #333 12px, #333 16px);
+            border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+        }
+
+        /* --- Editor & Controls --- */
+        textarea {
+            width: 100%; height: 300px; background: #2b2b2b; color: #f8f8f2;
+            border: 1px solid #444; font-family: 'Courier New', monospace;
+            padding: 10px; resize: none; font-size: 0.9rem; outline: none;
+            margin-bottom: 10px;
+        }
+        .btn {
+            width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; color: white;
+            font-size: 1rem;
+        }
+        .btn-run { background: var(--mb-red); }
+        .btn-run:hover { background: #c0392b; }
+        
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="sim-container">
+        <div class="sidebar">
+            <h2>Documentation</h2>
+            <div style="font-size: 0.9rem; color: #555;">
+                <p><strong>Commandes disponibles :</strong></p>
+                <ul style="padding-left: 20px;">
+                    <li><code>basic.showIcon(IconNames.Happy)</code><br><small>Affiche une icône (Happy, Sad, Heart...)</small></li>
+                    <li><code>basic.clearScreen()</code><br><small>Efface l'écran</small></li>
+                    <li><code>basic.showLeds(`...`)</code><br><small>Dessine point par point</small></li>
+                </ul>
+                <hr>
+                <p>Essaie de changer <code>Happy</code> par <code>Heart</code> ou <code>Sad</code> !</p>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div class="virtual-microbit">
+                <div class="logo-face">👾</div>
+                <div class="led-matrix" id="matrix">
+                    <!-- LEDs generated by JS -->
+                </div>
+                <div class="buttons-row">
+                    <div class="mb-btn">A</div>
+                    <div class="mb-btn">B</div>
+                </div>
+                <div class="pins-strip"></div>
+            </div>
+        </div>
+
+        <div class="code-panel">
+            <h2>Éditeur JavaScript</h2>
+            <textarea id="code-editor" spellcheck="false">
+// Affiche un sourire au démarrage
+basic.showIcon(IconNames.Happy);
+
+// Attends 2 secondes (simulation)
+// basic.clearScreen();
+</textarea>
+            <button class="btn btn-run" onclick="runCode()">▶ Exécuter le code</button>
+            <div id="console-output" style="margin-top:10px; color:#aaa; font-family:monospace; font-size:0.8rem;"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Initialisation Matrice LED ---
+        const matrix = document.getElementById('matrix');
+        const leds = [];
+        for(let i=0; i<25; i++) {
+            const led = document.createElement('div');
+            led.className = 'led';
+            leds.push(led);
+            matrix.appendChild(led);
+        }
+
+        // --- Bibliothèque Micro:bit simulée ---
+        const IconNames = {
+            Heart: [
+                0,1,0,1,0,
+                1,1,1,1,1,
+                1,1,1,1,1,
+                0,1,1,1,0,
+                0,0,1,0,0
+            ],
+            Happy: [
+                0,0,0,0,0,
+                0,1,0,1,0,
+                0,0,0,0,0,
+                1,0,0,0,1,
+                0,1,1,1,0
+            ],
+            Sad: [
+                0,0,0,0,0,
+                0,1,0,1,0,
+                0,0,0,0,0,
+                0,1,1,1,0,
+                1,0,0,0,1
+            ],
+            Yes: [
+                0,0,0,0,0,
+                0,0,0,0,1,
+                0,0,0,1,0,
+                1,0,1,0,0,
+                0,1,0,0,0
+            ],
+            No: [
+                1,0,0,0,1,
+                0,1,0,1,0,
+                0,0,1,0,0,
+                0,1,0,1,0,
+                1,0,0,0,1
+            ]
+        };
+
+        const basic = {
+            clearScreen: function() {
+                leds.forEach(l => l.classList.remove('on'));
+            },
+            showLeds: function(patternStr) {
+                this.clearScreen();
+                // Nettoie la chaîne (enlève les espaces/sauts de ligne)
+                const clean = patternStr.replace(/[^#.]/g, '');
+                for(let i=0; i<Math.min(clean.length, 25); i++) {
+                    if(clean[i] === '#') leds[i].classList.add('on');
+                }
+            },
+            showIcon: function(iconArray) {
+                this.clearScreen();
+                if(!iconArray) return;
+                iconArray.forEach((state, idx) => {
+                    if(state === 1) leds[idx].classList.add('on');
+                });
+            }
+        };
+
+        // --- Moteur d'exécution ---
+        function runCode() {
+            const userCode = document.getElementById('code-editor').value;
+            const consoleOut = document.getElementById('console-output');
+            consoleOut.textContent = "Exécution...";
+            
+            try {
+                // On crée une fonction sécurisée avec les objets disponibles
+                const runUserFunction = new Function('basic', 'IconNames', userCode);
+                runUserFunction(basic, IconNames);
+                consoleOut.textContent = "Terminé avec succès.";
+                consoleOut.style.color = "#4ade80";
+            } catch (e) {
+                console.error(e);
+                consoleOut.textContent = "Erreur : " + e.message;
+                consoleOut.style.color = "#ef4444";
+            }
+        }
+
+        // Lancer le code par défaut au chargement
+        window.onload = runCode;
+    </script>
+</body>
+</html>

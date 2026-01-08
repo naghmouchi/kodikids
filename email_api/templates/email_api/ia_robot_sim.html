@@ -1,0 +1,310 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur IA Robotique</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        :root {
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+            --ai-purple: #9b59b6;
+            --ai-dark: #8e44ad;
+            --class-a: #e74c3c; /* Rouge */
+            --class-b: #f1c40f; /* Jaune */
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--dark-bg); color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sim-container {
+            display: flex; gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 240px; background: var(--panel-bg); padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .step-box {
+            background: white; padding: 12px; border-radius: 8px;
+            border-left: 5px solid #ccc; font-size: 0.9rem; color: #555;
+            transition: all 0.3s;
+        }
+        .step-box.active { border-left-color: var(--ai-purple); background: #f3e5f5; color: #333; font-weight: bold; transform: scale(1.02); }
+        .step-number { font-size: 1.2rem; color: var(--ai-dark); display: block; margin-bottom: 5px; }
+
+        /* --- Main Area --- */
+        .main-area {
+            flex-grow: 1; background: #fff; border-radius: 10px; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Robot Vision Screen */
+        .vision-screen {
+            width: 320px; height: 320px; background: #222; border: 12px solid #444;
+            border-radius: 20px; position: relative; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4); margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .vision-screen::before { content: 'CAMÉRA ROBOT'; position: absolute; top: 15px; left: 15px; color: #0f0; font-family: monospace; font-size: 12px; z-index: 10; }
+        .scan-line {
+            position: absolute; width: 100%; height: 4px; background: rgba(0, 255, 0, 0.6);
+            top: 0; animation: scan 2s linear infinite; pointer-events: none; z-index: 5;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+        @keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+        .object-display { font-size: 8rem; transition: transform 0.3s; user-select: none; }
+        
+        .robot-feedback {
+            font-size: 1.2rem; font-weight: bold; color: #333;
+            background: #f0f0f0; padding: 10px 20px; border-radius: 50px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* --- Control Panel --- */
+        .control-panel {
+            width: 300px; background: #1e1e1e; color: #fff; padding: 20px;
+            border-radius: 10px; display: flex; flex-direction: column; gap: 20px;
+        }
+        
+        .panel-section { border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .panel-section:last-child { border-bottom: none; }
+        .panel-title { font-size: 0.9rem; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .btn {
+            width: 100%; padding: 15px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; color: white;
+            font-size: 1rem; transition: transform 0.1s, filter 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn:hover { filter: brightness(1.1); }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { background: #555 !important; cursor: not-allowed; filter: grayscale(1); }
+
+        .btn-class-a { background: var(--class-a); }
+        .btn-class-b { background: var(--class-b); color: #333; }
+        .btn-train { background: var(--ai-dark); }
+        .btn-test { background: #27ae60; }
+
+        .data-counter { display: flex; justify-content: space-between; font-size: 0.8rem; color: #ccc; margin-top: 5px; }
+        
+        .confidence-bar {
+            height: 25px; background: #333; border-radius: 12px; overflow: hidden; margin-top: 10px; position: relative;
+        }
+        .confidence-fill { height: 100%; width: 0%; transition: width 0.5s ease-out; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; font-size: 0.7rem; font-weight: bold; }
+        
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="sim-container">
+        <div class="sidebar">
+            <h2>Processus IA</h2>
+            <div class="step-box active" id="step-1">
+                <span class="step-number">1. Collecte</span>
+                Montre des objets au robot et dis-lui ce que c'est (Étiquetage).
+            </div>
+            <div class="step-box" id="step-2">
+                <span class="step-number">2. Entraînement</span>
+                Le robot analyse les données pour trouver des motifs (Couleur, Forme).
+            </div>
+            <div class="step-box" id="step-3">
+                <span class="step-number">3. Test</span>
+                Le robot devine tout seul les nouveaux objets !
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div class="vision-screen">
+                <div class="scan-line"></div>
+                <div id="current-object" class="object-display">❓</div>
+            </div>
+            
+            <div class="robot-feedback">
+                <span style="font-size: 2rem;">🤖</span>
+                <span id="robot-msg">En attente de données...</span>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <!-- Phase 1: Data Collection -->
+            <div class="panel-section" id="panel-collect">
+                <div class="panel-title">Collecte de Données</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button class="btn btn-class-a" onclick="addData('apple')">🍎 Pomme</button>
+                    <button class="btn btn-class-b" onclick="addData('banana')">🍌 Banane</button>
+                </div>
+                <button class="btn" style="background:#555; margin-top:5px;" onclick="nextObject()">🔄 Changer d'objet</button>
+                <div class="data-counter">
+                    <span>Pommes: <b id="count-a">0</b></span>
+                    <span>Bananes: <b id="count-b">0</b></span>
+                </div>
+            </div>
+
+            <!-- Phase 2: Training -->
+            <div class="panel-section">
+                <div class="panel-title">Modèle</div>
+                <button class="btn btn-train" id="btn-train" onclick="trainModel()" disabled>🧠 Entraîner l'IA</button>
+            </div>
+
+            <!-- Phase 3: Inference -->
+            <div class="panel-section">
+                <div class="panel-title">Prédiction (Test)</div>
+                <button class="btn btn-test" id="btn-predict" onclick="predict()" disabled>🔮 Identifier l'objet</button>
+                
+                <div style="margin-top: 15px;">
+                    <small>Confiance Pomme</small>
+                    <div class="confidence-bar"><div class="confidence-fill" id="bar-a" style="background: var(--class-a);">0%</div></div>
+                </div>
+                <div style="margin-top: 5px;">
+                    <small>Confiance Banane</small>
+                    <div class="confidence-bar"><div class="confidence-fill" id="bar-b" style="background: var(--class-b); color: #333;">0%</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const objects = [
+            { type: 'apple', icon: '🍎', color: 'red' },
+            { type: 'apple', icon: '🍎', color: 'red' }, // More weight
+            { type: 'banana', icon: '🍌', color: 'yellow' },
+            { type: 'banana', icon: '🍌', color: 'yellow' },
+            { type: 'unknown', icon: '🍒', color: 'red' }, // Trick objects
+            { type: 'unknown', icon: '🍋', color: 'yellow' }
+        ];
+
+        let currentObj = null;
+        let dataset = [];
+        let isTrained = false;
+
+        // --- UI Elements ---
+        const display = document.getElementById('current-object');
+        const robotMsg = document.getElementById('robot-msg');
+        const countA = document.getElementById('count-a');
+        const countB = document.getElementById('count-b');
+        const btnTrain = document.getElementById('btn-train');
+        const btnPredict = document.getElementById('btn-predict');
+        const barA = document.getElementById('bar-a');
+        const barB = document.getElementById('bar-b');
+
+        // --- Functions ---
+
+        function nextObject() {
+            // Pick random object
+            const rand = Math.floor(Math.random() * objects.length);
+            currentObj = objects[rand];
+            
+            // Visual effect
+            display.style.transform = 'scale(0)';
+            setTimeout(() => {
+                display.textContent = currentObj.icon;
+                display.style.transform = 'scale(1)';
+            }, 200);
+
+            // Reset UI if testing
+            if(isTrained) {
+                robotMsg.textContent = "Je suis prêt à deviner...";
+                barA.style.width = '0%'; barA.textContent = '';
+                barB.style.width = '0%'; barB.textContent = '';
+            }
+        }
+
+        function addData(label) {
+            if (!currentObj) return;
+            
+            // Add to dataset (simulate feature extraction: color)
+            dataset.push({ label: label, color: currentObj.color });
+            
+            // Update UI
+            const count = dataset.filter(d => d.label === label).length;
+            if (label === 'apple') countA.textContent = count;
+            else countB.textContent = count;
+
+            robotMsg.textContent = `Appris : C'est une ${label === 'apple' ? 'Pomme' : 'Banane'} !`;
+            
+            // Enable training if enough data
+            if (dataset.length >= 4) {
+                btnTrain.disabled = false;
+                btnTrain.textContent = "🧠 Entraîner l'IA (" + dataset.length + " exemples)";
+            }
+            
+            nextObject();
+        }
+
+        function trainModel() {
+            btnTrain.disabled = true;
+            btnTrain.textContent = "Entraînement en cours...";
+            document.getElementById('step-1').classList.remove('active');
+            document.getElementById('step-2').classList.add('active');
+
+            setTimeout(() => {
+                isTrained = true;
+                btnTrain.textContent = "Modèle Entraîné ✅";
+                btnPredict.disabled = false;
+                document.getElementById('step-2').classList.remove('active');
+                document.getElementById('step-3').classList.add('active');
+                robotMsg.textContent = "Modèle prêt ! Montre-moi un objet.";
+                // Disable collection to force testing phase
+                document.getElementById('panel-collect').style.opacity = '0.5';
+                document.getElementById('panel-collect').style.pointerEvents = 'none';
+            }, 2000);
+        }
+
+        function predict() {
+            if (!isTrained || !currentObj) return;
+
+            // Logique réelle basée sur les données d'entraînement (Dataset)
+            // Le robot regarde la couleur de l'objet actuel et compare avec ce qu'il a appris.
+            
+            const color = currentObj.color;
+            const similarData = dataset.filter(d => d.color === color);
+
+            let confA = 0, confB = 0;
+
+            if (similarData.length === 0) {
+                // Aucune donnée pour cette couleur => Hésitation
+                confA = 50; confB = 50;
+            } else {
+                // Calcul des probabilités basé sur l'historique des étiquettes
+                const countApple = similarData.filter(d => d.label === 'apple').length;
+                const countBanana = similarData.filter(d => d.label === 'banana').length;
+                const total = similarData.length;
+
+                // Calcul du pourcentage de confiance
+                confA = (countApple / total) * 100;
+                confB = (countBanana / total) * 100;
+            }
+
+            // Update Bars
+            barA.style.width = confA + '%'; barA.textContent = Math.round(confA) + '%';
+            barB.style.width = confB + '%'; barB.textContent = Math.round(confB) + '%';
+
+            // Robot Decision
+            if (confA > confB) robotMsg.textContent = "Je pense que c'est une POMME 🍎";
+            else if (confB > confA) robotMsg.textContent = "Je pense que c'est une BANANE 🍌";
+            else robotMsg.textContent = "Je ne suis pas sûr... (50/50)";
+        }
+
+        // Init
+        nextObject();
+    </script>
+</body>
+</html>

@@ -41,5 +41,21 @@ urlpatterns = [
     path('play/quiz/microbit/', views.microbit_quiz, name='microbit_quiz'),
     path('play/quiz/roblox/', views.roblox_quiz, name='roblox_quiz'),
     path('play/roblox/', views.roblox_tutorial, name='roblox_tutorial'),
+    path('play/block_roblox/', views.block_roblox, name='block_roblox'),
+    path('play/arduino_simulator/', views.arduino_simulator, name='arduino_simulator'),
+    path('play/soccer_block/', views.soccer_block, name='soccer_block'),
+    path('play/tetris/', views.tetris_game, name='tetris_game'),
+    path('play/arduino_simulator_v2/', views.arduino_simulator_v2, name='arduino_simulator_v2'),
+    path('play/arduino_simulator_v3/', views.arduino_simulator_v3, name='arduino_simulator_v3'),
+    path('play/arduino_simulator_v4/', views.arduino_simulator_v4, name='arduino_simulator_v4'),
+    path('play/arduino_simulator_v5/', views.arduino_simulator_v5, name='arduino_simulator_v5'),
+    path('play/microbit_sim/', views.microbit_simulator, name='microbit_simulator'),
+    path('play/raspberry_sim/', views.raspberry_simulator, name='raspberry_simulator'),
+    path('play/mbot_sim/', views.mbot_simulator, name='mbot_simulator'),
+    path('play/iot_sim/', views.iot_simulator, name='iot_simulator'),
+    path('play/ia_robot_sim/', views.ia_robot_simulator, name='ia_robot_simulator'),
+    path('play/robotic_arm_sim/', views.robotic_arm_simulator, name='robotic_arm_simulator'),
+    path('play/blockly_robot_sim/', views.blockly_robot_simulator, name='blockly_robot_simulator'),
+
 
 ]

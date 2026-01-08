@@ -1,0 +1,318 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Niveau 4 : Feu de Circulation (PWM)</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        /* Base Styles */
+        :root { --arduino-teal: #00979C; --dark-bg: #2c3e50; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark-bg); color: #333; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        .sim-container { display: flex; gap: 20px; padding: 20px; flex: 1; }
+
+        .sidebar { 
+            width: 200px; 
+            background: #ecf0f1; 
+            padding: 15px; 
+            border-radius: 10px; 
+            display: flex; /* Permet un bon agencement des éléments */
+            flex-direction: column;
+            overflow-y: auto; /* Pour le défilement si le contenu devient trop long */
+        }
+        .main-area { flex-grow: 1; background: #fff; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 20px; position: relative; overflow: hidden; }
+        .code-panel { width: 320px; background: #1e1e1e; color: #fff; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; }
+        
+        /* Conteneur d'Explication DANS LA SIDEBAR */
+        #explanation-box {
+            background: #fdf3e8; /* Couleur de fond plus douce pour le tuto */
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #e67e22; /* Orange */
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-top: 15px;
+        }
+        #explanation-box h4 { margin: 0 0 5px 0; color: #e67e22; font-size: 0.95rem; }
+        #explanation-box ul { padding-left: 15px; margin-top: 5px; }
+        
+        /* Composants */
+        .component { background: #fff; border: 2px solid #bdc3c7; padding: 10px; margin-bottom: 5px; border-radius: 5px; cursor: grab; display: flex; gap: 10px; align-items: center; user-select: none; }
+        
+        /* Arduino Board */
+        .arduino-board { width: 450px; height: 350px; background: var(--arduino-teal); position: relative; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); color: white; margin-top: 0; /* Centré dans la zone principale */ }
+        .pin-zone { width: 32px; height: 32px; background: rgba(0,0,0,0.2); border: 2px dashed rgba(255,255,255,0.6); position: absolute; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; z-index: 10; }
+        .pin-zone.correct { background: lime; border-color: lime; opacity: 0.5; }
+
+        /* Feu de Circulation Visuel */
+        #traffic-light {
+            position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 200px; background: #2c3e50; border-radius: 10px; padding: 10px;
+            display: flex; flex-direction: column; justify-content: space-around; align-items: center;
+            border: 5px solid #1c2a39;
+        }
+        .light {
+            width: 60px; height: 60px; background: #34495e; border-radius: 50%; border: 3px solid #1c2a39;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            opacity: 0.1; /* Initialement éteint */
+        }
+        .light.red { background: red; box-shadow: 0 0 20px red; }
+        .light.yellow { background: yellow; box-shadow: 0 0 20px yellow; }
+        .light.green { background: lime; box-shadow: 0 0 20px lime; }
+
+        /* Positions Pins (3 LEDs) */
+        #pin-red { top: 10px; right: 140px; } /* Pin 6 (PWM) */
+        #pin-yellow { top: 10px; right: 100px; } /* Pin 5 (PWM) */
+        #pin-green { top: 10px; right: 40px; } /* Pin 3 (PWM) */
+
+        .robot-msg { background: #34495e; color: #fff; padding: 12px; border-radius: 0 15px 15px 15px; max-width: 300px; margin-left: 10px; border-left: 5px solid var(--arduino-teal); }
+        textarea { width: 100%; height: 280px; background: #2b2b2b; color: #f1c40f; border: none; padding: 10px; font-family: monospace; resize: none; margin-top: 10px;}
+        
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+{% include "email_api/_header.html" %}
+
+<div class="sim-container">
+<div class="sidebar">
+    <h2>Niveau 4 : Feu Trilingue</h2>
+    <div class="component" draggable="true" id="comp-led-r">🔴 LED Rouge</div>
+    <div class="component" draggable="true" id="comp-led-y">🟡 LED Orange</div>
+    <div class="component" draggable="true" id="comp-led-g">🟢 LED Verte</div>
+    <hr>
+    <p style="font-size:0.8rem;">
+        ⚠️ **Règles de connexion** : ⚠️<br>
+        1. Rouge sur **Pin 6** (PWM).<br>
+        2. Orange sur **Pin 5** (PWM).<br>
+        3. Verte sur **Pin 3** (PWM).<br>
+    </p>
+
+    <div id="explanation-box">
+        <h4>🎯 But du Niveau : Le Contrôle de la Lumière (PWM)</h4>
+        <p>Ce niveau vous fait découvrir le **PWM** (Pulse Width Modulation), une technique qui permet de **varier l'intensité** d'une LED (et non plus seulement l'allumer ou l'éteindre).</p>
+        
+        <p><strong>Broches PWM :</strong></p>
+        <ul>
+            <li>Les broches 3, 5, 6, 9, 10, 11 sur l'Arduino peuvent faire du PWM (souvent marquées d'un **~**).</li>
+        </ul>
+
+        <p><strong>Les Méthodes Clés :</strong></p>
+        <ul>
+            <li><code>analogWrite(pin, **valeur**)</code> : Permet de donner une tension variable, entre 0 (éteint) et 255 (plein feu).</li>
+            <li><code>for loop</code> : Répète une action plusieurs fois. Nous l'utilisons pour faire passer l'intensité de 0 à 255 progressivement.</li>
+        </ul>
+    </div>
+    </div>
+
+<div class="main-area">
+    
+    <div class="arduino-board">
+        <span style="position: absolute; top:10px; left:10px; font-size:0.8rem;">Arduino UNO - Traffic Light System</span>
+        
+        <div id="traffic-light">
+            <div class="light" id="sim-red" style="opacity: 0.1;"></div>
+            <div class="light" id="sim-yellow" style="opacity: 0.1;"></div>
+            <div class="light" id="sim-green" style="opacity: 0.1;"></div>
+        </div>
+
+        <div class="pin-zone" id="pin-red" data-role="red-led">6 ~</div>
+        <div class="pin-zone" id="pin-yellow" data-role="yellow-led">5 ~</div>
+        <div class="pin-zone" id="pin-green" data-role="green-led">3 ~</div>
+    </div>
+
+    <div style="position: absolute; bottom: 20px; left: 20px; display:flex; align-items:flex-end;">
+        <div style="font-size: 3rem;">🤖</div>
+        <div class="robot-msg" id="robot-text">Connecte les 3 LEDs aux broches PWM (3, 5, 6) pour commencer.</div>
+    </div>
+</div>
+
+<div class="code-panel">
+    <h3>Code Feu (À observer !)</h3>
+    <textarea id="code-editor" spellcheck="false">
+void setup() {
+  // En PWM, les broches sont implicitement en OUTPUT, mais on les définit pour clarté
+  pinMode(6, OUTPUT); // Rouge
+  pinMode(5, OUTPUT); // Orange
+  pinMode(3, OUTPUT); // Vert
+}
+
+void loop() {
+  // 1. ROUGE (Stop)
+  digitalWrite(6, HIGH); // Rouge ON (Digital, car plein gaz)
+  digitalWrite(3, LOW);  // Vert OFF
+  delay(3000);
+
+  // 2. ORANGE PROGRESSIF (Préparation)
+  // Rouge OFF
+  digitalWrite(6, LOW); 
+  
+  // Utilise une boucle 'for' pour faire monter la lumière de 0 à 255
+  for (int intensity = 0; intensity <= 255; intensity += 5) {
+    // analogWrite utilise 0 (éteint) à 255 (plein gaz)
+    analogWrite(5, intensity); 
+    delay(20);
+  }
+  
+  // 3. VERT (Go)
+  digitalWrite(5, LOW); // Orange OFF
+  digitalWrite(3, HIGH); // Vert ON
+  delay(5000); 
+
+  // 4. ORANGE PROGRESSIF (Arrêt imminent)
+  digitalWrite(3, LOW); // Vert OFF
+
+  // Utilise une boucle 'for' pour faire descendre la lumière de 255 à 0
+  for (int intensity = 255; intensity >= 0; intensity -= 5) {
+    analogWrite(5, intensity);
+    delay(20);
+  }
+}
+</textarea>
+    <button style="background:var(--arduino-teal); color:white; padding:10px; border:none; border-radius:5px; margin-top:10px; cursor:pointer;" onclick="runCode()">▶ Démarrer le Feu</button>
+</div>
+</div>
+
+<script>
+    const state = { redLedOk: false, yellowLedOk: false, greenLedOk: false, running: false };
+    
+    // --- DRAG & DROP ---
+    document.querySelectorAll('.component').forEach(c => {
+        c.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('id', e.target.id); 
+            e.target.classList.add('dragging');
+        });
+        c.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
+    });
+
+    document.querySelectorAll('.pin-zone').forEach(z => {
+        z.addEventListener('dragover', e => e.preventDefault());
+        z.addEventListener('drop', e => {
+            e.preventDefault();
+            
+            const id = e.dataTransfer.getData('id'); 
+            const role = z.dataset.role;
+
+            let componentPlaced = false;
+
+            if (id === 'comp-led-r' && role === 'red-led') {
+                state.redLedOk = true;
+                componentPlaced = true;
+                updateRobot("✅ LED Rouge connectée sur Pin 6. Elle utilise `digitalWrite` (ON/OFF).", "lime");
+            } else if (id === 'comp-led-y' && role === 'yellow-led') {
+                state.yellowLedOk = true;
+                componentPlaced = true;
+                updateRobot("✅ LED Orange connectée sur Pin 5. Elle utilisera `analogWrite` pour varier.", "lime");
+            } else if (id === 'comp-led-g' && role === 'green-led') {
+                state.greenLedOk = true;
+                componentPlaced = true;
+                updateRobot("✅ LED Verte connectée sur Pin 3. Elle utilise `digitalWrite` (ON/OFF).", "lime");
+            } else if (id === 'comp-wires') {
+                componentPlaced = true;
+            }
+            
+            if (componentPlaced) z.classList.add('correct');
+            checkReady(); 
+        });
+    });
+
+    function checkReady() {
+        if(state.redLedOk && state.yellowLedOk && state.greenLedOk) {
+            updateRobot("🎉 Montage OK ! Clique sur 'Démarrer le Feu' pour voir le PWM en action sur la LED Orange.", "orange");
+        }
+    }
+
+    function updateRobot(txt, color) {
+        const r = document.getElementById('robot-text');
+        r.textContent = txt;
+        r.style.borderLeftColor = color;
+    }
+
+    // --- INTERPRETEUR STABLE DU NIVEAU 4 ---
+    async function runCode() {
+        // 1. Vérification du montage
+        if(!state.redLedOk || !state.yellowLedOk || !state.greenLedOk) { 
+            updateRobot("Erreur : Il faut connecter les LEDs Rouge (6), Orange (5) et Verte (3).", "red"); 
+            return;
+        }
+        
+        // Définition des constantes ARDUINO en JavaScript
+        const HIGH = 'HIGH'; 
+        const LOW = 'LOW';
+        
+        state.running = true;
+        updateRobot("Feu de circulation DÉMARRÉ. Observez la LED Orange varier grâce au PWM (Analog Write).", "#3498db");
+
+        const rawCode = document.getElementById('code-editor').value;
+        let loopBody = rawCode.match(/void\s+loop\s*\(\)\s*\{([\s\S]*)\}/)[1];
+
+        // Transpilation : Remplacement de analogWrite et des boucles 'for'
+        loopBody = loopBody
+            .replace(/int\s+/g, 'let ')
+            .replace(/digitalWrite\((\d+),\s*(\w+)\)/g, 'setPin($1, $2)') 
+            .replace(/analogWrite\((\d+),\s*(\w+)\)/g, 'setPWM($1, $2)') 
+            .replace(/delay\((\d+)\)/g, 'await wait($1)');
+
+        // Construction de la fonction
+        const loopFn = new Function('setPin', 'setPWM', 'wait', 'HIGH', 'LOW', `
+            return async function() {
+                ${loopBody}
+            }
+        `);
+
+        // Mapping des fonctions système
+        const setPin = (p, v) => {
+            const lightId = (p == 6) ? 'sim-red' : (p == 5) ? 'sim-yellow' : 'sim-green';
+            const lightElement = document.getElementById(lightId);
+            
+            if (v === HIGH) {
+                if (lightId === 'sim-red') lightElement.classList.add('red');
+                else if (lightId === 'sim-green') lightElement.classList.add('green');
+                else if (lightId === 'sim-yellow') lightElement.classList.add('yellow');
+                lightElement.style.opacity = 1; // Pleine intensité
+            } else if (v === LOW) {
+                lightElement.classList.remove('red', 'yellow', 'green');
+                lightElement.style.opacity = 0.1; // Éteint
+            }
+        };
+
+        const setPWM = (p, v) => {
+            if (p == 5) { // LED Orange
+                const lightElement = document.getElementById('sim-yellow');
+                const opacity = v / 255; 
+                lightElement.style.opacity = opacity;
+                if (v > 0) {
+                    lightElement.classList.add('yellow'); 
+                } else {
+                    lightElement.classList.remove('yellow');
+                }
+            } else {
+                setPin(p, v > 0 ? HIGH : LOW);
+            }
+        };
+
+        const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+        // Démarrage de la fonction
+        const runLoop = loopFn(setPin, setPWM, wait, HIGH, LOW); 
+        
+        async function cycle() {
+            if(!state.running) return;
+            try {
+                 await runLoop();
+            } catch (e) {
+                updateRobot("❌ Erreur dans la boucle. Vérifiez si votre syntaxe `for` est correcte.", "red");
+                console.error("Erreur d'exécution du code transpilé:", e);
+                state.running = false; 
+                return;
+            }
+            if(state.running) setTimeout(cycle, 10);
+        }
+        cycle();
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Arduino Programmable</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        :root {
+            --arduino-teal: #00979C;
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+            --traffic-red-off: #550000; --traffic-red-on: #ff0000;
+            --traffic-orange-off: #664400; --traffic-orange-on: #ffaa00;
+            --traffic-green-off: #004400; --traffic-green-on: #00ff00;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--dark-bg); color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sim-container {
+            display: flex; gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* --- Sidebar & Layout --- */
+        .sidebar {
+            width: 260px; background: var(--panel-bg); padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .main-area {
+            flex-grow: 1; background: #fff; border-radius: 10px; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .code-panel {
+            width: 380px; background: #1e1e1e; color: #fff; padding: 15px;
+            border-radius: 10px; display: flex; flex-direction: column;
+        }
+
+        /* --- Components --- */
+        .component {
+            background: #fff; border: 2px solid #ccc; padding: 8px;
+            border-radius: 5px; cursor: grab; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.9rem; user-select: none;
+        }
+        .icon-led { width: 15px; height: 15px; border-radius: 50%; display: inline-block; border: 1px solid #333; }
+        .i-red { background: red; } .i-orange { background: orange; } .i-green { background: lime; }
+        .icon-res { width: 25px; height: 8px; background: gold; border: 2px solid brown; display: inline-block; }
+
+        /* --- Arduino Board --- */
+        .arduino-board {
+            width: 500px; height: 350px; background: var(--arduino-teal);
+            position: relative; border-radius: 5px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); color: white; font-weight: bold;
+        }
+        .pin-zone {
+            width: 35px; height: 35px; background: rgba(0,0,0,0.3);
+            border: 2px dashed rgba(255,255,255,0.5); position: absolute;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 0.7rem; transition: 0.3s;
+        }
+        .pin-zone.highlight { background: rgba(255, 255, 0, 0.4); border-color: yellow; }
+        .pin-zone.correct { background: rgba(0, 255, 0, 0.4); border-color: lime; }
+        
+        #pin-gnd { bottom: 10px; left: 180px; }
+        #pin-13 { top: 10px; right: 120px; }
+        #pin-12 { top: 10px; right: 80px; }
+        #pin-11 { top: 10px; right: 40px; }
+
+        /* --- Traffic Light Visuals --- */
+        .traffic-light-container {
+            position: absolute; top: 50%; left: 40%; transform: translate(-50%, -50%);
+            background: #222; padding: 10px; border-radius: 15px;
+            display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .sim-led {
+            width: 40px; height: 40px; border-radius: 50%; background: #444;
+            border: 2px solid #111; transition: background-color 0.1s, box-shadow 0.1s;
+        }
+        .sim-led.red-connected { background: var(--traffic-red-off); }
+        .sim-led.orange-connected { background: var(--traffic-orange-off); }
+        .sim-led.green-connected { background: var(--traffic-green-off); }
+        
+        .sim-led.red-on { background: var(--traffic-red-on); box-shadow: 0 0 25px var(--traffic-red-on); }
+        .sim-led.orange-on { background: var(--traffic-orange-on); box-shadow: 0 0 25px var(--traffic-orange-on); }
+        .sim-led.green-on { background: var(--traffic-green-on); box-shadow: 0 0 25px var(--traffic-green-on); }
+
+        /* --- Robot --- */
+        .robot-assistant {
+            position: absolute; bottom: 20px; left: 20px; display: flex; align-items: flex-end; gap: 10px; width: 80%;
+        }
+        .robot-avatar { font-size: 3rem; animation: bounce 2s infinite; }
+        .robot-msg {
+            background: #333; color: #fff; padding: 10px 15px;
+            border-radius: 15px 15px 15px 0; font-size: 0.9rem; max-width: 300px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); border-left: 5px solid var(--arduino-teal);
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* --- Code Editor --- */
+        textarea {
+            width: 100%; height: 300px; background: #2b2b2b; color: #f8f8f2;
+            border: 1px solid #444; font-family: 'Courier New', monospace;
+            padding: 10px; resize: none; font-size: 0.85rem; outline: none;
+        }
+        textarea:focus { border-color: var(--arduino-teal); }
+        
+        .controls { display: flex; gap: 5px; margin-top: 10px; }
+        .btn {
+            flex: 1; padding: 10px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; color: white;
+        }
+        .btn-run { background: var(--arduino-teal); }
+        .btn-run:hover { background: #007f83; }
+        .btn-stop { background: #c0392b; display: none; }
+        
+        .quick-actions { display: flex; gap: 5px; margin-bottom: 5px; }
+        .btn-mini {
+            background: #444; color: #ccc; border: none; padding: 5px 10px;
+            font-size: 0.75rem; border-radius: 3px; cursor: pointer;
+        }
+        .btn-mini:hover { background: #666; color: white; }
+        
+        /* Header fix for dark mode */
+        header { background: white; }
+
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="sim-container">
+    <div class="sidebar">
+        <h2>Composants</h2>
+        <div class="component" draggable="true" id="comp-led-red"><span class="icon-led i-red"></span> LED Rouge</div>
+        <div class="component" draggable="true" id="comp-led-orange"><span class="icon-led i-orange"></span> LED Orange</div>
+        <div class="component" draggable="true" id="comp-led-green"><span class="icon-led i-green"></span> LED Verte</div>
+        <div class="component" draggable="true" id="comp-res"><span class="icon-res"></span> Résistance (GND)</div>
+        
+        <div style="font-size: 0.8rem; color: #666; margin-top: 20px;">
+            <p><strong>Instructions :</strong></p>
+            <ol>
+                <li>Fais le montage (GND + 3 LEDs).</li>
+                <li>Modifie le code à droite.</li>
+                <li>Utilise <code>digitalWrite(13, HIGH);</code> pour allumer.</li>
+                <li>Clique sur "Exécuter".</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="main-area">
+        <div class="arduino-board">
+            <span style="position: absolute; top: 10px; left: 10px;">Arduino UNO - Programmable</span>
+            <div class="traffic-light-container">
+                <div id="sim-led-red" class="sim-led"></div>
+                <div id="sim-led-orange" class="sim-led"></div>
+                <div id="sim-led-green" class="sim-led"></div>
+            </div>
+            <div class="pin-zone" id="pin-13" data-role="red">13</div>
+            <div class="pin-zone" id="pin-12" data-role="orange">12</div>
+            <div class="pin-zone" id="pin-11" data-role="green">11</div>
+            <div class="pin-zone" id="pin-gnd" data-role="gnd">GND</div>
+        </div>
+
+        <div class="robot-assistant">
+            <div class="robot-avatar">🤖</div>
+            <div class="robot-msg" id="robot-text">
+                Salut Dev ! Connecte les composants, puis écris ton propre code pour contrôler les lumières.
+            </div>
+        </div>
+    </div>
+
+    <div class="code-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Code (Editable)</h2>
+        </div>
+        <div class="quick-actions">
+            <button class="btn-mini" onclick="loadSnippet('all')">Tout Allumer</button>
+            <button class="btn-mini" onclick="loadSnippet('blink')">Clignoter Rouge</button>
+            <button class="btn-mini" onclick="loadSnippet('traffic')">Feu Tricolore</button>
+        </div>
+        <textarea id="code-editor" spellcheck="false">// Fais le montage d'abord...
+void loop() {
+  digitalWrite(13, HIGH); // Rouge
+  digitalWrite(12, HIGH); // Orange
+  digitalWrite(11, HIGH); // Vert
+}</textarea>
+        <div class="controls">
+            <button id="btn-start" class="btn btn-run" onclick="runCode()">▶ Exécuter</button>
+            <button id="btn-stop" class="btn btn-stop" onclick="stopCode()">⏹ Arrêter</button>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // --- ETAT & CONFIG ---
+        const state = { redOk: false, orangeOk: false, greenOk: false, gndOk: false, isRunning: false };
+        let executionTimer = null;
+        let loopInstructions = []; // Stocke les commandes parsées
+        let currentStep = 0;
+
+        // --- DRAG & DROP ---
+        const draggables = document.querySelectorAll('.component');
+        const dropZones = document.querySelectorAll('.pin-zone');
+        const robotText = document.getElementById('robot-text');
+        const visualLeds = {
+            red: document.getElementById('sim-led-red'),
+            orange: document.getElementById('sim-led-orange'),
+            green: document.getElementById('sim-led-green')
+        };
+
+        draggables.forEach(d => {
+            d.addEventListener('dragstart', () => d.classList.add('dragging'));
+            d.addEventListener('dragend', () => d.classList.remove('dragging'));
+        });
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('highlight'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('highlight'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault(); zone.classList.remove('highlight');
+                handleDrop(document.querySelector('.dragging').id, zone);
+            });
+        });
+
+        function handleDrop(compId, zone) {
+            const role = zone.dataset.role;
+            if (compId === 'comp-res' && role === 'gnd') {
+                state.gndOk = true; zone.classList.add('correct');
+                updateRobot("Masse (GND) connectée !", "success");
+            } else {
+                const map = { 'comp-led-red': 'red', 'comp-led-orange': 'orange', 'comp-led-green': 'green' };
+                if (map[compId] === role) {
+                    state[role + 'Ok'] = true; zone.classList.add('correct');
+                    visualLeds[role].classList.add(role + '-connected');
+                    updateRobot("LED connectée. Continue !", "neutral");
+                } else if (role !== 'gnd') {
+                    updateRobot("Mauvaise Pin ! Vérifie les couleurs.", "error");
+                }
+            }
+            checkReady();
+        }
+
+        function updateRobot(msg, type) {
+            robotText.textContent = msg;
+            robotText.style.borderLeftColor = type === 'error' ? 'red' : (type === 'success' ? 'lime' : '#00979C');
+        }
+
+        function checkReady() {
+            if (state.redOk && state.orangeOk && state.greenOk && state.gndOk) {
+                updateRobot("Montage OK ! Maintenant, modifie le code à droite et clique sur 'Exécuter'.", "success");
+            }
+        }
+
+        // --- INTERPRÉTEUR DE CODE (C++ vers JS) ---
+        
+        function parseCode() {
+            const rawCode = document.getElementById('code-editor').value;
+            // Extraction simple du contenu de void loop()
+            const loopContent = rawCode.match(/void\s+loop\s*\(\)\s*\{([\s\S]*?)\}/);
+            
+            if (!loopContent) {
+                updateRobot("Erreur : Je ne trouve pas 'void loop() { ... }'.", "error");
+                return null;
+            }
+
+            const lines = loopContent[1].split(';');
+            const instructions = [];
+
+            lines.forEach(line => {
+                line = line.trim();
+                // Regex pour digitalWrite(pin, VAL)
+                const dwMatch = line.match(/digitalWrite\s*\(\s*(\d+)\s*,\s*(HIGH|LOW)\s*\)/i);
+                // Regex pour delay(ms)
+                const dlMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
+
+                if (dwMatch) {
+                    instructions.push({ type: 'write', pin: dwMatch[1], val: dwMatch[2].toUpperCase() });
+                } else if (dlMatch) {
+                    instructions.push({ type: 'delay', ms: parseInt(dlMatch[1]) });
+                }
+            });
+
+            if (instructions.length === 0) {
+                updateRobot("Le code est vide ou je ne comprends pas les commandes. Utilise digitalWrite et delay.", "error");
+                return null;
+            }
+            return instructions;
+        }
+
+        async function runCode() {
+            if (!state.redOk || !state.gndOk) { // Minima requis
+                updateRobot("Connecte au moins la masse et une LED avant de lancer le code.", "error");
+                return;
+            }
+
+            loopInstructions = parseCode();
+            if (!loopInstructions) return;
+
+            state.isRunning = true;
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'inline-block';
+            updateRobot("Code en cours d'exécution...", "success");
+
+            executeLoop();
+        }
+
+        async function executeLoop() {
+            if (!state.isRunning) return;
+
+            for (const instr of loopInstructions) {
+                if (!state.isRunning) break; // Arrêt immédiat
+
+                if (instr.type === 'write') {
+                    applyLight(instr.pin, instr.val);
+                } else if (instr.type === 'delay') {
+                    await new Promise(r => executionTimer = setTimeout(r, instr.ms));
+                }
+            }
+
+            // Boucle infinie comme Arduino
+            if (state.isRunning) {
+                 // Petit délai technique pour ne pas bloquer le navigateur si pas de delay() user
+                executionTimer = setTimeout(executeLoop, 10); 
+            }
+        }
+
+        function applyLight(pin, val) {
+            let color = '';
+            if (pin === '13') color = 'red';
+            if (pin === '12') color = 'orange';
+            if (pin === '11') color = 'green';
+
+            if (color && visualLeds[color]) {
+                if (val === 'HIGH') visualLeds[color].classList.add(color + '-on');
+                else visualLeds[color].classList.remove(color + '-on');
+            }
+        }
+
+        function stopCode() {
+            state.isRunning = false;
+            clearTimeout(executionTimer);
+            // Reset lumières
+            ['red', 'orange', 'green'].forEach(c => visualLeds[c].classList.remove(c + '-on'));
+            
+            document.getElementById('btn-start').style.display = 'inline-block';
+            document.getElementById('btn-stop').style.display = 'none';
+            updateRobot("Exécution arrêtée.", "neutral");
+        }
+
+        // --- SNIPPETS (Boutons rapides) ---
+        function loadSnippet(type) {
+            let code = `void setup() {\n  pinMode(13, OUTPUT);\n  pinMode(12, OUTPUT);\n  pinMode(11, OUTPUT);\n}\n\nvoid loop() {\n`;
+            
+            if (type === 'all') {
+                code += `  // Tout allumer\n  digitalWrite(13, HIGH);\n  digitalWrite(12, HIGH);\n  digitalWrite(11, HIGH);\n  delay(1000);\n  digitalWrite(13, LOW);\n  digitalWrite(12, LOW);\n  digitalWrite(11, LOW);\n  delay(1000);\n`;
+            } else if (type === 'blink') {
+                code += `  // Faire clignoter le rouge\n  digitalWrite(13, HIGH);\n  delay(500);\n  digitalWrite(13, LOW);\n  delay(500);\n`;
+            } else if (type === 'traffic') {
+                code += `  // Séquence Feu Rouge\n  digitalWrite(13, HIGH); // Rouge\n  digitalWrite(12, LOW);\n  digitalWrite(11, LOW);\n  delay(2000);\n\n  digitalWrite(13, LOW);\n  digitalWrite(11, HIGH); // Vert\n  delay(2000);\n\n  digitalWrite(11, LOW);\n  digitalWrite(12, HIGH); // Orange\n  delay(1000);\n  digitalWrite(12, LOW);\n`;
+            }
+            code += `}`;
+            document.getElementById('code-editor').value = code;
+        }
+    </script>
+</body>
+</html>

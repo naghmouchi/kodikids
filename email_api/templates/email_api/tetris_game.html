@@ -1,0 +1,509 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris V2 - Kodikids</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        /* Polices pour le jeu */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        /* Variables spécifiques au jeu pour ne pas polluer le reste du site */
+        .tetris-wrapper {
+            --game-bg: #0d1117;
+            --game-text: #00ff41;
+            --game-panel: #1f2937;
+            --game-input: #374151;
+            --game-white: #ffffff;
+            --cell-size: 35px;
+        }
+
+        /* Isolation du style du jeu */
+        .tetris-wrapper {
+            background-color: var(--game-bg);
+            color: var(--game-white);
+            font-family: 'Inter', sans-serif;
+            min-height: calc(100vh - 80px); /* Hauteur totale moins le header approx */
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tetris-wrapper .game-title {
+            font-family: 'Press Start 2P', cursive;
+            color: var(--game-text);
+            text-shadow: 2px 2px #00a02c;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .tetris-wrapper #game-canvas {
+            display: block;
+            border: 4px solid var(--game-text);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5), inset 0 0 10px rgba(0, 255, 65, 0.3);
+            background: rgba(0, 0, 0, 0.9);
+            touch-action: none; 
+        }
+
+        .tetris-wrapper #js-code-input {
+            font-family: monospace;
+            width: 100%;
+            min-height: 200px;
+            background-color: #111827;
+            border: 1px solid #4b5563;
+            color: #ffffff;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 0.5rem;
+            resize: none;
+            box-sizing: border-box;
+        }
+        
+        .tetris-wrapper .game-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 2rem;
+            align-items: flex-start;
+            justify-content: center;
+            background-color: var(--game-panel);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 1100px;
+            width: 100%;
+        }
+        
+        .tetris-wrapper .left-panel {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .tetris-wrapper .right-panel {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .tetris-wrapper .status-box {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem;
+            background-color: var(--game-bg);
+            border: 2px solid #374151;
+            border-radius: 0.5rem;
+        }
+        .tetris-wrapper .status-item { text-align: center; }
+        .tetris-wrapper .status-label { font-size: 0.875rem; color: #9ca3af; margin-bottom: 0.25rem; }
+        .tetris-wrapper .status-value { font-family: 'Press Start 2P', cursive; font-size: 1.25rem; color: var(--game-text); margin: 0; }
+
+        .tetris-wrapper .code-box {
+            background-color: var(--game-input);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+        .tetris-wrapper .code-title { font-family: 'Press Start 2P', cursive; font-size: 1rem; margin-bottom: 0.75rem; color: var(--game-white); }
+        .tetris-wrapper .code-desc { font-size: 0.875rem; color: #d1d5db; margin-bottom: 0.5rem; }
+
+        .tetris-wrapper #execution-status {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #111827;
+            color: #4ade80;
+            font-size: 0.875rem;
+            font-family: monospace;
+            border-radius: 0.25rem;
+        }
+
+        .tetris-wrapper .btn {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            color: white;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .tetris-wrapper .btn:hover { transform: scale(1.02); }
+        .tetris-wrapper .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .tetris-wrapper .btn-run { background-color: #dc2626; font-family: 'Press Start 2P', cursive; margin-top: 1rem; }
+        .tetris-wrapper .btn-run:hover { background-color: #b91c1c; }
+
+        .tetris-wrapper .controls-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 1rem;
+            background-color: var(--game-bg);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #374151;
+        }
+        .tetris-wrapper .btn-start { background-color: #14b8a6; }
+        .tetris-wrapper .btn-start:hover { background-color: #0d9488; }
+        .tetris-wrapper .btn-pause { background-color: #eab308; }
+        .tetris-wrapper .btn-pause:hover { background-color: #ca8a04; }
+
+        /* Modal */
+        #game-over-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.75);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        #game-over-modal.flex { display: flex; }
+        .modal-content {
+            background-color: #1f2937;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border: 4px solid #ef4444;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            color: white;
+        }
+        .modal-title { font-family: 'Press Start 2P', cursive; font-size: 2rem; color: #ef4444; margin-bottom: 1rem; }
+        .modal-text { color: white; font-size: 1.125rem; margin-bottom: 1.5rem; }
+        .btn-restart { background-color: #16a34a; padding: 0.75rem 1.5rem; color: white; border: none; border-radius: 0.5rem; font-weight: bold; cursor: pointer; }
+        .btn-restart:hover { background-color: #15803d; }
+
+        @media (max-width: 768px) {
+            .tetris-wrapper .game-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            .tetris-wrapper .right-panel { width: 100%; }
+            .tetris-wrapper .game-title { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="tetris-wrapper">
+        <h1 class="game-title">JS-Tetris V2</h1>
+
+        <div class="game-layout">
+            <!-- 1. Game Canvas -->
+            <div class="left-panel">
+                <canvas id="game-canvas"></canvas>
+            </div>
+            
+            <!-- 2. Status & JS Executor -->
+            <div class="right-panel">
+                <div id="game-status" class="status-box">
+                    <div class="status-item">
+                        <p class="status-label">SCORE</p>
+                        <p id="score-display" class="status-value">0</p>
+                    </div>
+                    <div class="status-item">
+                        <p class="status-label">LEVEL</p>
+                        <p id="level-display" class="status-value">1</p>
+                    </div>
+                    <div class="status-item">
+                        <p class="status-label">NEXT</p>
+                        <canvas id="next-piece-canvas" width="100" height="100" style="border: 2px solid #374151; border-radius: 0.25rem; background: #000;"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. JavaScript Command Simulator -->
+                <div class="code-box">
+                    <h2 class="code-title">JavaScript Input</h2>
+                    <p class="code-desc">Utilise <code>moveLeft()</code>, <code>moveRight()</code>, <code>rotate()</code>, ou <code>softDrop()</code>.</p>
+
+                    <textarea id="js-code-input" placeholder="e.g.,&#10;softDrop();&#10;moveLeft();&#10;rotate();&#10;softDrop();"></textarea>
+                    
+                    <div id="execution-status">Prêt. Clique sur 'Start Game' ou RUN CODE.</div>
+
+                    <div>
+                        <button id="run-button" onclick="executeCommands()" class="btn btn-run">RUN CODE</button>
+                    </div>
+                </div>
+                
+                <!-- 4. Game Control Buttons -->
+                <div class="controls-row">
+                    <button id="start-button" onclick="startGame()" class="btn btn-start">Start Game</button>
+                    <button id="pause-button" onclick="togglePause()" class="btn btn-pause" disabled>Pause</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">GAME OVER</h2>
+            <p class="modal-text">Score Final: <span id="final-score" style="color: #facc15;">0</span></p>
+            <button onclick="resetGame()" class="btn-restart">Rejouer</button>
+        </div>
+    </div>
+
+<script>
+    // --- Configuration ---
+    const COLS = 10;
+    const ROWS = 20;
+    const CELL_SIZE = 35; 
+    const PADDING = 2; 
+    const EXECUTION_DELAY_MS = 200; 
+
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const nextPieceCanvas = document.getElementById('next-piece-canvas');
+    const nextPieceCtx = nextPieceCanvas.getContext('2d');
+    const codeInput = document.getElementById('js-code-input');
+    const statusDisplay = document.getElementById('execution-status');
+    
+    const PREVIEW_CELL_SIZE = 20; 
+    const PREVIEW_PADDING = 2;
+
+    canvas.width = COLS * CELL_SIZE;
+    canvas.height = ROWS * CELL_SIZE;
+
+    let grid, currentPiece, nextPiece, score = 0, level = 1;
+    let gameLoop, lastTime = 0, dropCounter = 0, dropInterval = 1000;
+    let isPaused = false, isGameOver = true, isExecuting = false;
+
+    const SHAPES = [
+        { matrix: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#00ffff' }, // I
+        { matrix: [[1,0,0],[1,1,1],[0,0,0]], color: '#0000ff' }, // J
+        { matrix: [[0,0,1],[1,1,1],[0,0,0]], color: '#ffaa00' }, // L
+        { matrix: [[1,1],[1,1]], color: '#ffff00' }, // O
+        { matrix: [[0,1,1],[1,1,0],[0,0,0]], color: '#00ff00' }, // S
+        { matrix: [[0,1,0],[1,1,1],[0,0,0]], color: '#800080' }, // T
+        { matrix: [[1,1,0],[0,1,1],[0,0,0]], color: '#ff0000' }  // Z
+    ];
+
+    function createGrid() { return Array.from({ length: ROWS }, () => Array(COLS).fill(0)); }
+
+    function getNewPiece() {
+        const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+        return {
+            matrix: shape.matrix,
+            color: shape.color,
+            x: Math.floor(COLS / 2) - Math.floor(shape.matrix[0].length / 2),
+            y: 0
+        };
+    }
+
+    function drawBlock(context, x, y, color, size, padding) {
+        if (color === 0) return;
+        context.fillStyle = color;
+        context.fillRect(x * size + padding, y * size + padding, size - padding * 2, size - padding * 2);
+        context.strokeStyle = 'rgba(255,255,255,0.5)';
+        context.lineWidth = 1;
+        context.strokeRect(x * size + padding, y * size + padding, size - padding * 2, size - padding * 2);
+    }
+
+    function drawPiece(context, piece) {
+        if (!piece) return;
+        piece.matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value) drawBlock(context, piece.x + x, piece.y + y, piece.color, CELL_SIZE, PADDING);
+            });
+        });
+    }
+
+    function drawGrid() {
+        grid.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value !== 0) drawBlock(ctx, x, y, value, CELL_SIZE, PADDING);
+            });
+        });
+    }
+
+    function checkCollision(piece, xOffset = 0, yOffset = 0) {
+        if (!piece) return true;
+        const matrix = piece.matrix;
+        for (let y = 0; y < matrix.length; y++) {
+            for (let x = 0; x < matrix[y].length; x++) {
+                if (matrix[y][x] !== 0) {
+                    const nextX = piece.x + x + xOffset;
+                    const nextY = piece.y + y + yOffset;
+                    if (nextX < 0 || nextX >= COLS || nextY >= ROWS || (nextY >= 0 && grid[nextY][nextX] !== 0)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function mergePiece() {
+        currentPiece.matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value && currentPiece.y + y >= 0) grid[currentPiece.y + y][currentPiece.x + x] = currentPiece.color;
+            });
+        });
+        checkLines();
+        spawnNextPiece();
+    }
+
+    function rotatePiece() {
+        if (isGameOver) return;
+        const matrix = currentPiece.matrix;
+        const N = matrix.length;
+        const rotated = matrix[0].map((val, index) => matrix.map(row => row[index]).reverse());
+        const prevMatrix = currentPiece.matrix;
+        currentPiece.matrix = rotated;
+        if (checkCollision(currentPiece)) {
+            if (!checkCollision(currentPiece, 1, 0)) currentPiece.x += 1;
+            else if (!checkCollision(currentPiece, -1, 0)) currentPiece.x -= 1;
+            else currentPiece.matrix = prevMatrix;
+        }
+    }
+
+    function checkLines() {
+        let linesCleared = 0;
+        for (let y = ROWS - 1; y >= 0; y--) {
+            if (grid[y].every(value => value !== 0)) {
+                grid.splice(y, 1);
+                grid.unshift(Array(COLS).fill(0));
+                linesCleared++;
+                y++; 
+            }
+        }
+        if (linesCleared > 0) {
+            score += [0, 100, 300, 500, 800][linesCleared] * level; 
+            level = 1 + Math.floor(score / 5000);
+            dropInterval = Math.max(100, 1000 - (level - 1) * 50);
+            updateStatus();
+        }
+    }
+
+    function spawnNextPiece() {
+        currentPiece = nextPiece;
+        nextPiece = getNewPiece();
+        if (checkCollision(currentPiece)) gameOver();
+        drawNextPiece();
+    }
+    
+    function drawNextPiece() {
+        nextPieceCtx.fillStyle = 'black';
+        nextPieceCtx.fillRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
+        const N = nextPiece.matrix.length;
+        const offsetX = Math.floor((100/PREVIEW_CELL_SIZE - N) / 2);
+        const offsetY = Math.floor((100/PREVIEW_CELL_SIZE - N) / 2);
+        nextPiece.matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value) drawBlock(nextPieceCtx, x + offsetX, y + offsetY, nextPiece.color, PREVIEW_CELL_SIZE, PREVIEW_PADDING);
+            });
+        });
+    }
+
+    function update(time = 0) {
+        if (isPaused || isGameOver) return;
+        const deltaTime = time - lastTime;
+        lastTime = time;
+        if (!isExecuting) {
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) {
+                softDrop();
+                dropCounter = 0;
+            }
+        }
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawGrid();
+        drawPiece(ctx, currentPiece);
+        gameLoop = requestAnimationFrame(update);
+    }
+
+    function moveLeft() { if (!isGameOver && !checkCollision(currentPiece, -1, 0)) currentPiece.x--; }
+    function moveRight() { if (!isGameOver && !checkCollision(currentPiece, 1, 0)) currentPiece.x++; }
+    function rotate() { rotatePiece(); }
+    function softDrop() {
+        if (isGameOver) return;
+        if (!checkCollision(currentPiece, 0, 1)) currentPiece.y++;
+        else mergePiece();
+        updateStatus();
+    }
+
+    async function executeCommands() {
+        if (isExecuting) return;
+        if (isGameOver) { startGame(); await new Promise(r => setTimeout(r, 50)); }
+        isExecuting = true;
+        statusDisplay.textContent = 'Exécution...';
+        const commands = codeInput.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const actions = { moveLeft, moveRight, rotate, softDrop };
+        
+        for (let cmd of commands) {
+            if (isGameOver) break;
+            const match = cmd.match(/^(\w+)\(\);?$/);
+            if (match && actions[match[1]]) {
+                actions[match[1]]();
+                await new Promise(r => setTimeout(r, EXECUTION_DELAY_MS));
+            }
+        }
+        isExecuting = false;
+        statusDisplay.textContent = isGameOver ? 'Game Over.' : 'Terminé.';
+    }
+
+    function updateStatus() {
+        document.getElementById('score-display').textContent = score;
+        document.getElementById('level-display').textContent = level;
+    }
+
+    function startGame() {
+        isGameOver = false; grid = createGrid(); score = 0; level = 1; dropInterval = 1000; isPaused = false;
+        currentPiece = getNewPiece(); nextPiece = getNewPiece();
+        updateStatus();
+        document.getElementById('start-button').disabled = true;
+        document.getElementById('pause-button').disabled = false;
+        document.getElementById('game-over-modal').classList.remove('flex');
+        statusDisplay.textContent = 'Jeu lancé.';
+        if (gameLoop) cancelAnimationFrame(gameLoop);
+        update();
+    }
+
+    function togglePause() {
+        if (isGameOver) return;
+        isPaused = !isPaused;
+        document.getElementById('pause-button').textContent = isPaused ? 'Reprendre' : 'Pause';
+        if (!isPaused) update();
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        cancelAnimationFrame(gameLoop);
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('game-over-modal').classList.add('flex');
+        document.getElementById('start-button').disabled = false;
+    }
+
+    function resetGame() {
+        document.getElementById('game-over-modal').classList.remove('flex');
+        startGame();
+    }
+
+    document.addEventListener('keydown', e => {
+        if (isGameOver || isPaused || isExecuting) return;
+        if (e.key === 'ArrowLeft') moveLeft();
+        else if (e.key === 'ArrowRight') moveRight();
+        else if (e.key === 'ArrowDown') softDrop();
+        else if (e.key === 'ArrowUp') rotate();
+    });
+
+    window.onload = () => {
+        grid = createGrid();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
+</script>
+</body>
+</html>
