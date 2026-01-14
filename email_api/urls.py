@@ -56,6 +56,9 @@ urlpatterns = [
     path('play/ia_robot_sim/', views.ia_robot_simulator, name='ia_robot_simulator'),
     path('play/robotic_arm_sim/', views.robotic_arm_simulator, name='robotic_arm_simulator'),
     path('play/blockly_robot_sim/', views.blockly_robot_simulator, name='blockly_robot_simulator'),
-
+    path('play/story_book_v2/', views.story_book_v2, name='story_book_v2'),
+    path('play/stories/', views.story_hub, name='story_hub'),
+    path('play/mobile_sim/', views.mobile_simulator, name='mobile_sim'),
+    path('play/android_sim/', views.android_simulator, name='android_sim'),
 
 ]

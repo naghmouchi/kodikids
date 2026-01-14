@@ -43,6 +43,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # to delete later if not needed youhave to install pip install whitenoise and python manage.py collectstatic
+
     
     # CRITICAL FIX: The CorsMiddleware must be placed before 
     # CommonMiddleware and CsrfViewMiddleware to handle the OPTIONS preflight.

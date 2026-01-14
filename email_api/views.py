@@ -231,3 +231,18 @@ def robotic_arm_simulator(request):
 
 def blockly_robot_simulator(request):
     return render(request, 'email_api/blockly_robot_sim.html')
+
+def story_book_v2(request):
+    return render(request, 'email_api/story_bookv2.html')
+
+def story_hub(request):
+    return render(request, 'email_api/story_hub.html')
+
+def mobile_simulator(request):
+    return render(request, 'email_api/mobile_sim.html')
+
+def android_simulator(request):
+    return render(request, 'email_api/android_sim.html')
+
+def custom_page_not_found(request, exception=None):
+    return render(request, 'email_api/404.html', status=404)

@@ -1,0 +1,296 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Livre Interactif V2</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <style>
+        /* --- Layout Global (Flexbox pour Header + Contenu) --- */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh; /* Pleine hauteur d'écran */
+            display: flex;
+            flex-direction: column; /* Empile le header et le livre */
+            overflow: hidden; /* Empêche le scroll global */
+            background: radial-gradient(circle, #ecf0f1, #bdc3c7);
+            touch-action: none; /* Empêche le zoom/scroll natif du navigateur */
+        }
+
+        /* Le header ne doit pas rétrécir */
+        header {
+            flex: 0 0 auto;
+            z-index: 2000;
+            background: white; /* Assure un fond opaque pour le menu */
+        }
+
+        /* Zone du livre : prend tout l'espace restant */
+        #book-viewport {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 2500px;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Georgia', serif; /* Police spécifique au livre uniquement */
+        }
+
+        /* --- Styles du Livre --- */
+        :root {
+            --book-w: 320px;
+            --book-h: 480px;
+            --page-color: #ffffff;
+            --dock-bg: #2c3e50;
+            --accent-color: #e74c3c;
+        }
+
+        #book-wrapper {
+            position: relative;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.4s ease-out;
+        }
+
+        .book {
+            position: relative;
+            width: var(--book-w);
+            height: var(--book-h);
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .page {
+            position: absolute;
+            width: 100%; height: 100%;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .front, .back {
+            position: absolute;
+            width: 100%; height: 100%;
+            padding: 25px;
+            box-sizing: border-box;
+            backface-visibility: hidden;
+            background: var(--page-color);
+            border-radius: 2px 5px 5px 2px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .front {
+            z-index: 2;
+            background: linear-gradient(to right, #e6e6e6 0%, var(--page-color) 3%, var(--page-color) 100%);
+            box-shadow: inset -1px 0 5px rgba(0,0,0,0.05), 5px 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            background: linear-gradient(to left, #e6e6e6 0%, #fdfdfd 3%, #fdfdfd 100%);
+            box-shadow: inset 1px 0 5px rgba(0,0,0,0.05), -5px 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .page.flipped { transform: rotateY(-180deg); }
+
+        .book-img {
+            width: 100%; height: 180px; object-fit: cover;
+            border-radius: 5px; margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .page-footer {
+            position: absolute; bottom: 15px; left: 0; width: 100%;
+            text-align: center; font-family: Arial, sans-serif; font-size: 0.7rem; color: #bdc3c7;
+        }
+
+        /* --- Dock de Contrôle --- */
+        .dock {
+            position: absolute;
+            bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--dock-bg);
+            padding: 8px 15px; border-radius: 40px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 100; color: white;
+        }
+
+        .dock button { background: none; border: none; color: white; padding: 10px; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s; }
+        .dock button:active { transform: scale(0.9); }
+        .dock button:disabled { opacity: 0.2; }
+        
+        .btn-reset {
+            background: var(--accent-color) !important; font-size: 0.75rem !important;
+            font-weight: bold; padding: 6px 12px !important; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 1px; margin: 0 5px;
+        }
+        .page-counter { font-family: sans-serif; font-size: 0.8rem; min-width: 60px; text-align: center; color: #ecf0f1; }
+        .sep { width: 1px; height: 20px; background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    {% include "email_api/_header.html" %}
+
+    <div id="book-viewport">
+        <div id="book-wrapper">
+            <div class="book" id="book">
+                <!-- Page 1 -->
+                <div class="page" id="p1" style="z-index: 5;">
+                    <div class="front">
+                        <h2>Jojo, Lolo et l'Étoile Magique</h2>
+                        <img class="book-img" src="{% static 'email_api/jojololo_1.PNG' %}">
+                        <p>Bienvenue dans cette nouvelle version du livre interactif.</p>
+                        <div class="page-footer">i</div>
+                    </div>
+                    <div class="back">
+                        <h2>Chapitre 1</h2>
+                        <p>Il était une fois, dans un monde numérique...</p>
+                        <div class="page-footer">1</div>
+                    </div>
+                </div>
+
+                 <!-- Page 2 -->
+                <div class="page" id="p2" style="z-index: 4;">
+                    <div class="front">
+                        <h2>La page 2</h2>
+                        <img class="book-img" src="">
+                        <p>Tournez la page pour continuer l'aventure.</p>
+                        <div class="page-footer">2</div>
+                    </div>
+                    <div class="back">
+                        <p>Tournez la page pour continuer l'aventure.</p>
+                        <div class="page-footer">3</div>
+                    </div>
+                </div>
+
+                <!-- Page 3 -->
+                <div class="page" id="p3" style="z-index: 3;">
+                    <div class="front">
+                        <h2>La Découverte</h2>
+                        <img class="book-img" src="https://picsum.photos/id/28/400/300">
+                        <p>Tournez la page pour continuer l'aventure.</p>
+                        <div class="page-footer">4</div>
+                    </div>
+                    <div class="back">
+                        <div style="display:flex; align-items:center; justify-content:center; height:100%;">
+                            <h1 style="color:#bdc3c7; letter-spacing: 5px;">FIN</h1>
+                        </div>
+                        <div class="page-footer">i</div>
+                    </div>
+                </div>
+                <!-- Page 3 -->
+                <div class="page" id="p4" style="z-index: 2;">
+                    <div class="front">
+                        <h2>La Découverte</h2>
+                        <img class="book-img" src="https://picsum.photos/id/28/400/300">
+                        <p>Tournez la page pour continuer l'aventure.</p>
+                        <div class="page-footer">4</div>
+                    </div>
+                    <div class="back">
+                        <div style="display:flex; align-items:center; justify-content:center; height:100%;">
+                            <h1 style="color:#bdc3c7; letter-spacing: 5px;">FINnn</h1>
+                        </div>
+                        <div class="page-footer">i</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dock">
+            <button id="prevBtn" onclick="movePrev()">◀</button>
+            <div class="sep"></div>
+            <button onclick="changeZoom(-0.2)">−</button>
+            <button class="btn-reset" onclick="resetView()">Reset</button>
+            <button onclick="changeZoom(0.2)">+</button>
+            <div class="sep"></div>
+            <div class="page-counter" id="pageIndicator">1 / 5</div>
+            <div class="sep"></div>
+            <button id="nextBtn" onclick="moveNext()">▶</button>
+        </div>
+    </div>
+
+    <script>
+        const wrapper = document.getElementById('book-wrapper');
+        const book = document.getElementById('book');
+        const pageIndicator = document.getElementById('pageIndicator');
+        const pages = document.querySelectorAll('.page');
+        const totalSteps = pages.length + 1;
+        let scale = 1, currentIdx = 1;
+        let pointX = 0, pointY = 0, startX = 0, startY = 0;
+        let isPanning = false, initialDist = 0;
+
+        function updateTransform() { wrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+        function resetView() { scale = 1; pointX = 0; pointY = 0; updateTransform(); }
+        function changeZoom(amt) { scale = Math.min(Math.max(0.6, scale + amt), 4); updateTransform(); }
+
+        function updateUI() {
+            document.getElementById('prevBtn').disabled = (currentIdx === 1);
+            document.getElementById('nextBtn').disabled = (currentIdx > pages.length);
+            pageIndicator.innerText = `${currentIdx} / ${totalSteps}`;
+        }
+
+        function moveNext() {
+            if (currentIdx <= pages.length) {
+                const p = document.getElementById(`p${currentIdx}`);
+                if (currentIdx === 1) book.style.transform = "translateX(50%)";
+                p.classList.add('flipped');
+                const savedIdx = currentIdx;
+                setTimeout(() => { p.style.zIndex = savedIdx; }, 400);
+                currentIdx++;
+                if (currentIdx > pages.length) book.style.transform = "translateX(100%)";
+                updateUI();
+            }
+        }
+
+        function movePrev() {
+            if (currentIdx > 1) {
+                if (currentIdx > pages.length) book.style.transform = "translateX(50%)";
+                currentIdx--;
+                const p = document.getElementById(`p${currentIdx}`);
+                p.classList.remove('flipped');
+                p.style.zIndex = 10 + (pages.length - currentIdx);
+                if (currentIdx === 1) book.style.transform = "translateX(0%)";
+                updateUI();
+            }
+        }
+        updateUI();
+
+        // --- Gestion du Tactile (Touch Events) ---
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // Début du pincement (zoom)
+                isPanning = false;
+                initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            } else if (e.touches.length === 1) {
+                // Début du déplacement (pan)
+                isPanning = true;
+                startX = e.touches[0].clientX - pointX;
+                startY = e.touches[0].clientY - pointY;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.cancelable) e.preventDefault(); // Bloque le scroll natif
+            if (e.touches.length === 2) {
+                const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                if (initialDist > 0) {
+                    scale *= (currentDist / initialDist);
+                    scale = Math.min(Math.max(0.6, scale), 4);
+                    initialDist = currentDist;
+                    updateTransform();
+                }
+            } else if (e.touches.length === 1 && isPanning) {
+                pointX = e.touches[0].clientX - startX;
+                pointY = e.touches[0].clientY - startY;
+                updateTransform();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>

@@ -22,6 +22,7 @@ from email_api import views as email_api_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     # Map all URLs from the 'email_app' to the 'api/' path
     path('api/', include('email_api.urls')),
         # Index page
@@ -34,3 +35,6 @@ urlpatterns = [
     path('send/email/', email_api_views.email_form_page, name='send_email_page'),
 
 ]
+
+# Gestionnaire pour la page 404 (Page non trouvée)
+handler404 = email_api_views.custom_page_not_found

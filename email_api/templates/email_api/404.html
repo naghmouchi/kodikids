@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-lang-key="pageTitle">Page non trouvée — Kodikids</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f4f7f6;
+            text-align: center;
+        }
+        .error-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .error-code {
+            font-size: 8rem;
+            font-weight: 800;
+            color: #2b7cff;
+            margin: 0;
+            line-height: 1;
+            text-shadow: 4px 4px 0px rgba(43, 124, 255, 0.2);
+        }
+        .error-message {
+            font-size: 1.5rem;
+            color: #555;
+            margin: 20px 0 40px;
+            max-width: 600px;
+        }
+        .home-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #2b7cff 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 20px rgba(43, 124, 255, 0.3);
+            transition: transform 0.2s;
+        }
+        .home-btn:hover {
+            transform: translateY(-3px);
+        }
+        .robot-icon {
+            font-size: 6rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+    {% include "email_api/_header.html" %}
+
+    <div class="error-container">
+        <div class="robot-icon">🤖❓</div>
+        <h1 class="error-code">404</h1>
+        <p class="error-message" data-lang-key="errorMessage">Oups ! Il semble que vous ayez perdu votre chemin. La page que vous cherchez n'existe pas.</p>
+        <a href="/" class="home-btn" data-lang-key="homeBtn">Retour à l'accueil</a>
+    </div>
+
+    <footer>
+        <div class="container">
+            <span data-lang-key="footerText">© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+        </div>
+    </footer>
+
+    <script>
+    // --- Translations ---
+    const translations = {
+      en: {
+        pageTitle: "Page Not Found — Kodikids",
+        errorMessage: "Oops! It seems you've lost your way. The page you are looking for does not exist.",
+        homeBtn: "Back to Home",
+        footerText: "© KODIKIDS — Teaching programming, robotics, and AI"
+      },
+      fr: {
+        pageTitle: "Page non trouvée — Kodikids",
+        errorMessage: "Oups ! Il semble que vous ayez perdu votre chemin. La page que vous cherchez n'existe pas.",
+        homeBtn: "Retour à l'accueil",
+        footerText: "© KODIKIDS — Enseignement de la programmation, des robots et de l'IA"
+      }
+    };
+
+    let currentLang = 'fr';
+    const langSwitcher = document.getElementById('lang-switcher');
+
+    function setLanguage(lang) {
+      const trans = translations[lang];
+      document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (trans[key]) el.textContent = trans[key];
+      });
+      currentLang = lang;
+      if(langSwitcher) langSwitcher.textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.documentElement.lang = lang;
+      if (trans.pageTitle) document.title = trans.pageTitle;
+    }
+
+    if(langSwitcher) {
+      langSwitcher.addEventListener('click', () => {
+        setLanguage(currentLang === 'fr' ? 'en' : 'fr');
+      });
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hub des Histoires — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    /* Hub Header - Style spécifique pour les histoires */
+    .hub-header { 
+      text-align: center; padding: 60px 20px; 
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+      color: white; border-radius: 0 0 50px 50px; margin-bottom: 40px; 
+      box-shadow: 0 10px 30px rgba(245, 87, 108, 0.3);
+      position: relative; overflow: hidden;
+    }
+    .hub-title { font-size: 3rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -1px; position: relative; z-index: 2; }
+    .hub-subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 30px; position: relative; z-index: 2; }
+    
+    /* Search Box */
+    .search-box { position: relative; max-width: 500px; margin: 0 auto; z-index: 2; }
+    .search-input { 
+      width: 100%; padding: 18px 30px; border-radius: 50px; border: none; 
+      font-size: 1.1rem; box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
+      outline: none; transition: transform 0.2s; 
+    }
+    .search-input:focus { transform: scale(1.02); }
+    .search-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; color: #f5576c; }
+
+    /* Grid Layout */
+    .tutorials-grid { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+      gap: 30px; padding: 20px; max-width: 1200px; margin: 0 auto;
+    }
+    
+    /* Story Card */
+    .tut-card {
+        background: white; border-radius: 24px; overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative; cursor: pointer; border: 3px solid transparent;
+        text-decoration: none; color: inherit; display: flex; flex-direction: column;
+        height: 100%;
+        opacity: 0; 
+    }
+    .tut-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    
+    /* Card Colors */
+    .tut-card[data-color="purple"]:hover { border-color: #8e44ad; }
+    .tut-card[data-color="teal"]:hover { border-color: #00979d; }
+    .tut-card[data-color="blue"]:hover { border-color: #2b7cff; }
+    .tut-card[data-color="yellow"]:hover { border-color: #f1c40f; }
+    .tut-card[data-color="orange"]:hover { border-color: #e67e22; }
+    .tut-card[data-color="red"]:hover { border-color: #e74c3c; }
+
+    .card-content { padding: 30px; position: relative; z-index: 2; background: transparent; flex: 1; }
+    .card-icon { font-size: 3.5rem; margin-bottom: 20px; display: block; transition: transform 0.3s; }
+    .tut-card:hover .card-icon { transform: scale(1.1) rotate(5deg); }
+    
+    .card-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 10px; color: #2d3436; }
+    .card-desc { font-size: 1rem; color: #636e72; line-height: 1.6; margin: 0; }
+
+    /* No Results */
+    #no-results { text-align: center; padding: 60px; display: none; color: #636e72; }
+
+    /* Animated Background */
+    .anim-bg {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1; overflow: hidden; pointer-events: none;
+    }
+    .anim-shape {
+        position: absolute; border-radius: 50%;
+        opacity: 0.15;
+    }
+
+    /* Header Animation Items */
+    .header-anim-container {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 1; pointer-events: none;
+    }
+    .floating-item {
+        position: absolute; font-size: 2rem; opacity: 0.2;
+        user-select: none;
+    }
+
+    /* Contact Form Styles for Story Hub */
+    .contact-wrapper { max-width: 700px; margin: 80px auto 100px; padding: 0 20px; }
+    .contact-card {
+      background: white; padding: 40px; border-radius: 24px;
+      box-shadow: 0 15px 40px rgba(245, 87, 108, 0.15); border-top: 5px solid #f5576c;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #2d3436; }
+    .form-input, .form-textarea {
+      width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 10px;
+      font-size: 1rem; transition: border-color 0.3s; font-family: inherit;
+    }
+    .form-input:focus, .form-textarea:focus { border-color: #f5576c; outline: none; }
+    .submit-btn {
+      width: 100%; padding: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold;
+      cursor: pointer; transition: transform 0.2s; margin-top: 10px;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3); }
+    .submit-btn:disabled { opacity: 0.7; cursor: wait; }
+    .status-msg { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: 600; display: none; }
+    .status-msg.success { background: #e6fffa; color: #00b894; }
+    .status-msg.error { background: #ffecec; color: #d63031; }
+
+    /* Animated CTA Button */
+    .cta-story-btn {
+        display: inline-block; margin: 20px auto 30px; padding: 12px 30px;
+        background: white; color: #f5576c; font-weight: bold; border-radius: 50px;
+        text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transition: transform 0.3s; animation: pulse-white 2s infinite;
+        position: relative; z-index: 5; font-size: 1.1rem;
+    }
+    .cta-story-btn:hover { transform: scale(1.05); color: #d63031; }
+    @keyframes pulse-white {
+        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <div class="anim-bg" id="animBg"></div>
+
+  <div class="hub-header">
+    <div class="header-anim-container" id="headerAnim"></div>
+    <h1 class="hub-title">📚 Hub des Histoires</h1>
+    <p class="hub-subtitle">Découvre la technologie à travers les aventures de jeunes génies. Lis, imagine et apprends !</p>
+    
+    <a href="#contact-section" class="cta-story-btn">✨ Offrez à votre enfant une histoire IT unique, personnalisée juste pour lui.</a>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Rechercher une histoire...">
+        <span class="search-icon">🔎</span>
+    </div>
+  </div>
+
+  <main class="container" style="margin-bottom: 80px;">
+    <div class="tutorials-grid" id="grid">
+        
+        <!-- Story 1: AI -->
+        <a href="/api/play/story_book_v2/" class="tut-card" data-color="purple" data-keywords="ia intelligence artificielle robot sophie emotion">
+            <div class="card-content">
+                <span class="card-icon">🤖</span>
+                <h3 class="card-title">L'Ami Robot de Sophie</h3>
+                <p class="card-desc">Sophie apprend à son robot à reconnaître les émotions grâce à l'Intelligence Artificielle.</p>
+            </div>
+        </a>
+
+        <!-- Story 2: IoT -->
+        <a href="#" class="tut-card" data-color="teal" data-keywords="iot internet objets plante jardin leo capteur">
+            <div class="card-content">
+                <span class="card-icon">🌱</span>
+                <h3 class="card-title">La Serre Connectée de Léo</h3>
+                <p class="card-desc">Léo automatise l'arrosage de ses plantes en connectant des capteurs à Internet.</p>
+            </div>
+        </a>
+
+        <!-- Story 3: Arduino -->
+        <a href="#" class="tut-card" data-color="blue" data-keywords="arduino electronique velo lumiere max securite">
+            <div class="card-content">
+                <span class="card-icon">🚲</span>
+                <h3 class="card-title">Le Vélo Lumineux de Max</h3>
+                <p class="card-desc">Max construit un système de clignotants pour son vélo avec une carte Arduino.</p>
+            </div>
+        </a>
+
+        <!-- Story 4: Python -->
+        <a href="#" class="tut-card" data-color="yellow" data-keywords="python code enquete mystere ada algorithme">
+            <div class="card-content">
+                <span class="card-icon">🐍</span>
+                <h3 class="card-title">Le Code Secret d'Ada</h3>
+                <p class="card-desc">Ada utilise le langage Python pour déchiffrer des messages et résoudre un mystère.</p>
+            </div>
+        </a>
+
+        <!-- Story 5: Web -->
+        <a href="#" class="tut-card" data-color="orange" data-keywords="web html css site internet tom design">
+            <div class="card-content">
+                <span class="card-icon">💻</span>
+                <h3 class="card-title">Le Site Web de Tom</h3>
+                <p class="card-desc">Tom crée sa propre plateforme en ligne pour partager ses dessins avec le monde entier.</p>
+            </div>
+        </a>
+
+        <!-- Story 6: Mobile -->
+        <a href="#" class="tut-card" data-color="red" data-keywords="mobile app application smartphone mia communaute">
+            <div class="card-content">
+                <span class="card-icon">📱</span>
+                <h3 class="card-title">L'Appli de Mia</h3>
+                <p class="card-desc">Mia développe une application mobile pour aider ses voisins à s'entraider.</p>
+            </div>
+        </a>
+
+    </div>
+    
+    <div id="no-results">
+        <div style="font-size: 4rem; margin-bottom: 10px;">😕</div>
+        <h3>Aucune histoire trouvée</h3>
+        <p>Essaie un autre mot-clé !</p>
+    </div>
+
+    <!-- Contact Form -->
+    <section class="contact-wrapper" id="contact-section">
+        <h2 style="text-align:center; margin-bottom:30px; color:#333;">Propose une histoire</h2>
+        <div class="contact-card">
+            <form id="storyForm">
+                <div class="form-group">
+                    <label class="form-label">Nom de l'enfant</label>
+                    <input type="text" id="name" class="form-input" required placeholder="Alice">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ton Email</label>
+                    <input type="email" id="email" class="form-input" required placeholder="alice@example.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ton Idée d'Histoire</label>
+                    <textarea id="message" class="form-textarea" rows="5" required placeholder="Il était une fois un robot qui..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn" id="sendBtn">Envoyer mon idée</button>
+            </form>
+            <div id="statusMessage" class="status-msg"></div>
+        </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span>© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+
+  <script>
+    // Search Logic
+    const searchInput = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.tut-card');
+    const noResults = document.getElementById('no-results');
+
+    searchInput.addEventListener('keyup', (e) => {
+        const term = e.target.value.toLowerCase();
+        let visibleCount = 0;
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const desc = card.querySelector('.card-desc').textContent.toLowerCase();
+            const keys = card.dataset.keywords;
+            if(title.includes(term) || desc.includes(term) || keys.includes(term)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+
+    // Animations
+    document.addEventListener('DOMContentLoaded', () => {
+        anime({
+            targets: '.tut-card',
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100, {start: 200}),
+            easing: 'easeOutExpo',
+            duration: 800
+        });
+
+        const bgContainer = document.getElementById('animBg');
+        const colors = ['#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
+        for(let i=0; i<15; i++) {
+            const el = document.createElement('div');
+            el.classList.add('anim-shape');
+            const size = Math.random() * 100 + 20;
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.background = colors[Math.floor(Math.random() * colors.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.top = Math.random() * 100 + 'vh';
+            bgContainer.appendChild(el);
+
+            anime({
+                targets: el,
+                translateX: () => anime.random(-200, 200),
+                translateY: () => anime.random(-200, 200),
+                scale: () => anime.random(0.5, 1.5),
+                easing: 'easeInOutQuad',
+                duration: () => anime.random(3000, 8000),
+                direction: 'alternate',
+                loop: true
+            });
+        }
+
+        // Header Animation (Books, Lamps, Ideas)
+        const headerContainer = document.getElementById('headerAnim');
+        const headerEmojis = ['📚', '💡', '🧠', '🚀', '✨', '🎓', '💭'];
+        
+        for(let i=0; i<20; i++) {
+            const el = document.createElement('div');
+            el.classList.add('floating-item');
+            el.textContent = headerEmojis[Math.floor(Math.random() * headerEmojis.length)];
+            el.style.left = Math.random() * 100 + '%';
+            el.style.top = Math.random() * 100 + '%';
+            el.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+            headerContainer.appendChild(el);
+
+            anime({
+                targets: el,
+                translateY: [0, -30],
+                translateX: () => anime.random(-20, 20),
+                rotate: () => anime.random(-20, 20),
+                opacity: [0.1, 0.4],
+                scale: [0.8, 1.2],
+                duration: () => anime.random(3000, 6000),
+                direction: 'alternate',
+                loop: true,
+                easing: 'easeInOutSine'
+            });
+        }
+    });
+
+    // Form Handling
+    const form = document.getElementById('storyForm');
+    const statusMsg = document.getElementById('statusMessage');
+    const sendBtn = document.getElementById('sendBtn');
+
+    if(form){
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+
+            const adminEmail = "hassen.naghmouchi@gmail.com";
+            const subject = `Nouvelle idée d'histoire de ${name}`;
+            const fullMessage = `Nom: ${name}\nEmail: ${email}\n\nIdée:\n${message}`;
+
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Envoi en cours...";
+            statusMsg.style.display = 'none';
+
+            const apiUrl = 'https://hassen86naghmouchi.pythonanywhere.com/api/send-email/';
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipient: adminEmail, subject: subject, message: fullMessage })
+                });
+
+                if (response.ok) {
+                    statusMsg.textContent = "Message envoyé avec succès ! Merci pour ton idée.";
+                    statusMsg.className = 'status-msg success';
+                    form.reset();
+                } else {
+                    throw new Error("Erreur API");
+                }
+            } catch (error) {
+                console.error(error);
+                statusMsg.textContent = "Erreur lors de l'envoi. Veuillez réessayer.";
+                statusMsg.className = 'status-msg error';
+            } finally {
+                statusMsg.style.display = 'block';
+                sendBtn.disabled = false;
+                sendBtn.textContent = "Envoyer mon idée";
+            }
+        });
+    }
+  </script>
+</body>
+</html>

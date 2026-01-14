@@ -1,0 +1,241 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Android (Java) — Kodikids</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <style>
+        :root {
+            --dark-bg: #2f3640;
+            --panel-bg: #f5f6fa;
+            --android-green: #3DDC84;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--dark-bg); color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sim-container {
+            display: flex; gap: 40px;
+            padding: 40px 20px;
+            flex-grow: 1;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* --- Mobile Device --- */
+        .mobile-device {
+            width: 320px;
+            height: 650px;
+            background: #1a1a1a;
+            border-radius: 40px;
+            border: 12px solid #1a1a1a;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column;
+        }
+
+        .mobile-notch {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 25px; background: #1a1a1a;
+            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
+            z-index: 10;
+        }
+
+        .mobile-screen {
+            flex: 1;
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%; height: 100%; border: none;
+        }
+
+        /* --- Editor Panel --- */
+        .editor-panel {
+            flex: 1; min-width: 400px; max-width: 600px;
+            background: #1e1e1e; color: #fff; padding: 20px;
+            border-radius: 15px; display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .editor-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;
+        }
+        .editor-header h2 { margin: 0; font-size: 1.2rem; color: var(--android-green); }
+
+        textarea {
+            flex: 1; width: 100%; background: #2b2b2b; color: #f8f8f2;
+            border: 1px solid #444; font-family: 'Courier New', monospace;
+            padding: 15px; resize: none; font-size: 0.95rem; outline: none;
+            border-radius: 8px; line-height: 1.5;
+        }
+
+        .controls {
+            margin-top: 15px; display: flex; gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px; border: none; cursor: pointer; font-weight: bold;
+            border-radius: 8px; color: white; font-size: 1rem;
+            transition: transform 0.1s, filter 0.2s; flex: 1;
+        }
+        .btn:hover { filter: brightness(1.1); }
+        .btn:active { transform: scale(0.98); }
+        
+        .btn-run { background: var(--android-green); color: #1a1a1a; }
+        .btn-reset { background: #e74c3c; }
+
+        /* Header fix */
+        header { background: white; }
+    </style>
+</head>
+<body>
+
+    {% include "email_api/_header.html" %}
+
+    <div class="sim-container">
+        <!-- Mobile Emulator -->
+        <div class="mobile-device">
+            <div class="mobile-notch"></div>
+            <div class="mobile-screen">
+                <iframe id="preview-frame"></iframe>
+            </div>
+        </div>
+
+        <!-- Code Editor -->
+        <div class="editor-panel">
+            <div class="editor-header">
+                <h2>🤖 Éditeur Android (Java)</h2>
+                <span style="font-size: 0.8rem; color: #aaa;">MainActivity.java</span>
+            </div>
+            <textarea id="code-editor" spellcheck="false"></textarea>
+            <div class="controls">
+                <button class="btn btn-run" onclick="runCode()">▶ Compiler & Exécuter</button>
+                <button class="btn btn-reset" onclick="resetCode()">↺ Réinitialiser</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultCode = `package com.kodikids.app;
+
+public class MainActivity {
+    
+    public void run() {
+        // Récupère le texte à l'écran
+        TextView message = findViewById("hello_text");
+        
+        // Change le texte
+        message.setText("Bienvenue sur Android !");
+        
+        // Change la couleur (RED, BLUE, GREEN, #FF0000)
+        message.setTextColor("BLUE");
+        
+        // Affiche une notification
+        Toast.makeText("Application démarrée !");
+    }
+}
+`;
+
+        const editor = document.getElementById('code-editor');
+        const frame = document.getElementById('preview-frame');
+
+        function runCode() {
+            const code = editor.value;
+            const frameDoc = frame.contentDocument || frame.contentWindow.document;
+            
+            // Structure de base de l'app Android simulée
+            frameDoc.open();
+            frameDoc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Roboto', sans-serif; margin: 0; background: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+                        .action-bar { background: #6200ee; color: white; padding: 15px; font-size: 18px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; }
+                        .action-bar span { margin-left: 10px; }
+                        .content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+                        #hello_text { font-size: 24px; color: #333; transition: all 0.3s; }
+                        .toast { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.5s; font-size: 14px; z-index: 100; }
+                        .toast.show { opacity: 1; }
+                    </style>
+                </head>
+                <body>
+                    <div class="action-bar">
+                        <span>Mon App Android</span>
+                    </div>
+                    <div class="content">
+                        <div id="hello_text">Hello World!</div>
+                    </div>
+                    <div id="toast" class="toast">Notification</div>
+                </body>
+                </html>
+            `);
+            frameDoc.close();
+
+            // Simulation de l'exécution Java via JS
+            setTimeout(async () => {
+                const lines = code.split('\\n');
+                const textView = frameDoc.getElementById('hello_text');
+                const toast = frameDoc.getElementById('toast');
+                
+                // Fonction pour créer une pause (pour voir les changements)
+                const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+                for (let line of lines) {
+                    line = line.trim();
+                    
+                    // Simulation setText
+                    if (line.includes('.setText(')) {
+                        const match = line.match(/"([^"]+)"/);
+                        if (match && textView) {
+                            textView.innerText = match[1];
+                            await wait(1000); // Pause de 1s pour voir le changement
+                        }
+                    }
+                    
+                    // Simulation setTextColor
+                    if (line.includes('.setTextColor(')) {
+                        const match = line.match(/"([^"]+)"/);
+                        if (match && textView) {
+                            textView.style.color = match[1];
+                            await wait(1000); // Pause de 1s
+                        }
+                    }
+                    
+                    // Simulation Toast
+                    if (line.includes('Toast.makeText(')) {
+                        const match = line.match(/"([^"]+)"/);
+                        if (match && toast) {
+                            toast.innerText = match[1];
+                            toast.classList.add('show');
+                            setTimeout(() => toast.classList.remove('show'), 3000);
+                            await wait(2000); // Pause pour laisser le temps de lire
+                        }
+                    }
+                }
+            }, 500); // Petit délai pour simuler la compilation
+        }
+
+        function resetCode() {
+            editor.value = defaultCode;
+            runCode();
+        }
+
+        // Initialisation au chargement
+        window.onload = resetCode;
+    </script>
+</body>
+</html>

@@ -10,6 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <style>
     /* Page Specific Styles */
+    html { scroll-behavior: smooth; }
     body { background-color: #f4f7f6; overflow-x: hidden; }
     
     .hero-section {
@@ -25,7 +26,7 @@
     .section-title { text-align: center; font-size: 2.5rem; color: #2d3436; margin-bottom: 50px; font-weight: 700; }
     
     /* Steps */
-    .steps-container { max-width: 1000px; margin: 0 auto 100px; padding: 0 20px; position: relative; }
+    .steps-container { max-width: 1000px; margin: 0 auto 80px; padding: 0 20px; position: relative; }
     /* Connecting line for desktop */
     @media (min-width: 769px) {
         .steps-container::before {
@@ -57,14 +58,40 @@
     }
 
     /* Project Types */
-    .projects-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 30px; max-width: 1100px; margin: 0 auto 100px; padding: 0 20px;
+    .scroller {
+      max-width: 1100px;
+      margin: 0 auto 100px;
     }
-    .project-card {
+    .scroller[data-animated="true"] {
+      overflow: hidden;
+      -webkit-mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+      mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+    }
+    .scroller[data-animated="true"] .scroller__inner {
+      width: max-content;
+      flex-wrap: nowrap;
+      animation: scroll 40s linear infinite;
+    }
+    .scroller[data-animated="true"]:hover .scroller__inner {
+        animation-play-state: paused;
+    }
+    @keyframes scroll {
+      to {
+        transform: translate(calc(-50% - 15px)); /* 15px is half of the 30px gap */
+      }
+    }
+    .scroller__inner {
+      padding-left: 0;
+      margin: 0;
+      list-style: none;
+      display: flex;
+      gap: 30px;
+    }
+    .project-card { /* This is now an li element */
       background: white; padding: 40px 30px; border-radius: 24px; text-align: center;
       border: 2px solid transparent; transition: all 0.3s; cursor: default;
       box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; overflow: hidden;
+      flex: 0 0 300px; /* Give it a fixed width */
     }
     .project-card::before {
         content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
@@ -100,6 +127,13 @@
     }
     .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3); }
     .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    /* Animation pour le bouton Hero */
+    @keyframes pulse-btn {
+        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); transform: scale(1); }
+        70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); transform: scale(1.05); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); transform: scale(1); }
+    }
 
     /* Status Message */
     .status-msg {
@@ -141,6 +175,7 @@
         <div class="hero-content">
             <h1 class="hero-title" data-lang-key="heroTitle">Réalisez Votre Projet</h1>
             <p class="hero-subtitle" data-lang-key="heroDesc">Vous avez une idée d'application, de site web ou d'automatisation ? Ne l'achetez pas toute faite. Apprenez à la construire vous-même avec nos experts lors de sessions de coaching en ligne.</p>
+            <a href="#contact-section" class="submit-btn" style="display: inline-block; width: auto; margin-top: 30px; text-decoration: none; background: white; color: #667eea; animation: pulse-btn 2s infinite;" data-lang-key="heroBtn">Commencer mon projet</a>
         </div>
         <!-- Animated Shapes -->
         <div id="heroShapes"></div>
@@ -176,31 +211,33 @@
     </section>
 
     <!-- Project Types -->
-    <section class="projects-grid">
-        <div class="project-card">
-            <span class="p-icon">📱</span>
-            <h3 class="p-title" data-lang-key="typeApp">App Mobile</h3>
-            <p class="p-desc" data-lang-key="typeAppDesc">iOS ou Android. Créez l'application dont vous avez toujours rêvé.</p>
-        </div>
-        <div class="project-card">
-            <span class="p-icon">💻</span>
-            <h3 class="p-title" data-lang-key="typeWeb">Site Web</h3>
-            <p class="p-desc" data-lang-key="typeWebDesc">Vitrine, e-commerce ou application web complexe.</p>
-        </div>
-        <div class="project-card">
-            <span class="p-icon">⚙️</span>
-            <h3 class="p-title" data-lang-key="typeAuto">Automatisation</h3>
-            <p class="p-desc" data-lang-key="typeAutoDesc">Scripts Python pour automatiser vos tâches répétitives au travail.</p>
-        </div>
-        <div class="project-card">
-            <span class="p-icon">🤖</span>
-            <h3 class="p-title" data-lang-key="typeRobot">Robotique</h3>
-            <p class="p-desc" data-lang-key="typeRobotDesc">Projets Arduino ou Raspberry Pi sur mesure.</p>
-        </div>
-    </section>
+    <div class="scroller">
+        <ul class="scroller__inner">
+            <li class="project-card">
+                <span class="p-icon">📱</span>
+                <h3 class="p-title" data-lang-key="typeApp">App Mobile</h3>
+                <p class="p-desc" data-lang-key="typeAppDesc">iOS ou Android. Créez l'application dont vous avez toujours rêvé.</p>
+            </li>
+            <li class="project-card">
+                <span class="p-icon">💻</span>
+                <h3 class="p-title" data-lang-key="typeWeb">Site Web</h3>
+                <p class="p-desc" data-lang-key="typeWebDesc">Vitrine, e-commerce ou application web complexe.</p>
+            </li>
+            <li class="project-card">
+                <span class="p-icon">⚙️</span>
+                <h3 class="p-title" data-lang-key="typeAuto">Automatisation</h3>
+                <p class="p-desc" data-lang-key="typeAutoDesc">Scripts Python pour automatiser vos tâches répétitives au travail.</p>
+            </li>
+            <li class="project-card">
+                <span class="p-icon">🤖</span>
+                <h3 class="p-title" data-lang-key="typeRobot">Robotique</h3>
+                <p class="p-desc" data-lang-key="typeRobotDesc">Projets Arduino ou Raspberry Pi sur mesure.</p>
+            </li>
+        </ul>
+    </div>
 
     <!-- Contact Form -->
-    <section class="contact-wrapper">
+    <section class="contact-wrapper" id="contact-section">
         <h2 class="section-title" data-lang-key="contactTitle">Parlons de votre projet</h2>
         <div class="contact-card">
             <form id="projectForm">
@@ -236,6 +273,7 @@
       en: {
         heroTitle: "Build Your Own Project",
         heroDesc: "Have an idea for an app, website, or automation? Don't just buy it. Learn to build it yourself with our experts during online coaching sessions.",
+        heroBtn: "Start my project",
         stepsTitle: "How it works?",
         step1Title: "Propose your idea",
         step1Desc: "Describe your project: a mobile app, a website, an automation script, or a robot.",
@@ -264,6 +302,7 @@
       fr: {
         heroTitle: "Réalisez Votre Projet",
         heroDesc: "Vous avez une idée d'application, de site web ou d'automatisation ? Ne l'achetez pas toute faite. Apprenez à la construire vous-même avec nos experts lors de sessions de coaching en ligne.",
+        heroBtn: "Commencer mon projet",
         stepsTitle: "Comment ça marche ?",
         step1Title: "Proposez votre idée",
         step1Desc: "Décrivez-nous votre projet : une application mobile, un site web, un script d'automatisation ou un robot.",
@@ -385,6 +424,30 @@
 
         document.querySelectorAll('.step-card').forEach(el => observer.observe(el));
     });
+
+    // --- Scroller script ---
+    (function() {
+        const scroller = document.querySelector(".scroller");
+        if (!scroller) return;
+
+        // Only animate if the user hasn't requested reduced motion
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            addAnimation();
+        }
+
+        function addAnimation() {
+            scroller.setAttribute("data-animated", true);
+
+            const scrollerInner = scroller.querySelector(".scroller__inner");
+            const scrollerContent = Array.from(scrollerInner.children);
+
+            scrollerContent.forEach((item) => {
+                const duplicatedItem = item.cloneNode(true);
+                duplicatedItem.setAttribute("aria-hidden", true);
+                scrollerInner.appendChild(duplicatedItem);
+            });
+        }
+    })();
 
     // --- Form Handling ---
     const form = document.getElementById('projectForm');

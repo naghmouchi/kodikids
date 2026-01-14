@@ -15,12 +15,13 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
       color: white; border-radius: 0 0 50px 50px; margin-bottom: 40px; 
       box-shadow: 0 10px 30px rgba(118, 75, 162, 0.3);
+      position: relative; overflow: hidden;
     }
-    .hub-title { font-size: 3rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -1px; }
-    .hub-subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 30px; }
+    .hub-title { font-size: 3rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -1px; position: relative; z-index: 2; }
+    .hub-subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 30px; position: relative; z-index: 2; }
     
     /* Search Box */
-    .search-box { position: relative; max-width: 500px; margin: 0 auto; }
+    .search-box { position: relative; max-width: 500px; margin: 0 auto; z-index: 2; }
     .search-input { 
       width: 100%; padding: 18px 30px; border-radius: 50px; border: none; 
       font-size: 1.1rem; box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
@@ -109,6 +110,16 @@
         width: 0; height: 0; opacity: 0;
     }
     .anim-particle { position: absolute; background: rgba(0,0,0,0.08); border-radius: 4px; }
+
+    /* Header Animation Items */
+    .header-anim-container {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 1; pointer-events: none;
+    }
+    .floating-item {
+        position: absolute; font-size: 2rem; opacity: 0.15;
+        user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -120,6 +131,7 @@
   <div class="anim-bg" id="animBg"></div>
 
   <div class="hub-header">
+    <div class="header-anim-container" id="headerAnim"></div>
     <h1 class="hub-title" data-lang-key="hubTitle">🚀 Hub des Tutoriels</h1>
     <p class="hub-subtitle" data-lang-key="hubSubtitle">Choisis ton aventure et commence à coder ! Robots, IA, Web ou Python, tout est là.</p>
     <div class="search-box">
@@ -449,6 +461,33 @@
                 duration: () => anime.random(3000, 8000),
                 direction: 'alternate',
                 loop: true
+            });
+        }
+
+        // Header Animation (Tech/Tutorials Context)
+        const headerContainer = document.getElementById('headerAnim');
+        const headerEmojis = ['🚀', '💻', '🤖', '🌐', '🧠', '📚', '🎓', '💡', '⚙️', '📱'];
+        
+        for(let i=0; i<20; i++) {
+            const el = document.createElement('div');
+            el.classList.add('floating-item');
+            el.textContent = headerEmojis[Math.floor(Math.random() * headerEmojis.length)];
+            el.style.left = Math.random() * 100 + '%';
+            el.style.top = Math.random() * 100 + '%';
+            el.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+            headerContainer.appendChild(el);
+
+            anime({
+                targets: el,
+                translateY: [0, -50],
+                translateX: () => anime.random(-20, 20),
+                rotate: () => anime.random(-20, 20),
+                opacity: [0.1, 0.3],
+                scale: [0.8, 1.2],
+                duration: () => anime.random(3000, 6000),
+                direction: 'alternate',
+                loop: true,
+                easing: 'easeInOutSine'
             });
         }
     });
