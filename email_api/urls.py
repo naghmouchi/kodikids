@@ -60,5 +60,7 @@ urlpatterns = [
     path('play/stories/', views.story_hub, name='story_hub'),
     path('play/mobile_sim/', views.mobile_simulator, name='mobile_sim'),
     path('play/android_sim/', views.android_simulator, name='android_sim'),
+    path('play/drone_sim/', views.drone_simulator, name='drone_sim'),
+    path('confidentialite/', views.confidentialite_page, name='confidentialite'),
 
 ]

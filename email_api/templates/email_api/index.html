@@ -356,7 +356,7 @@
   </main>
 
   <div id="cookie-banner" class="cookie-banner">
-    <p data-lang-key="cookieText">Nous n'utilisons pas de cookies de suivi. En cliquant sur "Accepter", vous acceptez notre politique de confidentialité.</p>
+    <p data-lang-key="cookieText">En cliquant sur "Accepter", vous acceptez notre <a href="/api/confidentialite/" style="color: #4c97ff; text-decoration: underline;">politique de confidentialité</a>.</p>
     <button id="cookie-accept-btn" class="cookie-accept-btn" data-lang-key="cookieAccept">Accepter</button>
   </div>
 
@@ -372,9 +372,18 @@
         </div>
         <div class="footer-col">
           <h3 data-lang-key="footerFollow">Suivez-nous</h3>
-          <a href="#" class="footer-link" data-lang-key="socialFb">📘 Facebook</a>
-          <a href="#" class="footer-link" data-lang-key="socialYt">📺 YouTube</a>
-          <a href="#" class="footer-link" data-lang-key="socialTt">🎵 TikTok</a>
+          <a href="https://www.facebook.com/share/14SuZoRnHDK/?mibextid=wwXIfr" class="footer-link" target="_blank">
+            <img src="{% static 'email_api/icons8-facebook-48.png' %}" alt="Facebook" style="width: 24px; height: 24px; border-radius: 4px;">
+            <span data-lang-key="socialFb">kodikids</span>
+          </a>
+          <a href="https://www.youtube.com/@kodikids-robotics" class="footer-link" target="_blank">
+            <img src="{% static 'email_api/icons8-youtube-48.png' %}" alt="YouTube" style="width: 24px; height: 24px;">
+            <span data-lang-key="socialYt">@kodikids-robotics</span>
+          </a>
+          <a href="https://www.tiktok.com/@kodikids.ca?is_from_webapp=1&sender_device=pc" class="footer-link" target="_blank">
+            <img src="{% static 'email_api/icons8-tiktok-48.png' %}" alt="TikTok" style="width: 24px; height: 24px;">
+            <span data-lang-key="socialTt">kodikids.ca</span>
+          </a>
         </div>
         <div class="footer-col">
           <h3 data-lang-key="footerContact">Contact</h3>
@@ -606,7 +615,7 @@
         card3BackTitle: "Tell us about your project idea",
         card3BackDesc: "Send us your project request (web/mobile app, automation, game, robotics, etc.).",
         footerText: "© Play & Learn — Teaching programming, robots, and AI",
-        cookieText: "We do not use tracking cookies. By clicking \"Accept\", you agree to our privacy policy.",
+        cookieText: "By clicking \"Accept\", you agree to our <a href='/api/confidentialite/' style='color: #4c97ff; text-decoration: underline;'>privacy policy</a>.",
         cookieAccept: "Accept",
         mainTitle: "KodiKids: Learning for the Future",
         mainSubtitle: "Accessible to all children, parents, and educators.",
@@ -623,9 +632,9 @@
         navHome: "🏠 Home",
         navCourses: "🎓 Courses",
         navContact: "📬 Contact",
-        socialFb: "📘 Facebook",
-        socialYt: "📺 YouTube",
-        socialTt: "🎵 TikTok"
+        socialFb: "Facebook",
+        socialYt: "YouTube",
+        socialTt: "TikTok"
       },
       fr: {
         heroTitle: "Apprenez à coder et piloter des robots — enfants & adultes",
@@ -657,7 +666,7 @@
         card3BackTitle: "Explique‑nous ton idée de projet",
         card3BackDesc: "Envoie‑nous ta demande de projet (app web/mobile, automatisation, jeu, robotique, etc.).",
         footerText: "© Play & Learn — Enseignement de la programmation, des robots et de l'IA",
-        cookieText: "Nous n'utilisons pas de cookies de suivi. En cliquant sur 'Accepter', vous acceptez notre politique de confidentialité.",
+        cookieText: "En cliquant sur 'Accepter', vous acceptez notre <a href='/api/confidentialite/' style='color: #4c97ff; text-decoration: underline;'>politique de confidentialité</a>.",
         cookieAccept: "Accepter",
         mainTitle: "KodiKids : l’apprentissage du futur",
         mainSubtitle: "Accessible à tous les enfants, aux parents et aux éducateurs.",
@@ -674,9 +683,9 @@
         navHome: "🏠 Accueil",
         navCourses: "🎓 Cours",
         navContact: "📬 Contact",
-        socialFb: "📘 Facebook",
-        socialYt: "📺 YouTube",
-        socialTt: "🎵 TikTok"
+        socialFb: "Facebook",
+        socialYt: "YouTube",
+        socialTt: "TikTok"
       }
     };
 
@@ -687,7 +696,7 @@
       document.querySelectorAll('[data-lang-key]').forEach(el => {
         const key = el.dataset.langKey;
         if (trans[key]) {
-          el.textContent = trans[key];
+          el.innerHTML = trans[key];
         }
       });
       currentLang = lang;

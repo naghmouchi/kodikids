@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Politique de Confidentialité — Kodikids</title>
+  <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
+</head>
+<body>
+  <header>
+    {% include "email_api/_header.html" %}
+  </header>
+
+  <main class="container" style="padding: 40px 20px; max-width: 800px; margin: 0 auto;">
+    <h1 style="margin-bottom: 20px;">Politique de Confidentialité et Protection des Renseignements Personnels</h1>
+    <p>Dernière mise à jour : 25 Octobre 2023</p>
+
+    <p>Chez <strong>Kodikids</strong>, nous accordons une grande importance à la protection de votre vie privée. Cette politique vise à vous informer de nos pratiques conformément aux lois en vigueur au Québec, notamment la <em>Loi sur la protection des renseignements personnels dans le secteur privé</em> (Loi 25).</p>
+
+    <section style="margin-bottom: 30px;">
+        <h2>1. Responsable de la protection des renseignements personnels</h2>
+        <p>Pour toute question relative à cette politique ou pour exercer vos droits, vous pouvez contacter notre responsable :</p>
+        <p style="background: #f9f9f9; padding: 15px; border-left: 4px solid #2b7cff;">
+            <strong>Responsable de la protection des données</strong><br>
+            Courriel : <a href="mailto:contact@kodikids.com">contact@kodikids.com</a>
+        </p>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+        <h2>2. Collecte et Utilisation des renseignements</h2>
+        <p>Nous collectons uniquement les renseignements nécessaires à nos activités via nos formulaires (contact, inscription aux cours, propositions d'histoires) :</p>
+        <ul style="padding-left: 20px;">
+          <li><strong>Identité :</strong> Nom, Prénom.</li>
+          <li><strong>Coordonnées :</strong> Adresse courriel.</li>
+          <li><strong>Données techniques :</strong> Témoins de navigation (cookies) pour le fonctionnement du site.</li>
+        </ul>
+        <p>Ces données sont utilisées pour :</p>
+        <ul>
+            <li>Répondre à vos demandes et vous contacter.</li>
+            <li>Gérer vos inscriptions aux cours et ateliers.</li>
+            <li>Améliorer nos services éducatifs.</li>
+        </ul>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+        <h2>3. Consentement et Partage</h2>
+        <p>En soumettant vos informations, vous consentez à leur utilisation pour les fins décrites ci-dessus. Nous ne vendons, n'échangeons et ne transférons pas vos informations personnelles identifiables à des tiers sans votre consentement explicite, sauf si la loi l'exige.</p>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+        <h2>4. Vos droits</h2>
+        <p>Conformément à la Loi 25, vous disposez des droits suivants :</p>
+        <ul>
+            <li>Droit d'accès à vos renseignements personnels.</li>
+            <li>Droit de rectification (correction).</li>
+            <li>Droit de retrait de votre consentement à tout moment.</li>
+        </ul>
+        <p>Pour exercer ces droits, veuillez contacter notre responsable par courriel.</p>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+        <h2>5. Sécurité</h2>
+        <p>Nous mettons en œuvre des mesures de sécurité raisonnables pour protéger vos informations contre l'accès non autorisé, la modification ou la destruction.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <span>© Kodikids — Enseignement de la programmation, des robots et de l'IA</span>
+    </div>
+  </footer>
+</body>
+</html>

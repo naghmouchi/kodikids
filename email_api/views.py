@@ -246,3 +246,9 @@ def android_simulator(request):
 
 def custom_page_not_found(request, exception=None):
     return render(request, 'email_api/404.html', status=404)
+
+def drone_simulator(request):
+    return render(request, 'email_api/drone_sim.html')
+
+def confidentialite_page(request):
+    return render(request, 'email_api/confidentialite.html')

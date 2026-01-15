@@ -119,6 +119,8 @@
             display: flex; align-items: center; gap: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             z-index: 100; color: white;
+            cursor: grab; /* Curseur pour indiquer qu'il est déplaçable */
+            user-select: none; /* Empêche la sélection de texte pendant le drag */
         }
 
         .dock button { background: none; border: none; color: white; padding: 10px; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s; }
@@ -202,7 +204,7 @@
             </div>
         </div>
 
-        <div class="dock">
+        <div class="dock" id="dock">
             <button id="prevBtn" onclick="movePrev()">◀</button>
             <div class="sep"></div>
             <button onclick="changeZoom(-0.2)">−</button>
@@ -291,6 +293,56 @@
                 updateTransform();
             }
         }, { passive: false });
+
+        // --- Gestion du Dock Déplaçable ---
+        const dock = document.getElementById('dock');
+        let isDockDragging = false;
+        let dockOffsetX, dockOffsetY;
+
+        dock.addEventListener('mousedown', (e) => {
+            // Empêche le drag si on clique sur un bouton à l'intérieur du dock
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+
+            isDockDragging = true;
+            dock.style.cursor = 'grabbing';
+            dock.style.transition = 'none'; // Pour un déplacement fluide
+
+            // On convertit le positionnement en top/left si ce n'est pas déjà fait
+            if (dock.style.bottom !== 'auto') {
+                const rect = dock.getBoundingClientRect();
+                const parentRect = dock.parentElement.getBoundingClientRect();
+                dock.style.left = `${rect.left - parentRect.left}px`;
+                dock.style.top = `${rect.top - parentRect.top}px`;
+                dock.style.bottom = 'auto';
+                dock.style.transform = 'none';
+            }
+
+            // Calcul de l'offset par rapport au coin supérieur gauche du dock
+            const rect = dock.getBoundingClientRect();
+            dockOffsetX = e.clientX - rect.left;
+            dockOffsetY = e.clientY - rect.top;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDockDragging) return;
+            
+            const parentRect = dock.parentElement.getBoundingClientRect();
+            let newLeft = e.clientX - parentRect.left - dockOffsetX;
+            let newTop = e.clientY - parentRect.top - dockOffsetY;
+
+            // Contraintes pour que le dock reste dans le viewport du livre
+            const dockRect = dock.getBoundingClientRect();
+            newLeft = Math.max(0, Math.min(newLeft, parentRect.width - dockRect.width));
+            newTop = Math.max(0, Math.min(newTop, parentRect.height - dockRect.height));
+
+            dock.style.left = `${newLeft}px`;
+            dock.style.top = `${newTop}px`;
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDockDragging = false;
+            dock.style.cursor = 'grab';
+        });
     </script>
 </body>
 </html>
