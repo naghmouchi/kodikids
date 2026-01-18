@@ -1,0 +1,411 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Livre Interactif V3 (Dynamique)</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <style>
+        /* --- Layout Global --- */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: radial-gradient(circle, #ecf0f1, #bdc3c7);
+            touch-action: none;
+        }
+
+        header {
+            flex: 0 0 auto;
+            z-index: 2000;
+            background: white;
+        }
+
+        #book-viewport {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 2500px;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Georgia', serif;
+        }
+
+        /* --- Styles du Livre --- */
+        :root {
+            --book-w: 320px;
+            --book-h: 480px;
+            --page-color: #ffffff;
+            --dock-bg: #2c3e50;
+            --accent-color: #e74c3c;
+        }
+
+        #book-wrapper {
+            position: relative;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.4s ease-out;
+        }
+
+        .book {
+            position: relative;
+            width: var(--book-w);
+            height: var(--book-h);
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .page {
+            position: absolute;
+            width: 100%; height: 100%;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .front, .back {
+            position: absolute;
+            width: 100%; height: 100%;
+            padding: 25px;
+            box-sizing: border-box;
+            backface-visibility: hidden;
+            background: var(--page-color);
+            border-radius: 2px 5px 5px 2px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.05);
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .front {
+            z-index: 2;
+            background: linear-gradient(to right, #e6e6e6 0%, var(--page-color) 3%, var(--page-color) 100%);
+            box-shadow: inset -1px 0 5px rgba(0,0,0,0.05), 5px 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            background: linear-gradient(to left, #e6e6e6 0%, #fdfdfd 3%, #fdfdfd 100%);
+            box-shadow: inset 1px 0 5px rgba(0,0,0,0.05), -5px 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .page.flipped { transform: rotateY(-180deg); }
+
+        .book-img {
+            width: 100%; height: 180px; object-fit: cover;
+            border-radius: 5px; margin: 0 0 15px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0; /* Empêche l'image de s'écraser */
+        }
+
+        .page-footer {
+            position: absolute; bottom: 15px; left: 0; width: 100%;
+            text-align: center; font-family: Arial, sans-serif; font-size: 0.7rem; color: #bdc3c7;
+        }
+        
+        .page-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* --- Dock de Contrôle --- */
+        .dock {
+            position: absolute;
+            bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--dock-bg);
+            padding: 8px 15px; border-radius: 40px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 5000; color: white;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .dock button { background: none; border: none; color: white; padding: 10px; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s; }
+        .dock button:active { transform: scale(0.9); }
+        .dock button:disabled { opacity: 0.2; }
+        
+        .btn-reset {
+            background: var(--accent-color) !important; font-size: 0.75rem !important;
+            font-weight: bold; padding: 6px 12px !important; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 1px; margin: 0 5px;
+        }
+        .page-counter { font-family: sans-serif; font-size: 0.8rem; min-width: 60px; text-align: center; color: #ecf0f1; }
+        .sep { width: 1px; height: 20px; background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    {% include "email_api/_header.html" %}
+
+    <div id="book-viewport">
+        <div id="book-wrapper">
+            <div class="book" id="book">
+                <!-- Les pages seront générées ici par JavaScript -->
+            </div>
+        </div>
+
+        <div class="dock" id="dock">
+            <button id="prevBtn" onclick="movePrev()">◀</button>
+            <div class="sep"></div>
+            <button onclick="changeZoom(-0.2)">−</button>
+            <button class="btn-reset" onclick="resetView()">Reset</button>
+            <button onclick="changeZoom(0.2)">+</button>
+            <div class="sep"></div>
+            <div class="page-counter" id="pageIndicator">Chargement...</div>
+            <div class="sep"></div>
+            <button id="nextBtn" onclick="moveNext()">▶</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DONNÉES DE L'HISTOIRE (PAGINATION EXPLICITE) ---
+        const story_data = [
+            { text: "Les fabuleuses aventures de Jojo et Lolo", img: "{% static 'email_api/jojololo_1.PNG' %}" }, // Page 1 (Couverture)
+            { text: "Aujourd'hui est un grand jour pour Jojo et sa petite sœur Lolo. Sur la table du salon, une boîte mystérieuse les attend. « C’est notre premier kit Arduino ! » s’exclame Jojo avec enthousiasme. À l'intérieur, ils découvrent des objets fascinants qui ressemblent à des pièces de vaisseau spatial miniature.", img:  "{% static 'email_api/jojololo_2.PNG' %}" },
+            { text: "Jojo sort une petite plaque bleue couverte de minuscules composants. « Voici le cerveau de notre projet : l'Arduino, » explique-t-il à Lolo. « C'est lui qui va diriger tout ce que nous allons construire. » Lolo touche délicatement les bords de la plaque, impressionnée par ce petit ordinateur.", img: "{% static 'email_api/jojololo_3.PNG' %}" },
+            { text: "« Et ça, c'est quoi ? » demande Lolo en attrapant une plaque blanche remplie de petits trous. Jojo sourit : « C'est une breadboard. C'est comme un terrain de jeu où l'on plante nos composants pour les relier entre eux sans avoir besoin de colle ou de soudure. »", img: "{% static 'email_api/jojololo_4.PNG' %}" },
+            { text: "Jojo choisit ensuite une petite ampoule rouge avec deux pattes métalliques. « C'est une LED, » dit-il. « Attention, la patte la plus longue est le 'plus' et la plus courte est le 'moins'. Il faut les mettre dans le bon sens pour que le courant passe ! » Il l'insère doucement dans les trous de la breadboard.", img: "{% static 'email_api/jojololo_5.PNG' %}" },
+            { text: "Pour protéger leur petite LED d'un courant trop fort, Jojo sort une résistance. « C'est comme un petit barrage qui ralentit l'électricité pour ne pas griller la lampe, » explique-t-il. Il place une extrémité de la résistance sur la même ligne que la patte de la LED.", img: "{% static 'email_api/jojololo_6.PNG' %}" },
+            { text: "C'est maintenant au tour de Lolo de jouer. Jojo lui tend des fils colorés appelés \"jumpers\". « On va relier le tout au cerveau ! » dit Lolo. Avec beaucoup d'application, elle branche un fil rouge entre la résistance et le port numéro 13 de la carte Arduino.", img: "{% static 'email_api/jojololo_7.PNG' %}" },
+            { text: "Lolo prend ensuite un fil noir. Elle le branche de la patte courte de la LED vers le port marqué \"GND\" sur l'Arduino. « GND, ça veut dire la terre, » explique Jojo. « Maintenant, le chemin pour l'électricité est prêt, c'est un circuit fermé ! »", img: "{% static 'email_api/jojololo_8.PNG' %}" },
+            { text: "Jojo branche l'Arduino à l'ordinateur de la maison avec un câble USB. « L'ordinateur va donner de l'énergie à l'Arduino, mais il va aussi lui envoyer nos instructions secrètes : le code ! » L'écran s'illumine, prêt à recevoir leurs commandes.", img: "{% static 'email_api/jojololo_9.PNG' %}" },
+            { text: "Sur l'ordinateur, ils écrivent ensemble un message simple. Jojo tape les mots magiques : digitalWrite(13, HIGH); pour dire à l'Arduino d'envoyer du courant. « Et on appuie sur la flèche pour téléverser le code ! » s'exclame Lolo en cliquant sur la souris.", img: "{% static 'email_api/jojololo_10.PNG' %}" },
+            { text: "Soudain, un petit éclat rouge illumine leurs visages. « Ça marche ! » crient-ils en cœur. La LED brille comme une petite étoile sur la breadboard. Jojo et Lolo se font un \"high-five\". Ils viennent de réaliser leur toute première invention électronique !", img: "{% static 'email_api/jojololo_11.PNG' %}" }
+        ];
+
+        // --- VARIABLES GLOBALES ---
+        const wrapper = document.getElementById('book-wrapper');
+        const book = document.getElementById('book');
+        const pageIndicator = document.getElementById('pageIndicator');
+        
+        let totalSheets = 0;
+        let scale = 1, currentIdx = 1;
+        let pointX = 0, pointY = 0;
+        let startX = 0, startY = 0;
+        let isPanning = false, initialDist = 0;
+
+        // --- FONCTIONS DE NAVIGATION ---
+        function updateTransform() { wrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+        function resetView() { scale = 1; pointX = 0; pointY = 0; updateTransform(); }
+        function changeZoom(amt) { scale = Math.min(Math.max(0.6, scale + amt), 4); updateTransform(); }
+
+        function updateUI() {
+            document.getElementById('prevBtn').disabled = (currentIdx === 1);
+            document.getElementById('nextBtn').disabled = (currentIdx > totalSheets);
+            pageIndicator.innerText = `${currentIdx} / ${totalSheets + 1}`;
+        }
+
+        function moveNext() {
+            if (currentIdx <= totalSheets) {
+                const p = document.getElementById(`p${currentIdx}`);
+                if (currentIdx === 1) book.style.transform = "translateX(50%)";
+                p.classList.add('flipped');
+                const savedIdx = currentIdx;
+                setTimeout(() => { p.style.zIndex = savedIdx; }, 400);
+                currentIdx++;
+                if (currentIdx > totalSheets) book.style.transform = "translateX(100%)";
+                updateUI();
+            }
+        }
+
+        function movePrev() {
+            if (currentIdx > 1) {
+                if (currentIdx > totalSheets) book.style.transform = "translateX(50%)";
+                currentIdx--;
+                const p = document.getElementById(`p${currentIdx}`);
+                p.classList.remove('flipped');
+                p.style.zIndex = 100 + (totalSheets - currentIdx); 
+                if (currentIdx === 1) book.style.transform = "translateX(0%)";
+                updateUI();
+            }
+        }
+
+        // --- LOGIQUE DE PAGINATION ---
+        function generatePages() {
+            return story_data;
+        }
+
+        function generateBook() {
+            const pagesData = generatePages();
+            book.innerHTML = '';
+
+            let sheetCount = 0;
+            let pageIdx = 0;
+
+            // On groupe les pages par 2 pour faire des feuilles (Recto/Verso)
+            // Page 1 (index 0) est le Recto de la feuille 1
+            // Page 2 (index 1) est le Verso de la feuille 1
+            
+            while (pageIdx < pagesData.length) {
+                sheetCount++;
+                
+                const frontData = pagesData[pageIdx];
+                const backData = pagesData[pageIdx+1]; // Peut être undefined
+
+                const frontHTML = buildPageContent(frontData, pageIdx + 1);
+                const backHTML = backData ? buildPageContent(backData, pageIdx + 2) : buildPageContent({text:"", img:null}, pageIdx + 2);
+
+                const zIndex = 100 - sheetCount;
+                book.appendChild(createSheet(sheetCount, frontHTML, backHTML, zIndex));
+                
+                pageIdx += 2;
+            }
+
+            // Feuille de fin
+            sheetCount++;
+            const endFront = `<div style="display:flex; align-items:center; justify-content:center; height:100%;"><h1 style="color:#bdc3c7;">FIN</h1></div>`;
+            const endBack = `<div style="display:flex; align-items:center; justify-content:center; height:100%;"><small>© Kodikids Story</small></div>`;
+            book.appendChild(createSheet(sheetCount, endFront, endBack, 100 - sheetCount));
+
+            totalSheets = sheetCount;
+            updateUI();
+        }
+
+        function buildPageContent(data, pageNum) {
+            let html = `<div class="page-content">`;
+            // Titre spécial pour la page 1
+            if (pageNum === 1) {
+                html += `<h2>Jojo, Lolo et l'Étoile Magique</h2>`;
+            }
+            
+            if (data.img) {
+                html += `<img class="book-img" src="${data.img}">`;
+            }
+            if (data.text) {
+                html += `<p>${data.text}</p>`;
+            }
+            html += `</div><div class="page-footer">${pageNum}</div>`;
+            return html;
+        }
+
+        function createSheet(id, frontHTML, backHTML, zIndex) {
+            const div = document.createElement('div');
+            div.className = 'page';
+            div.id = `p${id}`;
+            div.style.zIndex = zIndex;
+            div.innerHTML = `
+                <div class="front">${frontHTML}</div>
+                <div class="back">${backHTML}</div>
+            `;
+            return div;
+        }
+
+        // --- GESTION DU DOCK DÉPLAÇABLE (SOURIS + TACTILE) ---
+        const dock = document.getElementById('dock');
+        let isDockDragging = false;
+        let dockOffsetX, dockOffsetY;
+
+        const onDragStart = (clientX, clientY, target) => {
+            // Empêche le drag si on clique sur un bouton à l'intérieur du dock
+            if (target.tagName === 'BUTTON' || target.closest('button')) return;
+
+            isDockDragging = true;
+            dock.style.cursor = 'grabbing';
+            dock.style.transition = 'none'; // Pour un déplacement fluide
+
+            // On convertit le positionnement en top/left si ce n'est pas déjà fait
+            if (dock.style.bottom !== 'auto') {
+                const rect = dock.getBoundingClientRect();
+                const parentRect = dock.parentElement.getBoundingClientRect();
+                dock.style.left = `${rect.left - parentRect.left}px`;
+                dock.style.top = `${rect.top - parentRect.top}px`;
+                dock.style.bottom = 'auto';
+                dock.style.transform = 'none';
+            }
+
+            // Calcul de l'offset par rapport au coin supérieur gauche du dock
+            const rect = dock.getBoundingClientRect();
+            dockOffsetX = clientX - rect.left;
+            dockOffsetY = clientY - rect.top;
+        };
+
+        const onDragMove = (clientX, clientY) => {
+            if (!isDockDragging) return;
+            
+            const parentRect = dock.parentElement.getBoundingClientRect();
+            let newLeft = clientX - parentRect.left - dockOffsetX;
+            let newTop = clientY - parentRect.top - dockOffsetY;
+
+            // Contraintes pour que le dock reste dans le viewport du livre
+            const dockRect = dock.getBoundingClientRect();
+            newLeft = Math.max(0, Math.min(newLeft, parentRect.width - dockRect.width));
+            newTop = Math.max(0, Math.min(newTop, parentRect.height - dockRect.height));
+
+            dock.style.left = `${newLeft}px`;
+            dock.style.top = `${newTop}px`;
+        };
+
+        const onDragEnd = () => {
+            isDockDragging = false;
+            dock.style.cursor = 'grab';
+        };
+
+        // Événements Souris
+        dock.addEventListener('mousedown', (e) => onDragStart(e.clientX, e.clientY, e.target));
+        window.addEventListener('mousemove', (e) => onDragMove(e.clientX, e.clientY));
+        window.addEventListener('mouseup', onDragEnd);
+
+        // Événements Tactiles
+        dock.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) onDragStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+        }, { passive: false });
+
+        window.addEventListener('touchstart', (e) => {
+            if (isDockDragging) return; // Si on bouge le dock, on ne touche pas au livre
+            if (e.touches.length === 2) {
+                // Début du zoom (2 doigts)
+                isPanning = false;
+                initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            } else if (e.touches.length === 1) {
+                // Début du déplacement (1 doigt)
+                isPanning = true;
+                startX = e.touches[0].clientX - pointX;
+                startY = e.touches[0].clientY - pointY;
+            }
+        }, { passive: false });
+        
+        window.addEventListener('touchmove', (e) => {
+            if (isDockDragging && e.touches.length === 1) {
+                e.preventDefault(); // Empêche le scroll de la page pendant le drag du dock
+                onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+                return;
+            }
+
+            // Gestion du Livre (Zoom et Pan)
+            if (e.touches.length === 2) {
+                if (e.cancelable) e.preventDefault();
+                const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                if (initialDist > 0) {
+                    scale *= (currentDist / initialDist);
+                    scale = Math.min(Math.max(0.6, scale), 4); // Limites du zoom
+                    initialDist = currentDist;
+                    updateTransform();
+                }
+            } else if (e.touches.length === 1 && isPanning) {
+                if (e.cancelable) e.preventDefault();
+                pointX = e.touches[0].clientX - startX;
+                pointY = e.touches[0].clientY - startY;
+                updateTransform();
+            }
+        }, { passive: false });
+        
+        window.addEventListener('touchend', (e) => { onDragEnd(); if(e.touches.length === 0) isPanning = false; });
+
+        window.onload = () => {
+            generateBook();
+            // (Le reste des événements tactiles/souris est identique à v2, omis pour brièveté mais nécessaire pour le fonctionnement complet)
+        };
+    </script>
+</body>
+</html>

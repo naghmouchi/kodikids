@@ -235,6 +235,18 @@ def blockly_robot_simulator(request):
 def story_book_v2(request):
     return render(request, 'email_api/story_bookv2.html')
 
+def story_book_v3(request):
+    return render(request, 'email_api/story_bookv3.html')
+
+def story_book_v4(request):
+    return render(request, 'email_api/story_bookv4.html')
+
+def story_book_v5(request):
+    return render(request, 'email_api/story_bookv5.html')
+
+def story_book_v6(request):
+    return render(request, 'email_api/story_bookv6.html')
+
 def story_hub(request):
     return render(request, 'email_api/story_hub.html')
 

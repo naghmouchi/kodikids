@@ -60,8 +60,16 @@
     .tut-card[data-color="red"]:hover { border-color: #e74c3c; }
 
     .card-content { padding: 30px; position: relative; z-index: 2; background: transparent; flex: 1; }
-    .card-icon { font-size: 3.5rem; margin-bottom: 20px; display: block; transition: transform 0.3s; }
-    .tut-card:hover .card-icon { transform: scale(1.1) rotate(5deg); }
+    
+    .card-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+    }
+    .tut-card:hover .card-img { transform: scale(1.03); }
     
     .card-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 10px; color: #2d3436; }
     .card-desc { font-size: 1rem; color: #636e72; line-height: 1.6; margin: 0; }
@@ -152,59 +160,43 @@
   <main class="container" style="margin-bottom: 80px;">
     <div class="tutorials-grid" id="grid">
         
-        <!-- Story 1: AI -->
-        <a href="/api/play/story_book_v2/" class="tut-card" data-color="purple" data-keywords="ia intelligence artificielle robot sophie emotion">
+        <!-- Story 1:  -->
+        <a href="/api/play/story_book_v3/" class="tut-card" data-color="purple" data-keywords="ia intelligence artificielle robot sophie emotion">
             <div class="card-content">
-                <span class="card-icon">🤖</span>
-                <h3 class="card-title">L'Ami Robot de Sophie</h3>
-                <p class="card-desc">Sophie apprend à son robot à reconnaître les émotions grâce à l'Intelligence Artificielle.</p>
+                <img src="{% static 'email_api/jojololo_11.PNG' %}" class="card-img" alt="Robot">
+                <h3 class="card-title">Jojo, Lolo et l'Étoile Magique</h3>
+                <p class="card-desc">Les fabuleuses aventures de Jojo et Lolo avec l'Arduino.</p>
             </div>
         </a>
 
-        <!-- Story 2: IoT -->
-        <a href="#" class="tut-card" data-color="teal" data-keywords="iot internet objets plante jardin leo capteur">
+        <!-- Story 2:  -->
+        <a href="/api/play/story_book_v4" class="tut-card" data-color="blue" data-keywords="arduino electronique velo lumiere max securite">
             <div class="card-content">
-                <span class="card-icon">🌱</span>
-                <h3 class="card-title">La Serre Connectée de Léo</h3>
-                <p class="card-desc">Léo automatise l'arrosage de ses plantes en connectant des capteurs à Internet.</p>
+                <img src="{% static 'email_api/wiyed_1.PNG' %}" class="card-img" alt="Vélo">
+                <h3 class="card-title">Les apprentis sorciers de l’IoT : Iyed et William</h3>
+                <p class="card-desc">les inventeurs enchantés de l’IoT.</p>
             </div>
         </a>
 
-        <!-- Story 3: Arduino -->
-        <a href="#" class="tut-card" data-color="blue" data-keywords="arduino electronique velo lumiere max securite">
+        <!-- Story 3:  -->
+        <a href="/api/play/story_book_v5/" class="tut-card" data-color="yellow" data-keywords="python code enquete mystere ada algorithme">
             <div class="card-content">
-                <span class="card-icon">🚲</span>
-                <h3 class="card-title">Le Vélo Lumineux de Max</h3>
-                <p class="card-desc">Max construit un système de clignotants pour son vélo avec une carte Arduino.</p>
+                <img src="{% static 'email_api/lyneia_1.PNG' %}" class="card-img" alt="Code">
+                <h3 class="card-title">Lyne, Douda et l'IA Aki</h3>
+                <p class="card-desc">Aki, l’IA curieuse, apprend tout de Douda et Lyne.</p>
             </div>
         </a>
 
-        <!-- Story 4: Python -->
-        <a href="#" class="tut-card" data-color="yellow" data-keywords="python code enquete mystere ada algorithme">
+        <!-- Story 4:  -->
+        <a href="/api/play/story_book_v6/" class="tut-card" data-color="orange" data-keywords="web html css site internet tom design">
             <div class="card-content">
-                <span class="card-icon">🐍</span>
-                <h3 class="card-title">Le Code Secret d'Ada</h3>
-                <p class="card-desc">Ada utilise le langage Python pour déchiffrer des messages et résoudre un mystère.</p>
+                <img src="{% static 'email_api/emmaap_1.PNG' %}" class="card-img" alt="Web">
+                <h3 class="card-title">Le Code Magique d'Emma et Assil</h3>
+                <p class="card-desc">Le Code Magique d'Emma et Assil.</p>
             </div>
         </a>
 
-        <!-- Story 5: Web -->
-        <a href="#" class="tut-card" data-color="orange" data-keywords="web html css site internet tom design">
-            <div class="card-content">
-                <span class="card-icon">💻</span>
-                <h3 class="card-title">Le Site Web de Tom</h3>
-                <p class="card-desc">Tom crée sa propre plateforme en ligne pour partager ses dessins avec le monde entier.</p>
-            </div>
-        </a>
 
-        <!-- Story 6: Mobile -->
-        <a href="#" class="tut-card" data-color="red" data-keywords="mobile app application smartphone mia communaute">
-            <div class="card-content">
-                <span class="card-icon">📱</span>
-                <h3 class="card-title">L'Appli de Mia</h3>
-                <p class="card-desc">Mia développe une application mobile pour aider ses voisins à s'entraider.</p>
-            </div>
-        </a>
 
     </div>
     
@@ -240,7 +232,7 @@
 
   <footer>
     <div class="container">
-      <span>© Play & Learn — Enseignement de la programmation, des robots et de l'IA</span>
+      <span>© KODIKIDS — Enseignement de la programmation, des robots et de l'IA</span>
     </div>
   </footer>
 

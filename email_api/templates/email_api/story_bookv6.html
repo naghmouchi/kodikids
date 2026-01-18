@@ -1,0 +1,388 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Livre Interactif V6 - Emma et Assil</title>
+    <link rel="stylesheet" href="{% static 'email_api/css/style.css' %}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <style>
+        /* --- Layout Global --- */
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: radial-gradient(circle, #2c3e50, #000000); /* Fond sombre */
+            touch-action: none;
+        }
+
+        header {
+            flex: 0 0 auto;
+            z-index: 2000;
+            background: white;
+        }
+
+        #book-viewport {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 2500px;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Georgia', serif;
+        }
+
+        /* --- Styles du Livre --- */
+        :root {
+            --book-w: 320px;
+            --book-h: 480px;
+            --page-color: #fdf6e3; /* Papier un peu jauni */
+            --dock-bg: #8e44ad; /* Violet */
+            --accent-color: #f1c40f;
+        }
+
+        #book-wrapper {
+            position: relative;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.4s ease-out;
+        }
+
+        .book {
+            position: relative;
+            width: var(--book-w);
+            height: var(--book-h);
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .page {
+            position: absolute;
+            width: 100%; height: 100%;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        .front, .back {
+            position: absolute;
+            width: 100%; height: 100%;
+            padding: 25px;
+            box-sizing: border-box;
+            backface-visibility: hidden;
+            background: var(--page-color);
+            border-radius: 2px 5px 5px 2px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.1);
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #2c3e50;
+            overflow: hidden;
+        }
+
+        .front {
+            z-index: 2;
+            background: linear-gradient(to right, #e0d5b7 0%, var(--page-color) 5%, var(--page-color) 100%);
+            box-shadow: inset -1px 0 5px rgba(0,0,0,0.05), 5px 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            background: linear-gradient(to left, #e0d5b7 0%, var(--page-color) 5%, var(--page-color) 100%);
+            box-shadow: inset 1px 0 5px rgba(0,0,0,0.05), -5px 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .page.flipped { transform: rotateY(-180deg); }
+
+        .book-img {
+            width: 100%; height: 180px; object-fit: cover;
+            border-radius: 5px; margin: 0 0 15px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        .page-footer {
+            position: absolute; bottom: 15px; left: 0; width: 100%;
+            text-align: center; font-family: Arial, sans-serif; font-size: 0.7rem; color: #7f8c8d;
+        }
+        
+        /* --- SCROLLABLE CONTENT --- */
+        .page-content {
+            flex: 1;
+            overflow-y: auto; /* Permet le scroll si le texte est trop long */
+            padding-right: 5px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,0,0,0.2) transparent;
+        }
+        .page-content::-webkit-scrollbar { width: 4px; }
+        .page-content::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 4px; }
+
+        /* --- Dock de Contrôle --- */
+        .dock {
+            position: absolute;
+            bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--dock-bg);
+            padding: 8px 15px; border-radius: 40px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 5000; color: white;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .dock button { background: none; border: none; color: white; padding: 10px; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s; }
+        .dock button:active { transform: scale(0.9); }
+        .dock button:disabled { opacity: 0.2; }
+        
+        .btn-reset {
+            background: var(--accent-color) !important; font-size: 0.75rem !important; color: #333 !important;
+            font-weight: bold; padding: 6px 12px !important; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 1px; margin: 0 5px;
+        }
+        .page-counter { font-family: sans-serif; font-size: 0.8rem; min-width: 60px; text-align: center; color: #ecf0f1; }
+        .sep { width: 1px; height: 20px; background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    {% include "email_api/_header.html" %}
+
+    <div id="book-viewport">
+        <div id="book-wrapper">
+            <div class="book" id="book">
+                <!-- Les pages seront générées ici par JavaScript -->
+            </div>
+        </div>
+
+        <div class="dock" id="dock">
+            <button id="prevBtn" onclick="movePrev()">◀</button>
+            <div class="sep"></div>
+            <button onclick="changeZoom(-0.2)">−</button>
+            <button class="btn-reset" onclick="resetView()">Reset</button>
+            <button onclick="changeZoom(0.2)">+</button>
+            <div class="sep"></div>
+            <div class="page-counter" id="pageIndicator">Chargement...</div>
+            <div class="sep"></div>
+            <button id="nextBtn" onclick="moveNext()">▶</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DONNÉES DE L'HISTOIRE (PAGINATION EXPLICITE) ---
+        const story_data = [
+            { text: "Le Code Magique d'Emma et Assil", img: "{% static 'email_api/emmaap_1.PNG' %}" }, // Page 1 (Couverture)
+            { text: "Emma et Assil sont deux amies inséparables qui adorent créer des choses. Aujourd'hui, elles ont une idée géniale : fabriquer une application mobile pour aider les enfants du quartier à échanger leurs jouets. Emma, avec ses tresses noires, dessine les plans sur une grande feuille, tandis qu'Assil, avec ses boucles claires et ses yeux verts pétillants, prépare les ordinateurs. « On va l'appeler Eco-Vente ! » s'exclame Assil. Pour réaliser ce projet, elles décident d'utiliser un outil puissant appelé React Native.", img: "{% static 'email_api/emmaap_2.PNG' %}" },
+            { text: "Les deux amies commencent à coder. Assil explique que dans React Native, on construit l'application avec des \"composants\". « C'est comme des briques de LEGO, Emma ! » dit-elle. Assil crée le premier composant pour l'en-tête de l'application. Emma apprend que chaque composant peut recevoir des informations spéciales appelées \"props\". Par exemple, une prop peut dire au composant quel titre afficher ou quelle couleur utiliser.", img: "{% static 'email_api/emmaap_3.PNG' %}" },
+            { text: "« Mais comment l'application se souvient-elle si on a cliqué sur un objet ? » demande Emma. Assil lui montre alors le concept du \"state\". Le state, c'est comme la mémoire à court terme de l'application. Emma tape quelques lignes de code et, soudain, quand elle appuie sur une image de ballon sur la tablette, le chiffre dans le panier passe de zéro à un. « Ça marche ! » crie Emma. Le state a changé, et l'application s'est mise à jour toute seule.", img: "{% static 'email_api/emmaap_4.PNG' %}" },
+            { text: "L'application devient grande, et il y a beaucoup de jouets. « C'est difficile de trouver ce qu'on cherche », remarque Assil. Elle propose alors d'intégrer de l'intelligence artificielle (IA). Pour cela, elles doivent concevoir des algorithmes, qui sont comme des recettes de cuisine permettant à l'ordinateur de prendre des décisions. L'IA va analyser les goûts des utilisateurs pour leur proposer les meilleurs jouets.", img: "{% static 'email_api/emmaap_5.PNG' %}" },
+            { text: "Pour que l'IA soit vraiment intelligente, elles utilisent l'apprentissage automatique, ou \"Machine Learning\". Emma et Assil montrent des photos de différents jouets à la caméra de l'ordinateur. L'algorithme apprend à reconnaître un robot, une poupée ou un camion. Plus elles lui montrent d'exemples, plus l'application devient efficace pour identifier les articles que les enfants veulent vendre.", img: "{% static 'email_api/emmaap_6.PNG' %}" },
+            { text: "Enfin, Eco-Vente est prête ! Grâce à React Native, l'application est fluide et belle. Et grâce à l'IA, la recherche est ultra-rapide. Les enfants du quartier commencent déjà à l'utiliser pour donner une seconde vie à leurs trésors. Emma et Assil se tapent dans la main, fières d'être devenues de véritables développeuses. Elles savent maintenant que coder, c'est un peu comme avoir des super-pouvoirs pour transformer des idées en réalité.", img: "{% static 'email_api/emmaap_7.PNG' %}" }
+        ];
+
+        // --- VARIABLES GLOBALES ---
+        const wrapper = document.getElementById('book-wrapper');
+        const book = document.getElementById('book');
+        const pageIndicator = document.getElementById('pageIndicator');
+        
+        let totalSheets = 0;
+        let scale = 1, currentIdx = 1;
+        let pointX = 0, pointY = 0;
+        let startX = 0, startY = 0;
+        let isPanning = false, initialDist = 0;
+
+        // --- FONCTIONS DE NAVIGATION ---
+        function updateTransform() { wrapper.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+        function resetView() { scale = 1; pointX = 0; pointY = 0; updateTransform(); }
+        function changeZoom(amt) { scale = Math.min(Math.max(0.6, scale + amt), 4); updateTransform(); }
+
+        function updateUI() {
+            document.getElementById('prevBtn').disabled = (currentIdx === 1);
+            document.getElementById('nextBtn').disabled = (currentIdx > totalSheets);
+            pageIndicator.innerText = `${currentIdx} / ${totalSheets + 1}`;
+        }
+
+        function moveNext() {
+            if (currentIdx <= totalSheets) {
+                const p = document.getElementById(`p${currentIdx}`);
+                if (currentIdx === 1) book.style.transform = "translateX(50%)";
+                p.classList.add('flipped');
+                const savedIdx = currentIdx;
+                setTimeout(() => { p.style.zIndex = savedIdx; }, 400);
+                currentIdx++;
+                if (currentIdx > totalSheets) book.style.transform = "translateX(100%)";
+                updateUI();
+            }
+        }
+
+        function movePrev() {
+            if (currentIdx > 1) {
+                if (currentIdx > totalSheets) book.style.transform = "translateX(50%)";
+                currentIdx--;
+                const p = document.getElementById(`p${currentIdx}`);
+                p.classList.remove('flipped');
+                p.style.zIndex = 100 + (totalSheets - currentIdx); 
+                if (currentIdx === 1) book.style.transform = "translateX(0%)";
+                updateUI();
+            }
+        }
+
+        // --- LOGIQUE DE PAGINATION ---
+        function generateBook() {
+            const pagesData = story_data;
+            book.innerHTML = '';
+
+            let sheetCount = 0;
+            let pageIdx = 0;
+
+            while (pageIdx < pagesData.length) {
+                sheetCount++;
+                
+                const frontData = pagesData[pageIdx];
+                const backData = pagesData[pageIdx+1];
+
+                const frontHTML = buildPageContent(frontData, pageIdx + 1);
+                const backHTML = backData ? buildPageContent(backData, pageIdx + 2) : buildPageContent({text:"", img:null}, pageIdx + 2);
+
+                const zIndex = 100 - sheetCount;
+                book.appendChild(createSheet(sheetCount, frontHTML, backHTML, zIndex));
+                
+                pageIdx += 2;
+            }
+
+            // Feuille de fin
+            sheetCount++;
+            const endFront = `<div style="display:flex; align-items:center; justify-content:center; height:100%;"><h1 style="color:#bdc3c7;">FIN</h1></div>`;
+            const endBack = `<div style="display:flex; align-items:center; justify-content:center; height:100%;"><small>© Kodikids Story</small></div>`;
+            book.appendChild(createSheet(sheetCount, endFront, endBack, 100 - sheetCount));
+
+            totalSheets = sheetCount;
+            updateUI();
+        }
+
+        function buildPageContent(data, pageNum) {
+            let html = `<div class="page-content">`;
+            // Titre spécial pour la page 1
+            if (pageNum === 1) {
+                html += `<h2>Le Code Magique d'Emma et Assil</h2>`;
+            }
+            
+            if (data.img) {
+                html += `<img class="book-img" src="${data.img}">`;
+            }
+            if (data.text) {
+                html += `<p>${data.text}</p>`;
+            }
+            html += `</div><div class="page-footer">${pageNum}</div>`;
+            return html;
+        }
+
+        function createSheet(id, frontHTML, backHTML, zIndex) {
+            const div = document.createElement('div');
+            div.className = 'page';
+            div.id = `p${id}`;
+            div.style.zIndex = zIndex;
+            div.innerHTML = `
+                <div class="front">${frontHTML}</div>
+                <div class="back">${backHTML}</div>
+            `;
+            return div;
+        }
+
+        // --- GESTION DU DOCK DÉPLAÇABLE (SOURIS + TACTILE) ---
+        const dock = document.getElementById('dock');
+        let isDockDragging = false;
+        let dockOffsetX, dockOffsetY;
+
+        const onDragStart = (clientX, clientY, target) => {
+            if (target.tagName === 'BUTTON' || target.closest('button')) return;
+            isDockDragging = true;
+            dock.style.cursor = 'grabbing';
+            dock.style.transition = 'none';
+            if (dock.style.bottom !== 'auto') {
+                const rect = dock.getBoundingClientRect();
+                const parentRect = dock.parentElement.getBoundingClientRect();
+                dock.style.left = `${rect.left - parentRect.left}px`;
+                dock.style.top = `${rect.top - parentRect.top}px`;
+                dock.style.bottom = 'auto';
+                dock.style.transform = 'none';
+            }
+            const rect = dock.getBoundingClientRect();
+            dockOffsetX = clientX - rect.left;
+            dockOffsetY = clientY - rect.top;
+        };
+
+        const onDragMove = (clientX, clientY) => {
+            if (!isDockDragging) return;
+            const parentRect = dock.parentElement.getBoundingClientRect();
+            let newLeft = clientX - parentRect.left - dockOffsetX;
+            let newTop = clientY - parentRect.top - dockOffsetY;
+            const dockRect = dock.getBoundingClientRect();
+            newLeft = Math.max(0, Math.min(newLeft, parentRect.width - dockRect.width));
+            newTop = Math.max(0, Math.min(newTop, parentRect.height - dockRect.height));
+            dock.style.left = `${newLeft}px`;
+            dock.style.top = `${newTop}px`;
+        };
+
+        const onDragEnd = () => {
+            isDockDragging = false;
+            dock.style.cursor = 'grab';
+        };
+
+        dock.addEventListener('mousedown', (e) => onDragStart(e.clientX, e.clientY, e.target));
+        window.addEventListener('mousemove', (e) => onDragMove(e.clientX, e.clientY));
+        window.addEventListener('mouseup', onDragEnd);
+
+        dock.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) onDragStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+        }, { passive: false });
+
+        window.addEventListener('touchstart', (e) => {
+            if (isDockDragging) return;
+            if (e.touches.length === 2) {
+                isPanning = false;
+                initialDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            } else if (e.touches.length === 1) {
+                isPanning = true;
+                startX = e.touches[0].clientX - pointX;
+                startY = e.touches[0].clientY - pointY;
+            }
+        }, { passive: false });
+        
+        window.addEventListener('touchmove', (e) => {
+            if (isDockDragging && e.touches.length === 1) {
+                e.preventDefault();
+                onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+                return;
+            }
+            if (e.touches.length === 2) {
+                if (e.cancelable) e.preventDefault();
+                const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                if (initialDist > 0) {
+                    scale *= (currentDist / initialDist);
+                    scale = Math.min(Math.max(0.6, scale), 4);
+                    initialDist = currentDist;
+                    updateTransform();
+                }
+            } else if (e.touches.length === 1 && isPanning) {
+                if (e.cancelable) e.preventDefault();
+                pointX = e.touches[0].clientX - startX;
+                pointY = e.touches[0].clientY - startY;
+                updateTransform();
+            }
+        }, { passive: false });
+        
+        window.addEventListener('touchend', (e) => { onDragEnd(); if(e.touches.length === 0) isPanning = false; });
+
+        window.onload = () => {
+            generateBook();
+        };
+    </script>
+</body>
+</html>
